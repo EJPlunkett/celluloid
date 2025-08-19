@@ -1,5 +1,14 @@
-body {
+/* Fix for background scrolling issue */
+html, body {
+  height: 100%;
   margin: 0;
+  padding: 0;
+  background-color: #f6f5f3;
+  background-attachment: fixed;
+  overflow-x: hidden;
+}
+
+body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
     'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
     sans-serif;
@@ -10,4 +19,9 @@ body {
 code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
+}
+
+/* Prevent background scroll on mobile */
+* {
+  -webkit-overflow-scrolling: touch;
 }

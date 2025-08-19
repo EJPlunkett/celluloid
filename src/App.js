@@ -1,25 +1,43 @@
-import logo from './logo.svg';
-import './App.css';
+import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { AuthProvider } from './contexts/AuthContext'
+import Home from './components/Home_Construction'
+import Match from './components/Match'
+import About from './components/About'
+import Color from './components/Color'
+import Create from './components/Create'
+import Cards from './components/Cards'
+import Login from './components/Login'
+import Donate from './components/Donate'
+import Surprise from './components/Surprise'
+import Terms from './components/Terms'
+import Vibes from './components/Vibes'
+import Watchlist from './components/Watchlist'
+import Words from './components/Words'
+import Welcome from './components/Welcome'
 
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+    <AuthProvider>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/match" element={<Match />} />
+          <Route path="/about" element={<About />} />
+          <Route path="/color" element={<Color />} />
+          <Route path="/create" element={<Create />} />
+          <Route path="/cards" element={<Cards />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/donate" element={<Donate />} />
+          <Route path="/surprise" element={<Surprise />} />
+          <Route path="/terms" element={<Terms />} />
+          <Route path="/vibes" element={<Vibes />} />
+          <Route path="/watchlist" element={<Watchlist />} />
+          <Route path="/words" element={<Words />} />
+          <Route path="/welcome" element={<Welcome />} />
+        </Routes>
+      </BrowserRouter>
+    </AuthProvider>
+  )
 }
 
-export default App;
+export default App
