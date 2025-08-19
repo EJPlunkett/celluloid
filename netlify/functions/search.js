@@ -4,11 +4,11 @@ import OpenAI from 'openai'
 // Initialize clients
 const supabase = createClient(
   'https://yrzugdmatddwypzdirhz.supabase.co',
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlyenVnZG1hdGRkd3lwemRpcmh6Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1NTQ1MjU3OCwiZXhwIjoyMDcxMDI4NTc4fQ.luT8IAW2c-hFiInxDzLOcgbWqbt-px_HK9ddyv_iah0'
+  process.env.SUPABASE_SERVICE_ROLE_KEY
 )
 
 const openai = new OpenAI({
-  apiKey: 'YOUR_OPENAI_API_KEY' 
+  apiKey: process.env.OPENAI_API_KEY
 })
 
 // GPT preprocessing prompt
