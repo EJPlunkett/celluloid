@@ -1,6 +1,6 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { AuthProvider } from './contexts/AuthContext'
-import Home from './components/Home_Construction'
+import Home_Construction from './components/Home_Construction'
 import Match from './components/Match'
 import About from './components/About'
 import Color from './components/Color'
@@ -20,7 +20,7 @@ function App() {
     <AuthProvider>
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<Home />} />
+          <Route path="/" element={<Home_Construction />} />
           <Route path="/match" element={<Match />} />
           <Route path="/about" element={<About />} />
           <Route path="/color" element={<Color />} />

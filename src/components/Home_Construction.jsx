@@ -1,4 +1,4 @@
-function Home() {
+function Home_Construction() {
   return (
     <div style={{ 
       margin: 0,
@@ -68,5 +68,4 @@ function Home() {
   );
 }
 
-export default Home;
-
+export default Home_Construction;
