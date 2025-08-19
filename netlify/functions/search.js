@@ -8,7 +8,7 @@ const supabase = createClient(
 )
 
 const openai = new OpenAI({
-  apiKey: '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' 
+  apiKey: 'YOUR_OPENAI_API_KEY' 
 })
 
 // GPT preprocessing prompt
