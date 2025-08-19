@@ -436,7 +436,7 @@ function Create() {
               lineHeight: 1.4,
               fontStyle: 'italic'
             }}>
-              Pick your region so we can fine-tune results. Local streaming support is on the way.
+              Pick your region to fine-tune results. Market-based streaming filters coming soon.
             </p>
             <select 
               id="region"
