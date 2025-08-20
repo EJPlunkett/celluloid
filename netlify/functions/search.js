@@ -13,8 +13,9 @@ const openai = new OpenAI({
 
 // Updated GPT preprocessing prompt
 const preprocessingPrompt = `
-You are a movie expert helping users find NYC films. Analyze the user's input for:
+You are a movie expert helping users find NYC films. You have access to a database of approximately 1,500 movies that were filmed in or prominently feature New York City.
 
+Analyze the user's input for:
 1. **Aesthetic elements** (lighting, colors, mood, cinematography, settings, visual style)
 2. **Thematic elements** (actors, directors, genres, specific films, character types)
 
@@ -33,7 +34,13 @@ Examples:
 - "neon nightclub lighting" → aesthetic
 - "mafia films" → thematic
 
-For thematic/hybrid searches, recommend specific NYC movies with exact titles and release years for precise database matching. Focus on films actually shot in or set in New York City.
+IMPORTANT: For thematic searches, recommend movies that are:
+1. **Definitely filmed in or set in NYC** (not Miami, Las Vegas, etc.)
+2. **Likely to be in a comprehensive NYC film database**
+3. **Well-known films from major studios or acclaimed indie films**
+4. **Recommend 8-12 movies** to increase chances of database matches
+
+Focus on iconic NYC films, major studio releases, and critically acclaimed movies rather than obscure or non-NYC films.
 
 Extract all relevant elements for the search type detected.
 
@@ -51,9 +58,10 @@ Respond in this exact JSON format:
 
 Rules:
 - For aesthetic searches: focus on visual/cinematic elements only
-- For thematic searches: recommend 5-10 specific NYC movies with exact titles and years
+- For thematic searches: recommend 8-12 specific NYC movies with exact titles and years
 - For hybrid searches: do both - provide movie recommendations AND aesthetic keywords
 - Always include confidence score 0-1 based on how clear the input is
+- Prioritize famous NYC films that would definitely be in a film database
 `
 
 async function searchMovies(userInput, limit = 10) {
@@ -169,7 +177,46 @@ async function performThematicSearch(recommendedMovies, limit) {
   
   console.log('Thematic search found:', movies ? movies.length : 0, 'movies')
   
+  // FALLBACK: If we don't have enough results, try aesthetic search
+  if (!movies || movies.length < Math.max(3, limit * 0.3)) {
+    console.log('Thematic search returned too few results, falling back to aesthetic search')
+    
+    // Create aesthetic keywords based on the thematic query
+    const fallbackKeywords = await createFallbackAestheticKeywords(recommendedMovies)
+    console.log('Generated fallback aesthetic keywords:', fallbackKeywords)
+    
+    return await performAestheticSearch(fallbackKeywords, limit)
+  }
+  
   return formatResults(movies.slice(0, limit))
+}
+
+async function createFallbackAestheticKeywords(recommendedMovies) {
+  // Extract themes/genres from the movie titles to create aesthetic keywords
+  const movieTitles = recommendedMovies.map(m => m.title).join(', ')
+  
+  try {
+    const fallbackResponse = await openai.chat.completions.create({
+      model: 'gpt-4o-mini',
+      messages: [{
+        role: 'user',
+        content: `These movies were recommended for a thematic search but not found in the database: ${movieTitles}. 
+        
+        Generate aesthetic/visual keywords that capture the typical cinematographic style and visual mood of films in this genre/theme. Focus on lighting, colors, settings, atmosphere, and visual style that would be found in similar movies.
+        
+        Respond with only the aesthetic keywords, no other text.`
+      }]
+    })
+    
+    return fallbackResponse.choices[0].message.content.trim()
+  } catch (error) {
+    console.error('Error generating fallback keywords:', error)
+    // Default fallback based on common themes
+    if (movieTitles.toLowerCase().includes('crime') || movieTitles.toLowerCase().includes('gangster')) {
+      return 'dark shadows, urban nightlife, dramatic lighting, gritty atmosphere'
+    }
+    return 'urban environments, dramatic cinematography, rich textures, atmospheric lighting'
+  }
 }
 
 async function performHybridSearch(aestheticKeywords, recommendedMovies, limit) {
