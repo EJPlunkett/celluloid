@@ -13,55 +13,36 @@ const openai = new OpenAI({
 
 // Updated GPT preprocessing prompt
 const preprocessingPrompt = `
-You are a movie expert helping users find NYC films. You have access to a database of approximately 1,500 movies that were filmed in or prominently feature New York City.
+You are a movie expert helping users find NYC films from a database of ~1,500 films.
 
-Analyze the user's input for:
-1. **Aesthetic elements** (lighting, colors, mood, cinematography, settings, visual style)
-2. **Thematic elements** (actors, directors, genres, specific films, character types)
+Analyze the user's input and determine the best search approach:
 
-Determine search type:
-- **"aesthetic"**: Only visual descriptions → use vector search
-- **"thematic"**: Only actors/directors/genres/films → use database filtering  
-- **"hybrid"**: Both aesthetic AND thematic → combine both approaches
+**Search Types:**
+- "aesthetic": Visual descriptions → vector search
+- "thematic": Actors/directors/specific films → database filtering  
+- "hybrid": Both visual + thematic → combine approaches
+
+**Key Context:**
+- "cocaine" = glamorous excess/nightlife aesthetic (NOT crime films)
+- "drugs" = consider context (party drugs vs street drugs)
+- "mafia/crime" = traditional organized crime films
+- For lifestyle terms, prefer aesthetic over thematic search
 
 User input: "{USER_INPUT}"
 
-Examples:
-- "neon-lit nightclub scenes with Robert De Niro" → hybrid
-- "gritty Scorsese cinematography" → hybrid  
-- "Robert De Niro films" → thematic
-- "sleazy crime movies" → thematic
-- "neon nightclub lighting" → aesthetic
-- "mafia films" → thematic
+**For thematic searches:** Recommend 8-12 iconic NYC films with exact titles/years
+**For aesthetic searches:** Extract specific visual keywords
+**For hybrid:** Do both
 
-IMPORTANT: For thematic searches, recommend movies that are:
-1. **Definitely filmed in or set in NYC** (not Miami, Las Vegas, etc.)
-2. **Likely to be in a comprehensive NYC film database**
-3. **Well-known films from major studios or acclaimed indie films**
-4. **Recommend 8-12 movies** to increase chances of database matches
-
-Focus on iconic NYC films, major studio releases, and critically acclaimed movies rather than obscure or non-NYC films.
-
-Extract all relevant elements for the search type detected.
-
-Respond in this exact JSON format:
+Respond in JSON:
 {
   "search_type": "aesthetic" | "thematic" | "hybrid",
   "search_criteria": {
-    "recommended_movies": [
-      {"title": "Movie Title", "year": 1985}
-    ]
+    "recommended_movies": [{"title": "Movie Title", "year": 1985}]
   },
-  "aesthetic_keywords": "visual description when aesthetic elements present",
+  "aesthetic_keywords": "visual description when needed",
   "confidence": 0.95
 }
-
-Rules:
-- For aesthetic searches: focus on visual/cinematic elements only
-- For thematic searches: recommend 8-12 specific NYC movies with exact titles and years
-- For hybrid searches: do both - provide movie recommendations AND aesthetic keywords
-- Always include confidence score 0-1 based on how clear the input is
-- Prioritize famous NYC films that would definitely be in a film database
 `
 
 async function searchMovies(userInput, limit = 10) {
