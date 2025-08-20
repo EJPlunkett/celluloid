@@ -31,7 +31,7 @@ function Vibes() {
         },
         body: JSON.stringify({
           userInput: vibeText.trim(),
-          limit: 15 // Match your maxCards in Cards.jsx
+          limit: 10 // Match your maxCards in Cards.jsx
         }),
       })
 

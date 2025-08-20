@@ -21,7 +21,7 @@ function Cards() {
   // DEBUG: Log the input data
   console.log('Cards component inputData:', inputData)
 
-  const maxCards = 15
+  const maxCards = 10
 
   // Sample movies fallback (for non-vibe searches until you implement other search types)
   const sampleMovies = [
@@ -469,39 +469,6 @@ function Cards() {
                 }}>
                   {currentMovie?.aesthetic_summary || currentMovie?.desc}
                 </p>
-                
-                {/* Show similarity score for search results */}
-                {currentMovie?.similarity_score && (
-                  <div style={{
-                    backgroundColor: 'rgba(246, 245, 243, 0.2)',
-                    borderRadius: '12px',
-                    padding: '8px 12px',
-                    fontSize: '0.9em',
-                    color: '#f6f5f3'
-                  }}>
-                    {Math.round(currentMovie.similarity_score * 100)}% match for "{inputData.value}"
-                  </div>
-                )}
-                
-                {/* Show Letterboxd link if available */}
-                {currentMovie?.letterboxd_link && (
-                  <div style={{
-                    marginTop: '8px'
-                  }}>
-                    <a 
-                      href={currentMovie.letterboxd_link}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      style={{
-                        color: '#f6f5f3',
-                        textDecoration: 'underline',
-                        fontSize: '0.9em'
-                      }}
-                    >
-                      View on Letterboxd
-                    </a>
-                  </div>
-                )}
               </div>
               <div style={{
                 display: 'flex',
