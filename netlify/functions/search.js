@@ -19,17 +19,26 @@ Analyze the user's input and determine the best search approach:
 
 **Search Types:**
 - "aesthetic": Visual descriptions → vector search
-- "thematic": Actors/directors/specific films → database filtering  
+- "thematic": Subjects/topics/actors/directors → database filtering  
 - "hybrid": Both visual + thematic → combine approaches
 
-**Key Context:**
-- "cocaine" = glamorous excess/nightlife aesthetic (NOT crime films)
-- "drugs" = consider context (party drugs vs street drugs)
-- "mafia/crime" = traditional organized crime films
-- For lifestyle terms, prefer aesthetic over thematic search
+**When to use THEMATIC:**
+- Single words about subjects/topics: "cocaine", "mafia", "drugs", "finance"
+- Actor/director names: "Robert De Niro", "Scorsese"
+- Film genres: "crime films", "romantic comedies"
+- Cultural topics: "wall street", "nightlife", "punk"
 
-**Time Period Filtering:**
-Extract any decades mentioned (1970s, 80s, etc.) for filtering by the decade the film is SET IN (not release year).
+**When to use AESTHETIC:**
+- Visual descriptions: "neon lighting", "rainy streets", "golden hour"
+- Cinematography terms: "gritty", "atmospheric", "moody"
+- Color/texture descriptions: "dark shadows", "bright colors"
+
+**Examples:**
+- "cocaine" → thematic (find cocaine-related movies)
+- "mafia" → thematic (find mafia movies)
+- "Robert De Niro" → thematic (find his movies)
+- "neon lighting" → aesthetic (find movies with that visual style)
+- "rainy 1970s grit" → aesthetic (visual description + time filter)
 
 User input: "{USER_INPUT}"
 
