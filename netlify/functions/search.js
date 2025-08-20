@@ -74,8 +74,8 @@ async function searchMovies(userInput, limit = 10) {
     console.log('Calling match_movies with threshold:', 0.01)
     const { data: movies, error } = await supabase.rpc('match_movies', {
       query_embedding: queryEmbedding,
-      match_threshold: 0.01,
-      match_count: limit * 2
+      match_threshold: 0.001,
+      match_count: limit * 3
     })
     
     console.log('Database response - movies found:', movies ? movies.length : 0)
