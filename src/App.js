@@ -14,6 +14,7 @@ import Vibes from './components/Vibes'
 import Watchlist from './components/Watchlist'
 import Words from './components/Words'
 import Welcome from './components/Welcome'
+import SearchTestPage from './components/SearchTestPage'
 
 function App() {
   return (
@@ -34,6 +35,7 @@ function App() {
           <Route path="/watchlist" element={<Watchlist />} />
           <Route path="/words" element={<Words />} />
           <Route path="/welcome" element={<Welcome />} />
+          <Route path="/test" element={<SearchTestPage />} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>
