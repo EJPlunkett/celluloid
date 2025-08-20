@@ -28,10 +28,13 @@ Analyze the user's input and determine the best search approach:
 - "mafia/crime" = traditional organized crime films
 - For lifestyle terms, prefer aesthetic over thematic search
 
+**Time Period Filtering:**
+Extract any decades mentioned (1970s, 80s, etc.) for filtering by the decade the film is SET IN (not release year).
+
 User input: "{USER_INPUT}"
 
 **For thematic searches:** Recommend 8-12 iconic NYC films with exact titles/years
-**For aesthetic searches:** Extract specific visual keywords
+**For aesthetic searches:** Extract specific visual keywords + time periods
 **For hybrid:** Do both
 
 Respond in JSON:
@@ -41,6 +44,9 @@ Respond in JSON:
     "recommended_movies": [{"title": "Movie Title", "year": 1985}]
   },
   "aesthetic_keywords": "visual description when needed",
+  "time_filters": {
+    "mentioned_decades": ["1970s", "1980s"]
+  },
   "confidence": 0.95
 }
 `
@@ -67,7 +73,11 @@ async function searchMovies(userInput, limit = 10) {
     // Step 2: Execute search based on type
     if (preprocessed.search_type === 'aesthetic') {
       // Pure aesthetic vector search
-      results = await performAestheticSearch(preprocessed.aesthetic_keywords, limit)
+      results = await performAestheticSearch(
+        preprocessed.aesthetic_keywords, 
+        limit, 
+        preprocessed.time_filters
+      )
       
     } else if (preprocessed.search_type === 'thematic') {
       // Pure thematic search by title + year
@@ -78,7 +88,8 @@ async function searchMovies(userInput, limit = 10) {
       results = await performHybridSearch(
         preprocessed.aesthetic_keywords, 
         preprocessed.search_criteria.recommended_movies, 
-        limit
+        limit,
+        preprocessed.time_filters
       )
     }
     
@@ -100,8 +111,9 @@ async function searchMovies(userInput, limit = 10) {
   }
 }
 
-async function performAestheticSearch(aestheticKeywords, limit) {
+async function performAestheticSearch(aestheticKeywords, limit, timeFilters = null) {
   console.log('Performing aesthetic search for:', aestheticKeywords)
+  console.log('Time filters:', timeFilters)
   
   // Generate embedding for aesthetic keywords
   const embeddingResponse = await openai.embeddings.create({
@@ -125,7 +137,28 @@ async function performAestheticSearch(aestheticKeywords, limit) {
   
   console.log('Aesthetic search found:', movies ? movies.length : 0, 'movies')
   
-  return formatResults(movies.slice(0, limit))
+  // Apply decade filtering if specified
+  let filteredMovies = movies || []
+  
+  if (timeFilters && timeFilters.mentioned_decades && timeFilters.mentioned_decades.length > 0) {
+    console.log('Applying decade filtering for:', timeFilters.mentioned_decades)
+    filteredMovies = movies.filter(movie => {
+      const decades = timeFilters.mentioned_decades
+      
+      // Check if any mentioned decade appears in the movie's depicted_decade field
+      // Handle comma-separated values like "1960s, 1970s"
+      const movieDecades = movie.depicted_decade ? movie.depicted_decade.split(',').map(d => d.trim()) : []
+      
+      const depictedMatch = decades.some(searchDecade => 
+        movieDecades.includes(searchDecade)
+      )
+      
+      return depictedMatch
+    })
+    console.log('After decade filtering - movies remaining:', filteredMovies.length)
+  }
+  
+  return formatResults(filteredMovies.slice(0, limit))
 }
 
 async function performThematicSearch(recommendedMovies, limit) {
@@ -219,7 +252,7 @@ async function createFallbackAestheticKeywords(recommendedMovies) {
   }
 }
 
-async function performHybridSearch(aestheticKeywords, recommendedMovies, limit) {
+async function performHybridSearch(aestheticKeywords, recommendedMovies, limit, timeFilters = null) {
   console.log('Performing hybrid search')
   console.log('Aesthetic keywords:', aestheticKeywords)
   console.log('Recommended movies:', recommendedMovies)
@@ -237,7 +270,7 @@ async function performHybridSearch(aestheticKeywords, recommendedMovies, limit) 
   
   // Otherwise, fall back to aesthetic search
   console.log('Falling back to aesthetic search for hybrid')
-  return await performAestheticSearch(aestheticKeywords, limit)
+  return await performAestheticSearch(aestheticKeywords, limit, timeFilters)
 }
 
 function formatResults(movies) {
