@@ -75,7 +75,7 @@ async function searchMovies(userInput, limit = 10) {
     const { data: movies, error } = await supabase.rpc('match_movies', {
       query_embedding: queryEmbedding,
       match_threshold: 0.001,
-      match_count: limit * 3
+      match_count: limit * 6
     })
     
     console.log('Database response - movies found:', movies ? movies.length : 0)
@@ -95,12 +95,11 @@ async function searchMovies(userInput, limit = 10) {
         
         // Check release year
         let releaseMatch = false
-    if (preprocessed.time_filters.match_release_year) {
-     releaseMatch = decades.some(decade => {
-         const startYear = parseInt(decade.replace('s', ''))
-         const endYear = startYear + 9
-    // Add 2-year wiggle room on both sides
-    return movie.year >= (startYear - 2) && movie.year <= (endYear + 2)
+if (preprocessed.time_filters.match_release_year) {
+  releaseMatch = decades.some(decade => {
+    const startYear = parseInt(decade.replace('s', ''))
+    const endYear = startYear + 9
+    return movie.year >= startYear && movie.year <= endYear
   })
 }
         
