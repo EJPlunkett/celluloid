@@ -18,6 +18,9 @@ function Cards() {
   // Get the passed data from navigation
   const inputData = location.state || { type: 'surprise', value: 'random selection' }
 
+  // DEBUG: Log the input data
+  console.log('Cards component inputData:', inputData)
+
   const maxCards = 15
 
   // Sample movies fallback (for non-vibe searches until you implement other search types)
@@ -61,20 +64,30 @@ function Cards() {
 
   // Initialize movies based on input type
   useEffect(() => {
+    console.log('Cards useEffect - checking inputData.results:', inputData.results)
+    console.log('Results length:', inputData.results ? inputData.results.length : 'no results')
+    
     if (inputData.results && inputData.results.length > 0) {
       // Real search results from API
+      console.log('Using real search results:', inputData.results)
       setMovies(inputData.results)
     } else {
       // Fallback to sample movies for other input types
+      console.log('Using sample movies fallback')
       setMovies(sampleMovies)
     }
   }, [inputData])
 
   // Update current movie when index changes
   useEffect(() => {
+    console.log('Current index:', currentIndex, 'Movies length:', movies.length, 'Max cards:', maxCards)
+    
     if (currentIndex < maxCards && movies.length > 0) {
-      setCurrentMovie(movies[currentIndex % movies.length])
+      const movieToShow = movies[currentIndex % movies.length]
+      console.log('Setting current movie:', movieToShow)
+      setCurrentMovie(movieToShow)
     } else {
+      console.log('Showing watchlist - currentIndex:', currentIndex, 'maxCards:', maxCards)
       setShowWatchlist(true)
     }
   }, [currentIndex, movies])
@@ -85,12 +98,14 @@ function Cards() {
 
   const swipeLeft = () => {
     if (currentIndex < maxCards) {
+      console.log('Swiping left - incrementing index from', currentIndex)
       setCurrentIndex(prev => prev + 1)
     }
   }
 
   const swipeRight = () => {
     if (currentIndex < maxCards) {
+      console.log('Swiping right - incrementing index from', currentIndex)
       setCurrentIndex(prev => prev + 1)
     }
   }
@@ -145,6 +160,7 @@ function Cards() {
 
   // Handle loading state
   if (!currentMovie && !showWatchlist) {
+    console.log('Showing loading state - currentMovie:', currentMovie, 'showWatchlist:', showWatchlist)
     return (
       <div style={{
         margin: 0,
