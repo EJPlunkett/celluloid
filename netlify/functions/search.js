@@ -192,7 +192,7 @@ async function performThematicSearch(recommendedMovies, limit) {
 }
 
 async function createFallbackAestheticKeywords(recommendedMovies) {
-  // Extract themes/genres from the movie titles to create aesthetic keywords
+  // Extract the original user query concept for better aesthetic translation
   const movieTitles = recommendedMovies.map(m => m.title).join(', ')
   
   try {
@@ -200,20 +200,39 @@ async function createFallbackAestheticKeywords(recommendedMovies) {
       model: 'gpt-4o-mini',
       messages: [{
         role: 'user',
-        content: `These movies were recommended for a thematic search but not found in the database: ${movieTitles}. 
+        content: `I searched for movies related to a specific theme, but the exact titles weren't found in the database. The recommended movies were: ${movieTitles}
         
-        Generate aesthetic/visual keywords that capture the typical cinematographic style and visual mood of films in this genre/theme. Focus on lighting, colors, settings, atmosphere, and visual style that would be found in similar movies.
+        Based on this theme, generate specific aesthetic/visual keywords that capture the distinctive cinematic style of this genre. Think about:
+        - Unique lighting styles (neon, harsh, warm, etc.)
+        - Color palettes (gold, mirrors, shadows, etc.) 
+        - Settings and environments (clubs, offices, streets, etc.)
+        - Textures and materials (leather, glass, marble, etc.)
+        - Mood and atmosphere (glamorous, gritty, sleek, etc.)
         
-        Respond with only the aesthetic keywords, no other text.`
+        Be SPECIFIC to this theme - avoid generic crime/drama aesthetics.
+        
+        Examples:
+        - Cocaine/drugs → "neon nightclub lighting, mirror surfaces, champagne bubbles, sleek wealth, strobe lights, luxury excess"
+        - Wall Street → "glass towers, marble lobbies, power suits, champagne culture, corporate gleam"
+        - Punk → "harsh fluorescent lighting, torn textures, urban decay, graffiti walls"
+        
+        Respond with only the specific aesthetic keywords for this theme:`
       }]
     })
     
     return fallbackResponse.choices[0].message.content.trim()
   } catch (error) {
     console.error('Error generating fallback keywords:', error)
-    // Default fallback based on common themes
-    if (movieTitles.toLowerCase().includes('crime') || movieTitles.toLowerCase().includes('gangster')) {
-      return 'dark shadows, urban nightlife, dramatic lighting, gritty atmosphere'
+    // More specific default fallbacks
+    const titles = movieTitles.toLowerCase()
+    if (titles.includes('cocaine') || titles.includes('drug')) {
+      return 'neon nightclub lighting, mirror surfaces, champagne bubbles, sleek wealth, strobe lights, luxury excess, glass surfaces'
+    }
+    if (titles.includes('wall street') || titles.includes('finance')) {
+      return 'glass towers, marble lobbies, power suits, champagne culture, corporate gleam, expensive restaurants'
+    }
+    if (titles.includes('crime') || titles.includes('gangster') || titles.includes('mafia')) {
+      return 'dark wood paneling, leather interiors, dimly lit restaurants, expensive suits, dramatic shadows'
     }
     return 'urban environments, dramatic cinematography, rich textures, atmospheric lighting'
   }
