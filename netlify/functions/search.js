@@ -11,35 +11,49 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY
 })
 
-// GPT preprocessing prompt
+// Updated GPT preprocessing prompt
 const preprocessingPrompt = `
-You are helping users find NYC movies based on aesthetic descriptions. 
+You are a movie expert helping users find NYC films. Analyze the user's input for:
 
-Analyze the user's input and extract:
-1. Aesthetic/visual keywords (moods, styles, cinematography, themes)
-2. Time periods mentioned (decades for either when movie was MADE or SET)
-3. Any specific visual elements (colors, locations, lighting, etc.)
+1. **Aesthetic elements** (lighting, colors, mood, cinematography, settings, visual style)
+2. **Thematic elements** (actors, directors, genres, specific films, character types)
+
+Determine search type:
+- **"aesthetic"**: Only visual descriptions → use vector search
+- **"thematic"**: Only actors/directors/genres/films → use database filtering  
+- **"hybrid"**: Both aesthetic AND thematic → combine both approaches
 
 User input: "{USER_INPUT}"
 
+Examples:
+- "neon-lit nightclub scenes with Robert De Niro" → hybrid
+- "gritty Scorsese cinematography" → hybrid  
+- "Robert De Niro films" → thematic
+- "sleazy crime movies" → thematic
+- "neon nightclub lighting" → aesthetic
+- "mafia films" → thematic
+
+For thematic/hybrid searches, recommend specific NYC movies with exact titles and release years for precise database matching. Focus on films actually shot in or set in New York City.
+
+Extract all relevant elements for the search type detected.
+
 Respond in this exact JSON format:
 {
-  "aesthetic_keywords": "cleaned aesthetic description for vector search",
-  "time_filters": {
-    "mentioned_decades": ["1970s", "1980s"],
-    "match_release_year": true,
-    "match_depicted_decade": true
+  "search_type": "aesthetic" | "thematic" | "hybrid",
+  "search_criteria": {
+    "recommended_movies": [
+      {"title": "Movie Title", "year": 1985}
+    ]
   },
+  "aesthetic_keywords": "visual description when aesthetic elements present",
   "confidence": 0.95
 }
 
 Rules:
-- aesthetic_keywords: Clean, searchable text focusing on visual/mood elements
-- mentioned_decades: Extract any decades mentioned (1920s, 1930s, etc.)
-- match_release_year: true if decades should filter by when movie was made
-- match_depicted_decade: true if decades should filter by when movie is set
-- If decade context is unclear, set both to true
-- confidence: 0-1 based on how clear the input is
+- For aesthetic searches: focus on visual/cinematic elements only
+- For thematic searches: recommend 5-10 specific NYC movies with exact titles and years
+- For hybrid searches: do both - provide movie recommendations AND aesthetic keywords
+- Always include confidence score 0-1 based on how clear the input is
 `
 
 async function searchMovies(userInput, limit = 10) {
@@ -59,78 +73,25 @@ async function searchMovies(userInput, limit = 10) {
     const preprocessed = JSON.parse(preprocessResponse.choices[0].message.content)
     console.log('GPT preprocessed result:', preprocessed)
     
-    // Step 2: Generate embedding for aesthetic keywords
-    const embeddingResponse = await openai.embeddings.create({
-      model: 'text-embedding-3-large',
-      input: preprocessed.aesthetic_keywords,
-      encoding_format: 'float'
-    })
+    let results = []
     
-    console.log('Generated embedding, length:', embeddingResponse.data[0].embedding.length)
-    
-    const queryEmbedding = embeddingResponse.data[0].embedding
-    
-    // Step 3: Vector similarity search
-    console.log('Calling match_movies with threshold:', 0.01)
-    const { data: movies, error } = await supabase.rpc('match_movies', {
-      query_embedding: queryEmbedding,
-      match_threshold: 0.001,
-      match_count: limit * 6
-    })
-    
-    console.log('Database response - movies found:', movies ? movies.length : 0)
-    console.log('Database error:', error)
-    
-    if (error) {
-      throw new Error(`Database error: ${error.message}`)
+    // Step 2: Execute search based on type
+    if (preprocessed.search_type === 'aesthetic') {
+      // Pure aesthetic vector search
+      results = await performAestheticSearch(preprocessed.aesthetic_keywords, limit)
+      
+    } else if (preprocessed.search_type === 'thematic') {
+      // Pure thematic search by title + year
+      results = await performThematicSearch(preprocessed.search_criteria.recommended_movies, limit)
+      
+    } else if (preprocessed.search_type === 'hybrid') {
+      // Hybrid: aesthetic search filtered by thematic criteria
+      results = await performHybridSearch(
+        preprocessed.aesthetic_keywords, 
+        preprocessed.search_criteria.recommended_movies, 
+        limit
+      )
     }
-    
-    // Step 4: Apply additional time filtering if needed
-    let filteredMovies = movies
-    
-    if (preprocessed.time_filters.mentioned_decades.length > 0) {
-      console.log('Applying decade filtering for:', preprocessed.time_filters.mentioned_decades)
-      filteredMovies = movies.filter(movie => {
-        const decades = preprocessed.time_filters.mentioned_decades
-        
-        // Check release year
-        let releaseMatch = false
-if (preprocessed.time_filters.match_release_year) {
-  releaseMatch = decades.some(decade => {
-    const startYear = parseInt(decade.replace('s', ''))
-    const endYear = startYear + 9
-    return movie.year >= startYear && movie.year <= endYear
-  })
-}
-        
-        // Check depicted decade
-        let depictedMatch = false
-        if (preprocessed.time_filters.match_depicted_decade) {
-          depictedMatch = decades.includes(movie.depicted_decade)
-        }
-        
-        // Return true if either match (OR logic)
-        return releaseMatch || depictedMatch || preprocessed.time_filters.mentioned_decades.length === 0
-      })
-      console.log('After decade filtering - movies remaining:', filteredMovies.length)
-    }
-    
-    // Step 5: Return top results
-    const results = filteredMovies.slice(0, limit).map(movie => ({
-      movie_id: movie.movie_id,
-      movie_title: movie.movie_title,
-      year: movie.year,
-      aesthetic_summary: movie.aesthetic_summary,
-      depicted_decade: movie.depicted_decade,
-      hex_codes: movie.hex_codes,
-      letterboxd_link: movie.letterboxd_link,
-      similarity_score: movie.similarity,
-      match_reason: {
-        aesthetic_match: preprocessed.aesthetic_keywords,
-        time_period_match: preprocessed.time_filters.mentioned_decades,
-        confidence: preprocessed.confidence
-      }
-    }))
     
     console.log('Final results count:', results.length)
     
@@ -148,6 +109,103 @@ if (preprocessed.time_filters.match_release_year) {
       results: []
     }
   }
+}
+
+async function performAestheticSearch(aestheticKeywords, limit) {
+  console.log('Performing aesthetic search for:', aestheticKeywords)
+  
+  // Generate embedding for aesthetic keywords
+  const embeddingResponse = await openai.embeddings.create({
+    model: 'text-embedding-3-large',
+    input: aestheticKeywords,
+    encoding_format: 'float'
+  })
+  
+  const queryEmbedding = embeddingResponse.data[0].embedding
+  
+  // Vector similarity search
+  const { data: movies, error } = await supabase.rpc('match_movies', {
+    query_embedding: queryEmbedding,
+    match_threshold: 0.001,
+    match_count: limit * 5
+  })
+  
+  if (error) {
+    throw new Error(`Database error: ${error.message}`)
+  }
+  
+  console.log('Aesthetic search found:', movies ? movies.length : 0, 'movies')
+  
+  return formatResults(movies.slice(0, limit))
+}
+
+async function performThematicSearch(recommendedMovies, limit) {
+  console.log('Performing thematic search for movies:', recommendedMovies)
+  
+  if (!recommendedMovies || recommendedMovies.length === 0) {
+    console.log('No recommended movies provided')
+    return []
+  }
+  
+  // Build query to find movies by title + year
+  let query = supabase
+    .from('celluloid_film_data')
+    .select('*')
+  
+  // Create OR conditions for each recommended movie
+  const conditions = recommendedMovies.map(movie => 
+    `and(movie_title.ilike.%${movie.title}%,year.eq.${movie.year})`
+  ).join(',')
+  
+  if (conditions) {
+    query = query.or(conditions)
+  }
+  
+  const { data: movies, error } = await query.limit(limit * 2)
+  
+  if (error) {
+    throw new Error(`Database error: ${error.message}`)
+  }
+  
+  console.log('Thematic search found:', movies ? movies.length : 0, 'movies')
+  
+  return formatResults(movies.slice(0, limit))
+}
+
+async function performHybridSearch(aestheticKeywords, recommendedMovies, limit) {
+  console.log('Performing hybrid search')
+  console.log('Aesthetic keywords:', aestheticKeywords)
+  console.log('Recommended movies:', recommendedMovies)
+  
+  // If we have specific movie recommendations, start with those
+  if (recommendedMovies && recommendedMovies.length > 0) {
+    const thematicResults = await performThematicSearch(recommendedMovies, limit)
+    
+    // If we got enough results from thematic search, return those
+    if (thematicResults.length >= limit * 0.7) {
+      console.log('Using thematic results for hybrid search')
+      return thematicResults.slice(0, limit)
+    }
+  }
+  
+  // Otherwise, fall back to aesthetic search
+  console.log('Falling back to aesthetic search for hybrid')
+  return await performAestheticSearch(aestheticKeywords, limit)
+}
+
+function formatResults(movies) {
+  if (!movies) return []
+  
+  return movies.map(movie => ({
+    movie_id: movie.movie_id,
+    movie_title: movie.movie_title,
+    year: movie.year,
+    aesthetic_summary: movie.aesthetic_summary,
+    depicted_decade: movie.depicted_decade,
+    hex_codes: movie.hex_codes,
+    letterboxd_link: movie.letterboxd_link,
+    similarity_score: movie.similarity || null
+  }))
 }
 
 // Netlify Function Handler
