@@ -57,7 +57,7 @@ async function searchMovies(userInput, limit = 10) {
     })
     
     const preprocessed = JSON.parse(preprocessResponse.choices[0].message.content)
-    console.log('Preprocessed query:', preprocessed)
+    console.log('GPT preprocessed result:', preprocessed)
     
     // Step 2: Generate embedding for aesthetic keywords
     const embeddingResponse = await openai.embeddings.create({
@@ -66,14 +66,20 @@ async function searchMovies(userInput, limit = 10) {
       encoding_format: 'float'
     })
     
+    console.log('Generated embedding, length:', embeddingResponse.data[0].embedding.length)
+    
     const queryEmbedding = embeddingResponse.data[0].embedding
     
     // Step 3: Vector similarity search
+    console.log('Calling match_movies with threshold:', 0.01)
     const { data: movies, error } = await supabase.rpc('match_movies', {
       query_embedding: queryEmbedding,
-      match_threshold: 0.1,
+      match_threshold: 0.01,
       match_count: limit * 2
     })
+    
+    console.log('Database response - movies found:', movies ? movies.length : 0)
+    console.log('Database error:', error)
     
     if (error) {
       throw new Error(`Database error: ${error.message}`)
@@ -83,6 +89,7 @@ async function searchMovies(userInput, limit = 10) {
     let filteredMovies = movies
     
     if (preprocessed.time_filters.mentioned_decades.length > 0) {
+      console.log('Applying decade filtering for:', preprocessed.time_filters.mentioned_decades)
       filteredMovies = movies.filter(movie => {
         const decades = preprocessed.time_filters.mentioned_decades
         
@@ -105,6 +112,7 @@ async function searchMovies(userInput, limit = 10) {
         // Return true if either match (OR logic)
         return releaseMatch || depictedMatch || preprocessed.time_filters.mentioned_decades.length === 0
       })
+      console.log('After decade filtering - movies remaining:', filteredMovies.length)
     }
     
     // Step 5: Return top results
@@ -123,6 +131,8 @@ async function searchMovies(userInput, limit = 10) {
         confidence: preprocessed.confidence
       }
     }))
+    
+    console.log('Final results count:', results.length)
     
     return {
       success: true,
