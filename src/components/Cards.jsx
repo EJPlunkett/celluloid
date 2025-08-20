@@ -9,6 +9,8 @@ function Cards() {
   const [touchStartX, setTouchStartX] = useState(0)
   const [showWatchlist, setShowWatchlist] = useState(false)
   const [popcornRotation, setPopcornRotation] = useState(0)
+  const [movies, setMovies] = useState([])
+  const [currentMovie, setCurrentMovie] = useState(null)
   const cardStackRef = useRef(null)
   const location = useLocation()
   const navigation = useNavigation()
@@ -18,33 +20,64 @@ function Cards() {
 
   const maxCards = 15
 
+  // Sample movies fallback (for non-vibe searches until you implement other search types)
   const sampleMovies = [
-    { title: "Liquid Sky", year: "1982", decade: "1980s", desc: "Neon-drenched punk surrealism with harsh primary colors, stark geometric makeup, and crystalline sci-fi textures creating an alien downtown art scene" },
-    { title: "Desperately Seeking Susan", year: "1985", decade: "1980s", desc: "Vibrant downtown bohemian chaos with layered vintage textures, warm golden lighting, and eclectic thrift-store maximalism" },
-    { title: "Basquiat", year: "1996", decade: "1980s", desc: "Raw artistic authenticity with paint-splattered loft spaces, warm amber gallery lighting, and gritty creative disorder" },
-    { title: "After Hours", year: "1985", decade: "1980s", desc: "Surreal nocturnal nightmare with harsh fluorescent whites, deep shadow contrasts, and claustrophobic urban maze aesthetics" },
-    { title: "Party Girl", year: "1995", decade: "1990s", desc: "Glossy club-kid excess with strobing dance floor lights, metallic fashion textures, and high-energy nightlife glamour" },
-    { title: "Alphabet City", year: "1984", decade: "1980s", desc: "Gritty street-level realism with weathered brick textures, amber streetlight glow, and shadowy urban decay" },
-    { title: "200 Cigarettes", year: "1999", decade: "1980s", desc: "Retro New Year's Eve nostalgia with warm party lighting, vintage costume textures, and celebratory urban energy" },
-    { title: "Slaves of New York", year: "1989", decade: "1980s", desc: "Artsy downtown minimalism with stark white gallery spaces, muted fashion palettes, and bohemian creative poverty" },
-    { title: "American Psycho", year: "2000", decade: "1980s", desc: "Sterile corporate minimalism with razor-sharp geometric precision, clinical high-end luxury surfaces, and pristine architectural coldness" },
-    { title: "The Driller Killer", year: "1979", decade: "1970s", desc: "Raw guerrilla filmmaking with grainy 16mm textures, harsh urban lighting, and gritty street-level documentation" },
-    { title: "Cruising", year: "1980", decade: "1970s", desc: "Grimy nocturnal urban underbelly with harsh neon-soaked darkness, claustrophobic dive bar interiors, and sweat-drenched leather textures" },
-    { title: "Serendipity", year: "2001", decade: "2000s", desc: "Romantic golden-hour warmth with soft café lighting, cozy winter textures, and whimsical urban charm" },
-    { title: "Scrooged", year: "1988", decade: "1980s", desc: "Glitzy corporate excess with blazing television studio artificiality, over-the-top holiday kitsch, and increasingly surreal visual chaos" },
-    { title: "The Secret of My Success", year: "1987", decade: "1980s", desc: "Slick corporate glamour with gleaming Manhattan office towers, polished power-suit sophistication, and energetic montage-driven pacing" },
-    { title: "Taxi Driver", year: "1976", decade: "1970s", desc: "Neon-soaked urban alienation with steam-hazed streets, amber-filtered cab windows, and the hypnotic glow of Times Square's seedy underbelly" }
+    { 
+      movie_id: "sample1",
+      movie_title: "Liquid Sky", 
+      year: "1982", 
+      depicted_decade: "1980s", 
+      aesthetic_summary: "Neon-drenched punk surrealism with harsh primary colors, stark geometric makeup, and crystalline sci-fi textures creating an alien downtown art scene" 
+    },
+    { 
+      movie_id: "sample2",
+      movie_title: "Desperately Seeking Susan", 
+      year: "1985", 
+      depicted_decade: "1980s", 
+      aesthetic_summary: "Vibrant downtown bohemian chaos with layered vintage textures, warm golden lighting, and eclectic thrift-store maximalism" 
+    },
+    { 
+      movie_id: "sample3",
+      movie_title: "Basquiat", 
+      year: "1996", 
+      depicted_decade: "1980s", 
+      aesthetic_summary: "Raw artistic authenticity with paint-splattered loft spaces, warm amber gallery lighting, and gritty creative disorder" 
+    },
+    { 
+      movie_id: "sample4",
+      movie_title: "After Hours", 
+      year: "1985", 
+      depicted_decade: "1980s", 
+      aesthetic_summary: "Surreal nocturnal nightmare with harsh fluorescent whites, deep shadow contrasts, and claustrophobic urban maze aesthetics" 
+    },
+    { 
+      movie_id: "sample5",
+      movie_title: "Party Girl", 
+      year: "1995", 
+      depicted_decade: "1990s", 
+      aesthetic_summary: "Glossy club-kid excess with strobing dance floor lights, metallic fashion textures, and high-energy nightlife glamour" 
+    }
   ]
 
-  const [currentMovie, setCurrentMovie] = useState(sampleMovies[0])
-
+  // Initialize movies based on input type
   useEffect(() => {
-    if (currentIndex < maxCards) {
-      setCurrentMovie(sampleMovies[currentIndex % sampleMovies.length])
+    if (inputData.results && inputData.results.length > 0) {
+      // Real search results from API
+      setMovies(inputData.results)
+    } else {
+      // Fallback to sample movies for other input types
+      setMovies(sampleMovies)
+    }
+  }, [inputData])
+
+  // Update current movie when index changes
+  useEffect(() => {
+    if (currentIndex < maxCards && movies.length > 0) {
+      setCurrentMovie(movies[currentIndex % movies.length])
     } else {
       setShowWatchlist(true)
     }
-  }, [currentIndex])
+  }, [currentIndex, movies])
 
   const toggleNav = () => {
     setNavOpen(!navOpen)
@@ -108,6 +141,28 @@ function Cards() {
 
   const handleGoExplore = () => {
     navigation.goToMatch()
+  }
+
+  // Handle loading state
+  if (!currentMovie && !showWatchlist) {
+    return (
+      <div style={{
+        margin: 0,
+        backgroundColor: '#f6f5f3',
+        fontFamily: 'Arial, sans-serif',
+        height: '100vh',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center'
+      }}>
+        <div style={{
+          fontSize: '18px',
+          color: '#000'
+        }}>
+          Loading movies...
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -198,7 +253,7 @@ function Cards() {
         }}
         aria-hidden={!navOpen}
       >
-        <a href="#" onClick={(e) => { e.preventDefault(); navigation.goToMatch() }} style={{ display: 'block', marginTop: '20px', marginBottom: '16px' }}>
+        <button onClick={() => { navigation.goToMatch(); setNavOpen(false) }} style={{ display: 'block', marginTop: '20px', marginBottom: '16px', background: 'transparent', border: 'none', padding: 0, cursor: 'pointer' }}>
           <img 
             src="/Match By.png" 
             alt="Match By" 
@@ -211,7 +266,7 @@ function Cards() {
               objectFit: 'contain'
             }}
           />
-        </a>
+        </button>
         <ul style={{
           listStyle: 'disc inside',
           paddingLeft: 0,
@@ -221,28 +276,28 @@ function Cards() {
           fontSize: '18px'
         }}>
           <li style={{ marginBottom: '12px' }}>
-            <a href="#" onClick={(e) => { e.preventDefault(); navigation.goToVibes() }} style={{ color: '#000', textDecoration: 'none', cursor: 'pointer' }}>
+            <button onClick={() => { navigation.goToVibes(); setNavOpen(false) }} style={{ color: '#000', textDecoration: 'none', cursor: 'pointer', background: 'transparent', border: 'none', fontSize: '18px', fontWeight: 400, padding: 0, textAlign: 'left' }}>
               Describe a Vibe
-            </a>
+            </button>
           </li>
           <li style={{ marginBottom: '12px' }}>
-            <a href="#" onClick={(e) => { e.preventDefault(); navigation.goToColor() }} style={{ color: '#000', textDecoration: 'none', cursor: 'pointer' }}>
+            <button onClick={() => { navigation.goToColor(); setNavOpen(false) }} style={{ color: '#000', textDecoration: 'none', cursor: 'pointer', background: 'transparent', border: 'none', fontSize: '18px', fontWeight: 400, padding: 0, textAlign: 'left' }}>
               Pick a Color
-            </a>
+            </button>
           </li>
           <li style={{ marginBottom: '12px' }}>
-            <a href="#" onClick={(e) => { e.preventDefault(); navigation.goToWords() }} style={{ color: '#000', textDecoration: 'none', cursor: 'pointer' }}>
+            <button onClick={() => { navigation.goToWords(); setNavOpen(false) }} style={{ color: '#000', textDecoration: 'none', cursor: 'pointer', background: 'transparent', border: 'none', fontSize: '18px', fontWeight: 400, padding: 0, textAlign: 'left' }}>
               Choose Keywords
-            </a>
+            </button>
           </li>
           <li style={{ marginBottom: '12px' }}>
-            <a href="#" onClick={(e) => { e.preventDefault(); navigation.goToSurprise() }} style={{ color: '#000', textDecoration: 'none', cursor: 'pointer' }}>
+            <button onClick={() => { navigation.goToSurprise(); setNavOpen(false) }} style={{ color: '#000', textDecoration: 'none', cursor: 'pointer', background: 'transparent', border: 'none', fontSize: '18px', fontWeight: 400, padding: 0, textAlign: 'left' }}>
               Surprise Me
-            </a>
+            </button>
           </li>
         </ul>
 
-        <a href="#" onClick={(e) => { e.preventDefault(); navigation.goToWatchlist() }} style={{ display: 'block', marginBottom: '16px' }}>
+        <button onClick={() => { navigation.goToWatchlist(); setNavOpen(false) }} style={{ display: 'block', marginBottom: '16px', background: 'transparent', border: 'none', padding: 0, cursor: 'pointer' }}>
           <img 
             src="/Watchlist.png" 
             alt="Watchlist" 
@@ -255,7 +310,7 @@ function Cards() {
               objectFit: 'contain'
             }}
           />
-        </a>
+        </button>
         <ul style={{
           listStyle: 'disc inside',
           paddingLeft: 0,
@@ -265,18 +320,18 @@ function Cards() {
           fontSize: '18px'
         }}>
           <li style={{ marginBottom: '12px' }}>
-            <a href="#" onClick={(e) => { e.preventDefault(); navigation.goToCreate() }} style={{ color: '#000', textDecoration: 'none', cursor: 'pointer' }}>
+            <button onClick={() => { navigation.goToCreate(); setNavOpen(false) }} style={{ color: '#000', textDecoration: 'none', cursor: 'pointer', background: 'transparent', border: 'none', fontSize: '18px', fontWeight: 400, padding: 0, textAlign: 'left' }}>
               Create Account
-            </a>
+            </button>
           </li>
           <li style={{ marginBottom: '12px' }}>
-            <a href="#" onClick={(e) => { e.preventDefault(); navigation.goToLogin() }} style={{ color: '#000', textDecoration: 'none', cursor: 'pointer' }}>
+            <button onClick={() => { navigation.goToLogin(); setNavOpen(false) }} style={{ color: '#000', textDecoration: 'none', cursor: 'pointer', background: 'transparent', border: 'none', fontSize: '18px', fontWeight: 400, padding: 0, textAlign: 'left' }}>
               Sign In
-            </a>
+            </button>
           </li>
         </ul>
 
-        <a href="#" onClick={(e) => { e.preventDefault(); navigation.goToAbout() }} style={{ display: 'block', marginBottom: '16px' }}>
+        <button onClick={() => { navigation.goToAbout(); setNavOpen(false) }} style={{ display: 'block', marginBottom: '16px', background: 'transparent', border: 'none', padding: 0, cursor: 'pointer' }}>
           <img 
             src="/About.png" 
             alt="About" 
@@ -289,9 +344,9 @@ function Cards() {
               objectFit: 'contain'
             }}
           />
-        </a>
+        </button>
         
-        <a href="#" onClick={(e) => { e.preventDefault(); navigation.goToDonate() }} style={{ display: 'block', marginBottom: '16px' }}>
+        <button onClick={() => { navigation.goToDonate(); setNavOpen(false) }} style={{ display: 'block', marginBottom: '16px', background: 'transparent', border: 'none', padding: 0, cursor: 'pointer' }}>
           <img 
             src="/donate menu.png" 
             alt="Donate" 
@@ -304,7 +359,7 @@ function Cards() {
               objectFit: 'contain'
             }}
           />
-        </a>
+        </button>
       </nav>
 
       {/* Main Content */}
@@ -372,7 +427,7 @@ function Cards() {
                   fontSize: '1.8em',
                   fontWeight: 700
                 }}>
-                  {currentMovie.title} ({currentMovie.year})
+                  {currentMovie?.movie_title || currentMovie?.title} ({currentMovie?.year})
                 </h1>
                 <h2 style={{
                   color: '#f6f5f3',
@@ -380,7 +435,7 @@ function Cards() {
                   fontSize: '1.3em',
                   fontWeight: 500
                 }}>
-                  {currentMovie.decade}
+                  {currentMovie?.depicted_decade || currentMovie?.decade}
                 </h2>
                 <p style={{
                   color: '#f6f5f3',
@@ -390,8 +445,41 @@ function Cards() {
                   fontStyle: 'italic',
                   lineHeight: 1.5
                 }}>
-                  {currentMovie.desc}
+                  {currentMovie?.aesthetic_summary || currentMovie?.desc}
                 </p>
+                
+                {/* Show similarity score for search results */}
+                {currentMovie?.similarity_score && (
+                  <div style={{
+                    backgroundColor: 'rgba(246, 245, 243, 0.2)',
+                    borderRadius: '12px',
+                    padding: '8px 12px',
+                    fontSize: '0.9em',
+                    color: '#f6f5f3'
+                  }}>
+                    {Math.round(currentMovie.similarity_score * 100)}% match for "{inputData.value}"
+                  </div>
+                )}
+                
+                {/* Show Letterboxd link if available */}
+                {currentMovie?.letterboxd_link && (
+                  <div style={{
+                    marginTop: '8px'
+                  }}>
+                    <a 
+                      href={currentMovie.letterboxd_link}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{
+                        color: '#f6f5f3',
+                        textDecoration: 'underline',
+                        fontSize: '0.9em'
+                      }}
+                    >
+                      View on Letterboxd
+                    </a>
+                  </div>
+                )}
               </div>
               <div style={{
                 display: 'flex',
@@ -488,7 +576,7 @@ function Cards() {
               lineHeight: 1.5,
               whiteSpace: 'pre-wrap'
             }}>
-              Watchlist complete, curated by your vibe.{'\n'}Tap the popcorn to view your movies, or click below to explore more vibes.
+              Watchlist complete, curated by your {inputData.type}.{'\n'}Tap the popcorn to view your movies, or click below to explore more vibes.
             </p>
             <button
               onClick={handleGoExplore}

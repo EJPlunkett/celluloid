@@ -4,6 +4,7 @@ import { useNavigation } from '../hooks/useNavigation'
 function Vibes() {
   const [navOpen, setNavOpen] = useState(false)
   const [vibeText, setVibeText] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
   const navigation = useNavigation()
 
   const toggleNav = () => {
@@ -14,12 +15,48 @@ function Vibes() {
     setVibeText(e.target.value)
   }
 
-  const handleSubmit = () => {
-    if (vibeText.trim()) {
-      // Navigate to cards page with the vibe input
-      navigation.goToCards({ type: 'vibe', value: vibeText.trim() })
-    } else {
+  const handleSubmit = async () => {
+    if (!vibeText.trim()) {
       alert('Please describe a vibe first!')
+      return
+    }
+
+    setIsLoading(true)
+
+    try {
+      const response = await fetch('/.netlify/functions/search', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userInput: vibeText.trim(),
+          limit: 15 // Match your maxCards in Cards.jsx
+        }),
+      })
+
+      if (!response.ok) {
+        throw new Error(`Search failed: ${response.status}`)
+      }
+
+      const data = await response.json()
+
+      if (data.success && data.results.length > 0) {
+        // Navigate to cards with search results
+        navigation.goToCards({ 
+          type: 'vibe', 
+          value: vibeText.trim(),
+          results: data.results,
+          query_info: data.query_info
+        })
+      } else {
+        alert('No movies found for that vibe. Try a different description!')
+      }
+    } catch (error) {
+      console.error('Search error:', error)
+      alert('Search failed. Please check your connection and try again.')
+    } finally {
+      setIsLoading(false)
     }
   }
 
@@ -123,13 +160,14 @@ function Vibes() {
           whiteSpace: 'pre-wrap',
           textAlign: 'center'
         }}>
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+          Describe the aesthetic vibe you're looking for and we'll find NYC films that match your description.
         </p>
 
         <textarea 
           value={vibeText}
           onChange={handleVibeChange}
           placeholder="Ex: NY nightclubs, underground art parties, and warehouse loft gatherings in the '80s."
+          disabled={isLoading}
           style={{
             width: '100%',
             maxWidth: '480px',
@@ -144,7 +182,8 @@ function Vibes() {
             resize: 'vertical',
             boxSizing: 'border-box',
             marginBottom: '20px',
-            outline: 'none'
+            outline: 'none',
+            opacity: isLoading ? 0.6 : 1
           }}
           onFocus={(e) => {
             e.target.style.color = '#000'
@@ -160,27 +199,48 @@ function Vibes() {
 
         <button
           onClick={handleSubmit}
+          disabled={isLoading || !vibeText.trim()}
           style={{
             marginTop: '20px',
             width: '150px',
             height: 'auto',
             background: 'transparent',
             border: 'none',
-            cursor: 'pointer',
+            cursor: isLoading ? 'not-allowed' : 'pointer',
             display: 'block',
-            margin: '20px auto 0'
+            margin: '20px auto 0',
+            opacity: isLoading ? 0.6 : 1,
+            transform: isLoading ? 'scale(0.95)' : 'scale(1)',
+            transition: 'all 0.2s ease'
           }}
         >
-          <img 
-            src="/Submit Button.png" 
-            alt="Submit Button" 
-            style={{
-              width: '100%',
-              height: 'auto',
-              display: 'block',
-              objectFit: 'contain'
-            }}
-          />
+          {isLoading ? (
+            <div style={{
+              width: '150px',
+              height: '40px',
+              backgroundColor: '#000',
+              borderRadius: '20px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: '#f6f5f3',
+              fontSize: '14px',
+              fontWeight: 'bold'
+            }}>
+              Searching...
+            </div>
+          ) : (
+            <img 
+              src="/Submit Button.png" 
+              alt="Submit Button" 
+              style={{
+                width: '100%',
+                height: 'auto',
+                display: 'block',
+                objectFit: 'contain'
+              }}
+            />
+          )}
         </button>
       </main>
 
