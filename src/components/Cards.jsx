@@ -78,19 +78,25 @@ function Cards() {
     }
   }, [inputData])
 
-  // Update current movie when index changes
+  // Update current movie when index changes - FIXED VERSION
   useEffect(() => {
     console.log('Current index:', currentIndex, 'Movies length:', movies.length, 'Max cards:', maxCards)
     
-    if (currentIndex < maxCards && movies.length > 0) {
-      const movieToShow = movies[currentIndex % movies.length]
-      console.log('Setting current movie:', movieToShow)
-      setCurrentMovie(movieToShow)
+    // Only proceed if we have movies
+    if (movies.length > 0) {
+      if (currentIndex < maxCards) {
+        const movieToShow = movies[currentIndex % movies.length]
+        console.log('Setting current movie:', movieToShow)
+        setCurrentMovie(movieToShow)
+        setShowWatchlist(false) // Make sure we show cards, not watchlist
+      } else {
+        console.log('Showing watchlist - reached max cards')
+        setShowWatchlist(true)
+      }
     } else {
-      console.log('Showing watchlist - currentIndex:', currentIndex, 'maxCards:', maxCards)
-      setShowWatchlist(true)
+      console.log('No movies available yet')
     }
-  }, [currentIndex, movies])
+  }, [currentIndex, movies, maxCards])
 
   const toggleNav = () => {
     setNavOpen(!navOpen)
@@ -158,9 +164,9 @@ function Cards() {
     navigation.goToMatch()
   }
 
-  // Handle loading state
-  if (!currentMovie && !showWatchlist) {
-    console.log('Showing loading state - currentMovie:', currentMovie, 'showWatchlist:', showWatchlist)
+  // Handle loading state - IMPROVED VERSION
+  if (movies.length === 0 || (!currentMovie && !showWatchlist)) {
+    console.log('Showing loading state - movies.length:', movies.length, 'currentMovie:', currentMovie, 'showWatchlist:', showWatchlist)
     return (
       <div style={{
         margin: 0,
@@ -307,7 +313,7 @@ function Cards() {
             </button>
           </li>
           <li style={{ marginBottom: '12px' }}>
-            <button onClick={() => { navigation.goToSurprise(); setNavOpen(false) }} style={{ color: '#000', textDecoration: 'none', cursor: 'pointer', background: 'transparent', border: 'none', fontSize: '18px', fontWeight: 400, padding: 0, textAlign: 'left' }}>
+            <button onClick={() => { navigation.goToSurprace(); setNavOpen(false) }} style={{ color: '#000', textDecoration: 'none', cursor: 'pointer', background: 'transparent', border: 'none', fontSize: '18px', fontWeight: 400, padding: 0, textAlign: 'left' }}>
               Surprise Me
             </button>
           </li>
