@@ -1,6 +1,9 @@
 import { createClient } from '@supabase/supabase-js'
 import OpenAI from 'openai'
 
+// Function version tracker to ensure deployment
+console.log('Function version: 2024-synopsis-update')
+
 // Initialize clients
 const supabase = createClient(
   'https://yrzugdmatddwypzdirhz.supabase.co',
