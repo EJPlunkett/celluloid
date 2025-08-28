@@ -190,7 +190,11 @@ function Cards() {
       fontFamily: 'Arial, sans-serif',
       overflow: 'hidden',
       position: 'relative',
-      height: '100vh'
+      height: '100vh',
+      width: '100vw',
+      position: 'fixed',
+      top: 0,
+      left: 0
     }}>
       <header style={{
         position: 'fixed',
@@ -305,7 +309,7 @@ function Cards() {
 
       <main style={{
         position: 'absolute',
-        top: '70px',
+        top: '80px', // Increased from 70px to ensure clearance
         left: 0,
         right: 0,
         bottom: '70px',
@@ -313,7 +317,7 @@ function Cards() {
         justifyContent: 'center',
         alignItems: 'center',
         overflow: 'hidden',
-        paddingTop: '20px' // Add padding to prevent overlap with hamburger menu
+        paddingTop: '5px'
       }}>
         {!showWatchlist ? (
           <div 
