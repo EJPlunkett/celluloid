@@ -290,6 +290,7 @@ function formatResults(movies) {
     movie_title: movie.movie_title,
     year: movie.year,
     aesthetic_summary: movie.aesthetic_summary,
+    synopsis: movie.synopsis, 
     depicted_decade: movie.depicted_decade,
     hex_codes: movie.hex_codes,
     letterboxd_link: movie.letterboxd_link,
