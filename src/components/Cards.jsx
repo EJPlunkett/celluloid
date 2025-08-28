@@ -46,13 +46,40 @@ function Cards() {
   const inputData = location.state || { type: 'surprise', value: 'random selection' }
   const maxCards = 10
 
+  const sampleMovies = [
+    { 
+      movie_id: "sample1",
+      movie_title: "Liquid Sky", 
+      year: "1982", 
+      depicted_decade: "1980s", 
+      aesthetic_summary: "Neon-drenched punk surrealism with harsh primary colors, stark geometric makeup, and crystalline sci-fi textures creating an alien downtown art scene",
+      synopsis: "A bizarre alien entity feeds on the endorphins produced during sexual climax, targeting New Wave club kids in 1980s New York."
+    },
+    { 
+      movie_id: "sample2",
+      movie_title: "Desperately Seeking Susan", 
+      year: "1985", 
+      depicted_decade: "1980s", 
+      aesthetic_summary: "Vibrant downtown bohemian chaos with layered vintage textures, warm golden lighting, and eclectic thrift-store maximalism",
+      synopsis: "A bored housewife becomes entangled in a case of mistaken identity after following personal ads in 1980s New York."
+    },
+    { 
+      movie_id: "sample3",
+      movie_title: "Basquiat", 
+      year: "1996", 
+      depicted_decade: "1980s", 
+      aesthetic_summary: "Raw artistic authenticity with paint-splattered loft spaces, warm amber gallery lighting, and gritty creative disorder",
+      synopsis: "The meteoric rise and tragic fall of Jean-Michel Basquiat, from homeless graffiti artist to international art world darling."
+    }
+  ]
+
   useEffect(() => {
     if (inputData.results && inputData.results.length > 0) {
       setMovies(inputData.results)
     } else {
       setMovies(sampleMovies)
     }
-  }, [inputData.results])
+  }, [inputData.results]) // Only depend on inputData.results, not the entire inputData object
 
   useEffect(() => {
     if (movies.length > 0) {
@@ -65,7 +92,7 @@ function Cards() {
         setShowWatchlist(true)
       }
     }
-  }, [currentIndex, movies.length])
+  }, [currentIndex, movies.length]) // Remove maxCards from dependencies since it's constant
 
   const toggleNav = () => {
     setNavOpen(!navOpen)
@@ -163,7 +190,11 @@ function Cards() {
       fontFamily: 'Arial, sans-serif',
       overflow: 'hidden',
       position: 'relative',
-      height: '100vh'
+      height: '100vh',
+      width: '100vw',
+      position: 'fixed',
+      top: 0,
+      left: 0
     }}>
       <header style={{
         position: 'fixed',
@@ -278,14 +309,15 @@ function Cards() {
 
       <main style={{
         position: 'absolute',
-        top: '90px',
+        top: '70px',
         left: 0,
         right: 0,
         bottom: '70px',
         display: 'flex',
         justifyContent: 'center',
         alignItems: 'center',
-        overflow: 'hidden'
+        overflow: 'hidden',
+        paddingTop: '5px' // Reduced from 20px to just 5px
       }}>
         {!showWatchlist ? (
           <div 
@@ -298,9 +330,9 @@ function Cards() {
               borderRadius: '24px',
               width: '90vw',
               maxWidth: '400px',
-              height: 'calc(100vh - 180px)',
-              maxHeight: '500px',
-              minHeight: '400px',
+              height: 'calc(100vh - 160px)',
+              maxHeight: '580px',
+              minHeight: '500px',
               position: 'relative',
               padding: '16px',
               boxSizing: 'border-box',
@@ -318,7 +350,7 @@ function Cards() {
               flex: 1,
               borderRadius: '20px',
               border: '2px solid #f6f5f3',
-              padding: '24px 20px',
+              padding: '60px 20px 24px 20px', // Increased top padding from 24px to 60px
               boxSizing: 'border-box',
               display: 'flex',
               flexDirection: 'column',
@@ -329,32 +361,40 @@ function Cards() {
                 textAlign: 'center',
                 display: 'flex',
                 flexDirection: 'column',
-                justifyContent: 'center',
+                justifyContent: 'flex-start', // Changed from 'center' to 'flex-start'
                 flexGrow: 1,
                 gap: '16px',
-                overflow: 'hidden'
+                overflow: 'hidden',
+                paddingTop: '20px' // Add some top padding for visual balance
               }}>
                 <h1 style={{
                   color: '#f6f5f3',
                   margin: 0,
                   fontSize: '1.8em',
-                  fontWeight: 700
+                  fontWeight: 700,
+                  flexShrink: 0 // Prevent title from shrinking
                 }}>
                   {currentMovie?.movie_title || currentMovie?.title} ({currentMovie?.year})
                 </h1>
-                <p style={{
+                <div style={{
                   color: '#f6f5f3',
                   margin: 0,
                   fontSize: '1.1em',
                   fontWeight: 'normal',
                   fontStyle: showSynopsis ? 'normal' : 'italic',
-                  lineHeight: 1.5
+                  lineHeight: 1.5,
+                  minHeight: '120px', // Reserve minimum space for text content
+                  display: 'flex',
+                  alignItems: 'flex-start', // Align text to top of reserved space
+                  justifyContent: 'center'
                 }}>
-                  {showSynopsis ? 
-                    (currentMovie?.synopsis || 'Synopsis not available') : 
-                    (currentMovie?.aesthetic_summary || currentMovie?.desc)
-                  }
-                </p>
+                  <p style={{ margin: 0 }}>
+                    {showSynopsis ? 
+                      (currentMovie?.synopsis || 'Synopsis not available') : 
+                      (currentMovie?.aesthetic_summary || currentMovie?.desc)
+                    }
+                  </p>
+                </div>
               </div>
               
               <div style={{
