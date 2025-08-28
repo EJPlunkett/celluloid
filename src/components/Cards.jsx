@@ -2,6 +2,33 @@ import { useState, useEffect, useRef } from 'react'
 import { useLocation } from 'react-router-dom'
 import { useNavigation } from '../hooks/useNavigation'
 
+const sampleMovies = [
+  { 
+    movie_id: "sample1",
+    movie_title: "Liquid Sky", 
+    year: "1982", 
+    depicted_decade: "1980s", 
+    aesthetic_summary: "Neon-drenched punk surrealism with harsh primary colors, stark geometric makeup, and crystalline sci-fi textures creating an alien downtown art scene",
+    synopsis: "A bizarre alien entity feeds on the endorphins produced during sexual climax, targeting New Wave club kids in 1980s New York."
+  },
+  { 
+    movie_id: "sample2",
+    movie_title: "Desperately Seeking Susan", 
+    year: "1985", 
+    depicted_decade: "1980s", 
+    aesthetic_summary: "Vibrant downtown bohemian chaos with layered vintage textures, warm golden lighting, and eclectic thrift-store maximalism",
+    synopsis: "A bored housewife becomes entangled in a case of mistaken identity after following personal ads in 1980s New York."
+  },
+  { 
+    movie_id: "sample3",
+    movie_title: "Basquiat", 
+    year: "1996", 
+    depicted_decade: "1980s", 
+    aesthetic_summary: "Raw artistic authenticity with paint-splattered loft spaces, warm amber gallery lighting, and gritty creative disorder",
+    synopsis: "The meteoric rise and tragic fall of Jean-Michel Basquiat, from homeless graffiti artist to international art world darling."
+  }
+]
+
 function Cards() {
   const [navOpen, setNavOpen] = useState(false)
   const [currentIndex, setCurrentIndex] = useState(0)
@@ -11,92 +38,61 @@ function Cards() {
   const [popcornRotation, setPopcornRotation] = useState(0)
   const [movies, setMovies] = useState([])
   const [currentMovie, setCurrentMovie] = useState(null)
+  const [showSynopsis, setShowSynopsis] = useState(false)
   const cardStackRef = useRef(null)
   const location = useLocation()
   const navigation = useNavigation()
 
-  // Get the passed data from navigation
   const inputData = location.state || { type: 'surprise', value: 'random selection' }
-
-  // DEBUG: Log the input data
-  console.log('Cards component inputData:', inputData)
-
   const maxCards = 10
 
-  // Sample movies fallback (for non-vibe searches until you implement other search types)
   const sampleMovies = [
     { 
       movie_id: "sample1",
       movie_title: "Liquid Sky", 
       year: "1982", 
       depicted_decade: "1980s", 
-      aesthetic_summary: "Neon-drenched punk surrealism with harsh primary colors, stark geometric makeup, and crystalline sci-fi textures creating an alien downtown art scene" 
+      aesthetic_summary: "Neon-drenched punk surrealism with harsh primary colors, stark geometric makeup, and crystalline sci-fi textures creating an alien downtown art scene",
+      synopsis: "A bizarre alien entity feeds on the endorphins produced during sexual climax, targeting New Wave club kids in 1980s New York."
     },
     { 
       movie_id: "sample2",
       movie_title: "Desperately Seeking Susan", 
       year: "1985", 
       depicted_decade: "1980s", 
-      aesthetic_summary: "Vibrant downtown bohemian chaos with layered vintage textures, warm golden lighting, and eclectic thrift-store maximalism" 
+      aesthetic_summary: "Vibrant downtown bohemian chaos with layered vintage textures, warm golden lighting, and eclectic thrift-store maximalism",
+      synopsis: "A bored housewife becomes entangled in a case of mistaken identity after following personal ads in 1980s New York."
     },
     { 
       movie_id: "sample3",
       movie_title: "Basquiat", 
       year: "1996", 
       depicted_decade: "1980s", 
-      aesthetic_summary: "Raw artistic authenticity with paint-splattered loft spaces, warm amber gallery lighting, and gritty creative disorder" 
-    },
-    { 
-      movie_id: "sample4",
-      movie_title: "After Hours", 
-      year: "1985", 
-      depicted_decade: "1980s", 
-      aesthetic_summary: "Surreal nocturnal nightmare with harsh fluorescent whites, deep shadow contrasts, and claustrophobic urban maze aesthetics" 
-    },
-    { 
-      movie_id: "sample5",
-      movie_title: "Party Girl", 
-      year: "1995", 
-      depicted_decade: "1990s", 
-      aesthetic_summary: "Glossy club-kid excess with strobing dance floor lights, metallic fashion textures, and high-energy nightlife glamour" 
+      aesthetic_summary: "Raw artistic authenticity with paint-splattered loft spaces, warm amber gallery lighting, and gritty creative disorder",
+      synopsis: "The meteoric rise and tragic fall of Jean-Michel Basquiat, from homeless graffiti artist to international art world darling."
     }
   ]
 
-  // Initialize movies based on input type
   useEffect(() => {
-    console.log('Cards useEffect - checking inputData.results:', inputData.results)
-    console.log('Results length:', inputData.results ? inputData.results.length : 'no results')
-    
     if (inputData.results && inputData.results.length > 0) {
-      // Real search results from API
-      console.log('Using real search results:', inputData.results)
       setMovies(inputData.results)
     } else {
-      // Fallback to sample movies for other input types
-      console.log('Using sample movies fallback')
       setMovies(sampleMovies)
     }
-  }, [inputData])
+  }, [inputData.results]) // Only depend on inputData.results, not the entire inputData object
 
-  // Update current movie when index changes - FIXED VERSION
   useEffect(() => {
-    console.log('Current index:', currentIndex, 'Movies length:', movies.length, 'Max cards:', maxCards)
-    
-    // Only proceed if we have movies
     if (movies.length > 0) {
       if (currentIndex < maxCards) {
         const movieToShow = movies[currentIndex % movies.length]
-        console.log('Setting current movie:', movieToShow)
         setCurrentMovie(movieToShow)
-        setShowWatchlist(false) // Make sure we show cards, not watchlist
+        setShowWatchlist(false)
+        setShowSynopsis(false)
       } else {
-        console.log('Showing watchlist - reached max cards')
         setShowWatchlist(true)
       }
-    } else {
-      console.log('No movies available yet')
     }
-  }, [currentIndex, movies, maxCards])
+  }, [currentIndex, movies.length]) // Remove maxCards from dependencies since it's constant
 
   const toggleNav = () => {
     setNavOpen(!navOpen)
@@ -104,26 +100,27 @@ function Cards() {
 
   const swipeLeft = () => {
     if (currentIndex < maxCards) {
-      console.log('Swiping left - incrementing index from', currentIndex)
       setCurrentIndex(prev => prev + 1)
     }
   }
 
   const swipeRight = () => {
     if (currentIndex < maxCards) {
-      console.log('Swiping right - incrementing index from', currentIndex)
       setCurrentIndex(prev => prev + 1)
     }
   }
 
   const handleTouchStart = (e) => {
+    const flipButton = e.target.closest('.flip-button')
+    if (flipButton) {
+      return
+    }
     setTouchStartX(e.touches[0].clientX)
     setIsDragging(true)
   }
 
   const handleTouchMove = (e) => {
     if (!isDragging) return
-    // Prevent scrolling while swiping
     e.preventDefault()
   }
 
@@ -145,15 +142,12 @@ function Cards() {
 
   const jigglePopcorn = (e) => {
     e.preventDefault()
-    
-    // Start the jiggle animation
     setPopcornRotation(15)
     setTimeout(() => {
       setPopcornRotation(-15)
       setTimeout(() => {
         setPopcornRotation(0)
         setTimeout(() => {
-          // After animation completes, navigate to watchlist
           navigation.goToWatchlist()
         }, 200)
       }, 200)
@@ -164,9 +158,14 @@ function Cards() {
     navigation.goToMatch()
   }
 
-  // Handle loading state - IMPROVED VERSION
+  const toggleFlip = (e) => {
+    e.preventDefault()
+    e.stopPropagation()
+    console.log('FLIP BUTTON CLICKED - showSynopsis before:', showSynopsis)
+    setShowSynopsis(prev => !prev)
+  }
+
   if (movies.length === 0 || (!currentMovie && !showWatchlist)) {
-    console.log('Showing loading state - movies.length:', movies.length, 'currentMovie:', currentMovie, 'showWatchlist:', showWatchlist)
     return (
       <div style={{
         margin: 0,
@@ -177,10 +176,7 @@ function Cards() {
         justifyContent: 'center',
         alignItems: 'center'
       }}>
-        <div style={{
-          fontSize: '18px',
-          color: '#000'
-        }}>
+        <div style={{ fontSize: '18px', color: '#000' }}>
           Loading movies...
         </div>
       </div>
@@ -194,8 +190,7 @@ function Cards() {
       fontFamily: 'Arial, sans-serif',
       overflow: 'hidden',
       position: 'relative',
-      height: '100vh',
-      height: '100dvh'
+      height: '100vh'
     }}>
       <header style={{
         position: 'fixed',
@@ -225,8 +220,6 @@ function Cards() {
             border: 'none',
             padding: 0
           }}
-          aria-label="Toggle navigation"
-          aria-expanded={navOpen}
         >
           <span style={{
             display: 'block',
@@ -255,136 +248,61 @@ function Cards() {
         </button>
       </header>
 
-      {/* Navigation Overlay */}
-      <nav 
-        style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          width: '320px',
-          height: '100vh',
-          backgroundColor: '#f6f5f3',
-          border: '10px solid #000',
-          borderRadius: '0 20px 20px 0',
-          boxSizing: 'border-box',
-          transform: navOpen ? 'translateX(0)' : 'translateX(calc(-100% - 20px))',
-          transition: 'transform 0.3s ease',
-          zIndex: 1050,
-          padding: '20px 20px 40px 40px',
-          overflowY: 'auto'
-        }}
-        aria-hidden={!navOpen}
-      >
+      <nav style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        width: '320px',
+        height: '100vh',
+        backgroundColor: '#f6f5f3',
+        border: '10px solid #000',
+        borderRadius: '0 20px 20px 0',
+        boxSizing: 'border-box',
+        transform: navOpen ? 'translateX(0)' : 'translateX(calc(-100% - 20px))',
+        transition: 'transform 0.3s ease',
+        zIndex: 1050,
+        padding: '20px 20px 40px 40px',
+        overflowY: 'auto'
+      }}>
         <button onClick={() => { navigation.goToMatch(); setNavOpen(false) }} style={{ display: 'block', marginTop: '20px', marginBottom: '16px', background: 'transparent', border: 'none', padding: 0, cursor: 'pointer' }}>
-          <img 
-            src="/Match By.png" 
-            alt="Match By" 
-            style={{
-              height: '30px',
-              width: 'auto',
-              maxWidth: '280px',
-              cursor: 'pointer',
-              display: 'block',
-              objectFit: 'contain'
-            }}
-          />
+          <img src="/Match By.png" alt="Match By" style={{ height: '30px', width: 'auto', maxWidth: '280px', cursor: 'pointer', display: 'block', objectFit: 'contain' }} />
         </button>
-        <ul style={{
-          listStyle: 'disc inside',
-          paddingLeft: 0,
-          marginTop: 0,
-          marginBottom: '30px',
-          fontWeight: 400,
-          fontSize: '18px'
-        }}>
+        <ul style={{ listStyle: 'disc inside', paddingLeft: 0, marginTop: 0, marginBottom: '30px', fontWeight: 400, fontSize: '18px' }}>
           <li style={{ marginBottom: '12px' }}>
-            <button onClick={() => { navigation.goToVibes(); setNavOpen(false) }} style={{ color: '#000', textDecoration: 'none', cursor: 'pointer', background: 'transparent', border: 'none', fontSize: '18px', fontWeight: 400, padding: 0, textAlign: 'left' }}>
-              Describe a Vibe
-            </button>
+            <button onClick={() => { navigation.goToVibes(); setNavOpen(false) }} style={{ color: '#000', textDecoration: 'none', cursor: 'pointer', background: 'transparent', border: 'none', fontSize: '18px', fontWeight: 400, padding: 0, textAlign: 'left' }}>Describe a Vibe</button>
           </li>
           <li style={{ marginBottom: '12px' }}>
-            <button onClick={() => { navigation.goToColor(); setNavOpen(false) }} style={{ color: '#000', textDecoration: 'none', cursor: 'pointer', background: 'transparent', border: 'none', fontSize: '18px', fontWeight: 400, padding: 0, textAlign: 'left' }}>
-              Pick a Color
-            </button>
+            <button onClick={() => { navigation.goToColor(); setNavOpen(false) }} style={{ color: '#000', textDecoration: 'none', cursor: 'pointer', background: 'transparent', border: 'none', fontSize: '18px', fontWeight: 400, padding: 0, textAlign: 'left' }}>Pick a Color</button>
           </li>
           <li style={{ marginBottom: '12px' }}>
-            <button onClick={() => { navigation.goToWords(); setNavOpen(false) }} style={{ color: '#000', textDecoration: 'none', cursor: 'pointer', background: 'transparent', border: 'none', fontSize: '18px', fontWeight: 400, padding: 0, textAlign: 'left' }}>
-              Choose Keywords
-            </button>
+            <button onClick={() => { navigation.goToWords(); setNavOpen(false) }} style={{ color: '#000', textDecoration: 'none', cursor: 'pointer', background: 'transparent', border: 'none', fontSize: '18px', fontWeight: 400, padding: 0, textAlign: 'left' }}>Choose Keywords</button>
           </li>
           <li style={{ marginBottom: '12px' }}>
-            <button onClick={() => { navigation.goToSurprace(); setNavOpen(false) }} style={{ color: '#000', textDecoration: 'none', cursor: 'pointer', background: 'transparent', border: 'none', fontSize: '18px', fontWeight: 400, padding: 0, textAlign: 'left' }}>
-              Surprise Me
-            </button>
+            <button onClick={() => { navigation.goToSurprace(); setNavOpen(false) }} style={{ color: '#000', textDecoration: 'none', cursor: 'pointer', background: 'transparent', border: 'none', fontSize: '18px', fontWeight: 400, padding: 0, textAlign: 'left' }}>Surprise Me</button>
           </li>
         </ul>
 
         <button onClick={() => { navigation.goToWatchlist(); setNavOpen(false) }} style={{ display: 'block', marginBottom: '16px', background: 'transparent', border: 'none', padding: 0, cursor: 'pointer' }}>
-          <img 
-            src="/Watchlist.png" 
-            alt="Watchlist" 
-            style={{
-              height: '30px',
-              width: 'auto',
-              maxWidth: '280px',
-              cursor: 'pointer',
-              display: 'block',
-              objectFit: 'contain'
-            }}
-          />
+          <img src="/Watchlist.png" alt="Watchlist" style={{ height: '30px', width: 'auto', maxWidth: '280px', cursor: 'pointer', display: 'block', objectFit: 'contain' }} />
         </button>
-        <ul style={{
-          listStyle: 'disc inside',
-          paddingLeft: 0,
-          marginTop: 0,
-          marginBottom: '30px',
-          fontWeight: 400,
-          fontSize: '18px'
-        }}>
+        <ul style={{ listStyle: 'disc inside', paddingLeft: 0, marginTop: 0, marginBottom: '30px', fontWeight: 400, fontSize: '18px' }}>
           <li style={{ marginBottom: '12px' }}>
-            <button onClick={() => { navigation.goToCreate(); setNavOpen(false) }} style={{ color: '#000', textDecoration: 'none', cursor: 'pointer', background: 'transparent', border: 'none', fontSize: '18px', fontWeight: 400, padding: 0, textAlign: 'left' }}>
-              Create Account
-            </button>
+            <button onClick={() => { navigation.goToCreate(); setNavOpen(false) }} style={{ color: '#000', textDecoration: 'none', cursor: 'pointer', background: 'transparent', border: 'none', fontSize: '18px', fontWeight: 400, padding: 0, textAlign: 'left' }}>Create Account</button>
           </li>
           <li style={{ marginBottom: '12px' }}>
-            <button onClick={() => { navigation.goToLogin(); setNavOpen(false) }} style={{ color: '#000', textDecoration: 'none', cursor: 'pointer', background: 'transparent', border: 'none', fontSize: '18px', fontWeight: 400, padding: 0, textAlign: 'left' }}>
-              Sign In
-            </button>
+            <button onClick={() => { navigation.goToLogin(); setNavOpen(false) }} style={{ color: '#000', textDecoration: 'none', cursor: 'pointer', background: 'transparent', border: 'none', fontSize: '18px', fontWeight: 400, padding: 0, textAlign: 'left' }}>Sign In</button>
           </li>
         </ul>
 
         <button onClick={() => { navigation.goToAbout(); setNavOpen(false) }} style={{ display: 'block', marginBottom: '16px', background: 'transparent', border: 'none', padding: 0, cursor: 'pointer' }}>
-          <img 
-            src="/About.png" 
-            alt="About" 
-            style={{
-              height: '30px',
-              width: 'auto',
-              maxWidth: '280px',
-              cursor: 'pointer',
-              display: 'block',
-              objectFit: 'contain'
-            }}
-          />
+          <img src="/About.png" alt="About" style={{ height: '30px', width: 'auto', maxWidth: '280px', cursor: 'pointer', display: 'block', objectFit: 'contain' }} />
         </button>
         
         <button onClick={() => { navigation.goToDonate(); setNavOpen(false) }} style={{ display: 'block', marginBottom: '16px', background: 'transparent', border: 'none', padding: 0, cursor: 'pointer' }}>
-          <img 
-            src="/donate menu.png" 
-            alt="Donate" 
-            style={{
-              height: '24px',
-              width: 'auto',
-              maxWidth: '280px',
-              cursor: 'pointer',
-              display: 'block',
-              objectFit: 'contain'
-            }}
-          />
+          <img src="/donate menu.png" alt="Donate" style={{ height: '24px', width: 'auto', maxWidth: '280px', cursor: 'pointer', display: 'block', objectFit: 'contain' }} />
         </button>
       </nav>
 
-      {/* Main Content */}
       <main style={{
         position: 'absolute',
         top: '70px',
@@ -418,7 +336,7 @@ function Cards() {
               justifyContent: 'space-between',
               transition: 'transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94), opacity 0.6s ease',
               cursor: 'grab',
-              touchAction: 'none'
+              touchAction: 'pan-y'
             }}
             onMouseDown={() => document.body.style.cursor = 'grabbing'}
             onMouseUp={() => document.body.style.cursor = 'grab'}
@@ -427,7 +345,7 @@ function Cards() {
               flex: 1,
               borderRadius: '20px',
               border: '2px solid #f6f5f3',
-              padding: '24px 20px',
+              padding: '60px 20px 24px 20px', // Increased top padding from 24px to 60px
               boxSizing: 'border-box',
               display: 'flex',
               flexDirection: 'column',
@@ -438,88 +356,130 @@ function Cards() {
                 textAlign: 'center',
                 display: 'flex',
                 flexDirection: 'column',
-                justifyContent: 'center',
+                justifyContent: 'flex-start', // Changed from 'center' to 'flex-start'
                 flexGrow: 1,
                 gap: '16px',
-                overflow: 'hidden'
+                overflow: 'hidden',
+                paddingTop: '20px' // Add some top padding for visual balance
               }}>
                 <h1 style={{
                   color: '#f6f5f3',
                   margin: 0,
                   fontSize: '1.8em',
-                  fontWeight: 700
+                  fontWeight: 700,
+                  flexShrink: 0 // Prevent title from shrinking
                 }}>
                   {currentMovie?.movie_title || currentMovie?.title} ({currentMovie?.year})
                 </h1>
-                <h2 style={{
-                  color: '#f6f5f3',
-                  margin: 0,
-                  fontSize: '1.3em',
-                  fontWeight: 500
-                }}>
-                  {currentMovie?.depicted_decade || currentMovie?.decade}
-                </h2>
-                <p style={{
+                <div style={{
                   color: '#f6f5f3',
                   margin: 0,
                   fontSize: '1.1em',
                   fontWeight: 'normal',
-                  fontStyle: 'italic',
-                  lineHeight: 1.5
+                  fontStyle: showSynopsis ? 'normal' : 'italic',
+                  lineHeight: 1.5,
+                  minHeight: '120px', // Reserve minimum space for text content
+                  display: 'flex',
+                  alignItems: 'flex-start', // Align text to top of reserved space
+                  justifyContent: 'center'
                 }}>
-                  {currentMovie?.aesthetic_summary || currentMovie?.desc}
-                </p>
+                  <p style={{ margin: 0 }}>
+                    {showSynopsis ? 
+                      (currentMovie?.synopsis || 'Synopsis not available') : 
+                      (currentMovie?.aesthetic_summary || currentMovie?.desc)
+                    }
+                  </p>
+                </div>
               </div>
+              
               <div style={{
                 display: 'flex',
-                justifyContent: 'space-evenly',
+                flexDirection: 'column',
                 alignItems: 'center',
                 paddingTop: '16px',
-                flexShrink: 0
+                flexShrink: 0,
+                gap: '12px'
               }}>
-                <div 
-                  onClick={swipeLeft}
+                <button
+                  className="flip-button"
+                  onClick={toggleFlip}
                   style={{
-                    width: '60px',
-                    height: '60px',
-                    borderRadius: '50%',
-                    backgroundColor: '#f6f5f3',
+                    background: 'transparent',
+                    border: 'none',
+                    cursor: 'pointer',
+                    padding: '8px',
                     display: 'flex',
-                    justifyContent: 'center',
                     alignItems: 'center',
-                    cursor: 'pointer'
+                    justifyContent: 'center',
+                    borderRadius: '50%',
+                    transition: 'all 0.2s ease',
+                    zIndex: 1000
                   }}
                 >
                   <img 
-                    src="/cross.png" 
-                    alt="Dislike" 
+                    src="/flip.png"
+                    alt="Flip content" 
                     style={{
-                      width: '28px',
-                      height: '28px'
+                      width: '24px',
+                      height: '24px',
+                      objectFit: 'contain',
+                      transition: 'transform 0.3s ease',
+                      transform: showSynopsis ? 'rotate(180deg)' : 'rotate(0deg)',
+                      pointerEvents: 'none'
                     }}
                   />
-                </div>
-                <div 
-                  onClick={swipeRight}
-                  style={{
-                    width: '60px',
-                    height: '60px',
-                    borderRadius: '50%',
-                    backgroundColor: '#f6f5f3',
-                    display: 'flex',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    cursor: 'pointer'
-                  }}
-                >
-                  <img 
-                    src="/heart.png" 
-                    alt="Like" 
+                </button>
+
+                <div style={{
+                  display: 'flex',
+                  justifyContent: 'space-evenly',
+                  alignItems: 'center',
+                  width: '100%'
+                }}>
+                  <div 
+                    onClick={swipeLeft}
                     style={{
-                      width: '28px',
-                      height: '28px'
+                      width: '60px',
+                      height: '60px',
+                      borderRadius: '50%',
+                      backgroundColor: '#f6f5f3',
+                      display: 'flex',
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                      cursor: 'pointer'
                     }}
-                  />
+                  >
+                    <img 
+                      src="/cross.png" 
+                      alt="Dislike" 
+                      style={{
+                        width: '28px',
+                        height: '28px'
+                      }}
+                    />
+                  </div>
+                  <div 
+                    onClick={swipeRight}
+                    style={{
+                      width: '60px',
+                      height: '60px',
+                      borderRadius: '50%',
+                      backgroundColor: '#f6f5f3',
+                      display: 'flex',
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    <img 
+                      src="/heart.png" 
+                      alt="Like" 
+                      style={{
+                        width: '28px',
+                        height: '28px'
+                      }}
+                    />
+                  </div>
                 </div>
               </div>
             </div>
@@ -535,27 +495,8 @@ function Cards() {
             maxWidth: '480px',
             margin: '0 auto'
           }}>
-            <button
-              onClick={jigglePopcorn}
-              style={{
-                background: 'transparent',
-                border: 'none',
-                cursor: 'pointer',
-                padding: 0,
-                marginBottom: '20px'
-              }}
-            >
-              <img 
-                src="/popcorn.png" 
-                alt="Popcorn" 
-                style={{
-                  width: '100px',
-                  height: 'auto',
-                  cursor: 'pointer',
-                  transition: 'transform 0.2s ease',
-                  transform: `rotate(${popcornRotation}deg)`
-                }}
-              />
+            <button onClick={jigglePopcorn} style={{ background: 'transparent', border: 'none', cursor: 'pointer', padding: 0, marginBottom: '20px' }}>
+              <img src="/popcorn.png" alt="Popcorn" style={{ width: '100px', height: 'auto', cursor: 'pointer', transition: 'transform 0.2s ease', transform: `rotate(${popcornRotation}deg)` }} />
             </button>
             <p style={{
               fontWeight: 'normal',
@@ -567,24 +508,8 @@ function Cards() {
             }}>
               Watchlist complete, curated by your {inputData.type}.{'\n'}Tap the popcorn to view your movies, or click below to explore more vibes.
             </p>
-            <button
-              onClick={handleGoExplore}
-              style={{
-                background: 'transparent',
-                border: 'none',
-                cursor: 'pointer',
-                padding: 0
-              }}
-            >
-              <img 
-                src="/GoButton.png" 
-                alt="Go Button" 
-                style={{
-                  width: '160px',
-                  height: 'auto',
-                  cursor: 'pointer'
-                }}
-              />
+            <button onClick={handleGoExplore} style={{ background: 'transparent', border: 'none', cursor: 'pointer', padding: 0 }}>
+              <img src="/GoButton.png" alt="Go Button" style={{ width: '160px', height: 'auto', cursor: 'pointer' }} />
             </button>
           </div>
         )}
