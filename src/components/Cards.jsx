@@ -46,6 +46,22 @@ function Cards() {
   const inputData = location.state || { type: 'surprise', value: 'random selection' }
   const maxCards = 10
 
+  // Prevent body scrolling on mobile
+  useEffect(() => {
+    document.body.style.overflow = 'hidden'
+    document.body.style.position = 'fixed'
+    document.body.style.width = '100%'
+    document.body.style.height = '100%'
+    
+    return () => {
+      // Cleanup when component unmounts
+      document.body.style.overflow = ''
+      document.body.style.position = ''
+      document.body.style.width = ''
+      document.body.style.height = ''
+    }
+  }, [])
+
   const sampleMovies = [
     { 
       movie_id: "sample1",
@@ -156,6 +172,13 @@ function Cards() {
 
   const handleGoExplore = () => {
     navigation.goToMatch()
+  }
+
+  const toggleFlip = (e) => {
+    e.preventDefault()
+    e.stopPropagation()
+    console.log('FLIP BUTTON CLICKED - showSynopsis before:', showSynopsis)
+    setShowSynopsis(prev => !prev)
   }
 
   const toggleFlip = (e) => {
