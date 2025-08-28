@@ -278,7 +278,7 @@ function Cards() {
 
       <main style={{
         position: 'absolute',
-        top: '70px',
+        top: '90px',
         left: 0,
         right: 0,
         bottom: '70px',
@@ -298,9 +298,9 @@ function Cards() {
               borderRadius: '24px',
               width: '90vw',
               maxWidth: '400px',
-              height: 'calc(100vh - 160px)',
-              maxHeight: '580px',
-              minHeight: '500px',
+              height: 'calc(100vh - 180px)',
+              maxHeight: '500px',
+              minHeight: '400px',
               position: 'relative',
               padding: '16px',
               boxSizing: 'border-box',
@@ -318,7 +318,7 @@ function Cards() {
               flex: 1,
               borderRadius: '20px',
               border: '2px solid #f6f5f3',
-              padding: '60px 20px 24px 20px',
+              padding: '24px 20px',
               boxSizing: 'border-box',
               display: 'flex',
               flexDirection: 'column',
@@ -327,49 +327,34 @@ function Cards() {
             }}>
               <div style={{
                 textAlign: 'center',
-                position: 'relative',
-                height: '100%',
                 display: 'flex',
-                flexDirection: 'column'
+                flexDirection: 'column',
+                justifyContent: 'center',
+                flexGrow: 1,
+                gap: '16px',
+                overflow: 'hidden'
               }}>
-                <div style={{
-                  position: 'absolute',
-                  top: '50%',
-                  left: '50%',
-                  transform: 'translate(-50%, -50%)',
-                  width: '100%',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '16px'
+                <h1 style={{
+                  color: '#f6f5f3',
+                  margin: 0,
+                  fontSize: '1.8em',
+                  fontWeight: 700
                 }}>
-                  <h1 style={{
-                    color: '#f6f5f3',
-                    margin: 0,
-                    fontSize: '1.8em',
-                    fontWeight: 700,
-                    flexShrink: 0
-                  }}>
-                    {currentMovie?.movie_title || currentMovie?.title} ({currentMovie?.year})
-                  </h1>
-                  <div style={{
-                    color: '#f6f5f3',
-                    margin: 0,
-                    fontSize: '1.1em',
-                    fontWeight: 'normal',
-                    fontStyle: showSynopsis ? 'normal' : 'italic',
-                    lineHeight: 1.5,
-                    display: 'flex',
-                    alignItems: 'flex-start',
-                    justifyContent: 'center'
-                  }}>
-                    <p style={{ margin: 0 }}>
-                      {showSynopsis ? 
-                        (currentMovie?.synopsis || 'Synopsis not available') : 
-                        (currentMovie?.aesthetic_summary || currentMovie?.desc)
-                      }
-                    </p>
-                  </div>
-                </div>
+                  {currentMovie?.movie_title || currentMovie?.title} ({currentMovie?.year})
+                </h1>
+                <p style={{
+                  color: '#f6f5f3',
+                  margin: 0,
+                  fontSize: '1.1em',
+                  fontWeight: 'normal',
+                  fontStyle: showSynopsis ? 'normal' : 'italic',
+                  lineHeight: 1.5
+                }}>
+                  {showSynopsis ? 
+                    (currentMovie?.synopsis || 'Synopsis not available') : 
+                    (currentMovie?.aesthetic_summary || currentMovie?.desc)
+                  }
+                </p>
               </div>
               
               <div style={{
