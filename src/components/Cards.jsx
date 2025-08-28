@@ -312,7 +312,8 @@ function Cards() {
         display: 'flex',
         justifyContent: 'center',
         alignItems: 'center',
-        overflow: 'hidden'
+        overflow: 'hidden',
+        paddingTop: '20px' // Add padding to prevent overlap with hamburger menu
       }}>
         {!showWatchlist ? (
           <div 
