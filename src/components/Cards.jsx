@@ -278,7 +278,7 @@ function Cards() {
 
       <main style={{
         position: 'absolute',
-        top: '50px',
+        top: '30px',
         left: 0,
         right: 0,
         bottom: '70px',
