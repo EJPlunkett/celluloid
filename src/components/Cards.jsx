@@ -278,7 +278,7 @@ function Cards() {
 
       <main style={{
         position: 'absolute',
-        top: '70px',
+        top: '50px',
         left: 0,
         right: 0,
         bottom: '70px',
@@ -333,7 +333,7 @@ function Cards() {
                 flexGrow: 1,
                 gap: '16px',
                 overflow: 'hidden',
-                paddingTop: '120px'
+                paddingTop: '80px'
               }}>
                 <h1 style={{
                   color: '#f6f5f3',
