@@ -145,19 +145,29 @@ function Color() {
         {`
           input[type="color"] {
             -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
             border: none;
             width: 60px;
             height: 60px;
             border-radius: 50%;
             cursor: pointer;
             outline: none;
+            background: none;
+            padding: 0;
           }
           input[type="color"]::-webkit-color-swatch-wrapper {
             padding: 0;
             border: none;
             border-radius: 50%;
+            background: none;
           }
           input[type="color"]::-webkit-color-swatch {
+            border: none;
+            border-radius: 50%;
+            background: none;
+          }
+          input[type="color"]::-moz-color-swatch {
             border: none;
             border-radius: 50%;
           }

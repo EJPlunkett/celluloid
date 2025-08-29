@@ -86,7 +86,7 @@ function Vibes() {
         <button 
           onClick={toggleNav}
           style={{
-            position: 'absolute',
+            position: 'fixed',
             top: '13px',
             left: '13px',
             width: '36px',
