@@ -34,6 +34,7 @@ function Cards() {
   const [currentIndex, setCurrentIndex] = useState(0)
   const [isDragging, setIsDragging] = useState(false)
   const [touchStartX, setTouchStartX] = useState(0)
+  const [dragOffset, setDragOffset] = useState(0)
   const [showWatchlist, setShowWatchlist] = useState(false)
   const [popcornRotation, setPopcornRotation] = useState(0)
   const [movies, setMovies] = useState([])
@@ -90,11 +91,16 @@ function Cards() {
     }
     setTouchStartX(e.touches[0].clientX)
     setIsDragging(true)
+    setDragOffset(0)
   }
 
   const handleTouchMove = (e) => {
     if (!isDragging) return
     e.preventDefault()
+    
+    const currentX = e.touches[0].clientX
+    const diffX = currentX - touchStartX
+    setDragOffset(diffX)
   }
 
   const handleTouchEnd = (e) => {
@@ -105,11 +111,20 @@ function Cards() {
     const diffX = touchEndX - touchStartX
     
     if (Math.abs(diffX) > 80) {
-      if (diffX > 0) {
-        swipeRight()
-      } else {
-        swipeLeft()
-      }
+      // Animate card off screen before switching
+      setDragOffset(diffX > 0 ? 400 : -400)
+      
+      setTimeout(() => {
+        if (diffX > 0) {
+          swipeRight()
+        } else {
+          swipeLeft()
+        }
+        setDragOffset(0)
+      }, 300)
+    } else {
+      // Snap back to center
+      setDragOffset(0)
     }
   }
 
@@ -315,8 +330,10 @@ function Cards() {
               display: 'flex',
               flexDirection: 'column',
               justifyContent: 'space-between',
-              transition: 'transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94), opacity 0.6s ease',
-              cursor: 'grab',
+              transition: isDragging ? 'none' : 'transform 0.3s ease, opacity 0.3s ease',
+              transform: `translateX(${dragOffset}px) rotate(${dragOffset * 0.1}deg)`,
+              opacity: Math.abs(dragOffset) > 150 ? 0.5 : 1,
+              cursor: isDragging ? 'grabbing' : 'grab',
               touchAction: 'pan-y'
             }}
             onMouseDown={() => document.body.style.cursor = 'grabbing'}
