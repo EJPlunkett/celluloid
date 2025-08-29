@@ -317,7 +317,7 @@ function Color() {
         <button
           onClick={handleSubmit}
           style={{
-            marginBottom: '20px',
+            marginBottom: '10px',
             width: '150px',
             height: 'auto',
             background: 'transparent',
@@ -340,8 +340,8 @@ function Color() {
 
         {/* Dice Rolling Section */}
         <section style={{
-          marginTop: '20px',
-          paddingTop: '10px',
+          marginTop: '10px',
+          paddingTop: '5px',
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center'
