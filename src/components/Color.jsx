@@ -153,23 +153,38 @@ function Color() {
             border-radius: 50%;
             cursor: pointer;
             outline: none;
-            background: none;
             padding: 0;
+            box-sizing: border-box;
+            background-color: transparent;
           }
           input[type="color"]::-webkit-color-swatch-wrapper {
             padding: 0;
             border: none;
             border-radius: 50%;
-            background: none;
+            box-shadow: none;
           }
           input[type="color"]::-webkit-color-swatch {
             border: none;
             border-radius: 50%;
-            background: none;
+            box-shadow: none;
+            min-height: 60px;
+            min-width: 60px;
           }
           input[type="color"]::-moz-color-swatch {
             border: none;
             border-radius: 50%;
+          }
+          
+          /* Mobile Safari specific fix */
+          @media screen and (-webkit-min-device-pixel-ratio: 1) {
+            input[type="color"]::-webkit-color-swatch-wrapper {
+              padding: 0 !important;
+              border: none !important;
+            }
+            input[type="color"]::-webkit-color-swatch {
+              border: none !important;
+              box-shadow: none !important;
+            }
           }
           
           @keyframes roll {
