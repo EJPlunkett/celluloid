@@ -33,21 +33,45 @@ function Color() {
 
   const fetchMoviePalettes = async () => {
     try {
+      console.log('Attempting to fetch movie palettes...')
+      
       const { data, error } = await supabase
         .from('celluloid_film_data')
         .select('movie_id, movie_title, hex_codes')
         .not('hex_codes', 'is', null)
         .neq('hex_codes', '')
+        .limit(100) // Limit to speed up initial load
 
-      if (error) throw error
+      console.log('Supabase response:', { data, error })
+
+      if (error) {
+        console.error('Supabase error:', error)
+        throw error
+      }
+      
+      if (!data || data.length === 0) {
+        console.log('No data returned from Supabase')
+        return
+      }
+
+      console.log(`Found ${data.length} movies with hex codes`)
       
       // Process the data to parse hex_codes string into arrays
-      const processedData = (data || []).map(movie => ({
-        ...movie,
-        colorArray: movie.hex_codes ? movie.hex_codes.split(', ').map(color => color.trim()) : []
-      })).filter(movie => movie.colorArray.length >= 5) // Only keep movies with at least 5 colors
+      const processedData = data.map(movie => {
+        const colorArray = movie.hex_codes ? 
+          movie.hex_codes.split(',').map(color => color.trim()) : []
+        
+        console.log(`Movie: ${movie.movie_title}, Colors: ${colorArray.length}`, colorArray)
+        
+        return {
+          ...movie,
+          colorArray
+        }
+      }).filter(movie => movie.colorArray.length >= 5) // Only keep movies with at least 5 colors
       
+      console.log(`Processed ${processedData.length} movies with 5+ colors`)
       setMoviePalettes(processedData)
+      
     } catch (error) {
       console.error('Error fetching movie palettes:', error)
     }
@@ -322,7 +346,10 @@ function Color() {
         <section style={{
           marginTop: '40px',
           paddingTop: '30px',
-          borderTop: '2px solid #ddd'
+          borderTop: '2px solid #ddd',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center'
         }}>
           <h3 style={{
             fontSize: '20px',
@@ -381,34 +408,34 @@ function Color() {
             </div>
           )}
 
-          {/* Movie Title and Submit */}
+          {/* Submit Button for Palette */}
           {selectedMovie && !isRolling && (
-            <div style={{ marginTop: '20px' }}>
-              <button
-                onClick={handlePaletteSubmit}
+            <button
+              onClick={handlePaletteSubmit}
+              style={{
+                marginTop: '20px',
+                width: '150px',
+                height: 'auto',
+                background: 'transparent',
+                border: 'none',
+                cursor: 'pointer',
+                display: 'inline-block'
+              }}
+            >
+              <img 
+                src="/Submit Button.png" 
+                alt="Submit Palette" 
                 style={{
-                  width: '150px',
-                  height: 'auto',
-                  background: 'transparent',
-                  border: 'none',
-                  cursor: 'pointer',
-                  display: 'inline-block'
+                  width: '100%',
+                  height: '100%',
+                  display: 'block',
+                  objectFit: 'contain'
                 }}
-              >
-                <img 
-                  src="/Submit Button.png" 
-                  alt="Submit Palette" 
-                  style={{
-                    width: '100%',
-                    height: '100%',
-                    display: 'block',
-                    objectFit: 'contain'
-                  }}
-                />
-              </button>
-            </div>
+              />
+            </button>
           )}
 
+          {/* Loading/Error States */}
           {isRolling && (
             <p style={{
               fontSize: '16px',
@@ -419,14 +446,16 @@ function Color() {
             </p>
           )}
 
-          {moviePalettes.length === 0 && (
-            <p style={{
+          {moviePalettes.length === 0 && !isRolling && (
+            <div style={{
               fontSize: '14px',
               color: '#999',
-              marginTop: '10px'
+              marginTop: '10px',
+              textAlign: 'center'
             }}>
-              Loading movie palettes...
-            </p>
+              <p>Unable to load movie palettes.</p>
+              <p>Check console for errors.</p>
+            </div>
           )}
         </section>
       </main>
