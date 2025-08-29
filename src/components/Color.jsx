@@ -202,7 +202,7 @@ function Color() {
         <button 
           onClick={toggleNav}
           style={{
-            position: 'fixed',
+            position: 'absolute',
             top: '13px',
             left: '13px',
             width: '36px',
@@ -449,7 +449,7 @@ function Color() {
               color: '#666',
               marginTop: '10px'
             }}>
-              Rolling for your perfect palette...
+              Rolling to match you with a movie palette…
             </p>
           )}
 
