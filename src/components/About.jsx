@@ -146,7 +146,7 @@ function About() {
           color: '#000',
           textAlign: 'center'
         }}>
-          Photo of me living the vibes of Working Girl 1988 on the Staten Island Ferry
+          Photo of me living the vibes of Working Girl (1988) on the Staten Island Ferry.
         </p>
 
         <p style={{

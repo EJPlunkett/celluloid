@@ -1,6 +1,5 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useNavigation } from '../hooks/useNavigation'
-import { supabase } from '../supabase'
 
 function Color() {
   // Predefined color palette
@@ -20,77 +19,7 @@ function Color() {
 
   const [navOpen, setNavOpen] = useState(false)
   const [selectedColor, setSelectedColor] = useState(getRandomColor())
-  const [isRolling, setIsRolling] = useState(false)
-  const [currentPalette, setCurrentPalette] = useState([])
-  const [moviePalettes, setMoviePalettes] = useState([])
-  const [selectedMovie, setSelectedMovie] = useState(null)
   const navigation = useNavigation()
-
-  // Fetch movie color palettes from Supabase
-  useEffect(() => {
-    fetchMoviePalettes()
-  }, [])
-
-  const fetchMoviePalettes = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('celluloid_film_data')
-        .select('movie_id, movie_title, hex_codes')
-        .not('hex_codes', 'is', null)
-        .neq('hex_codes', '')
-
-      if (error) throw error
-      
-      // Process the data to parse hex_codes string into arrays
-      const processedData = (data || []).map(movie => ({
-        ...movie,
-        colorArray: movie.hex_codes ? movie.hex_codes.split(', ').map(color => color.trim()) : []
-      })).filter(movie => movie.colorArray.length >= 5) // Only keep movies with at least 5 colors
-      
-      setMoviePalettes(processedData)
-    } catch (error) {
-      console.error('Error fetching movie palettes:', error)
-    }
-  }
-
-  const rollDice = () => {
-    if (moviePalettes.length === 0) {
-      console.error('No movie palettes available')
-      return
-    }
-
-    setIsRolling(true)
-    
-    // Create rolling animation effect
-    let rollCount = 0
-    const maxRolls = 15 + Math.floor(Math.random() * 10) // Random number of rolls between 15-25
-    
-    const rollInterval = setInterval(() => {
-      const randomMovie = moviePalettes[Math.floor(Math.random() * moviePalettes.length)]
-      const palette = randomMovie.colorArray.slice(0, 5) // Take first 5 colors
-      setCurrentPalette(palette)
-      rollCount++
-
-      if (rollCount >= maxRolls) {
-        clearInterval(rollInterval)
-        setIsRolling(false)
-        setSelectedMovie(randomMovie)
-      }
-    }, 100 + rollCount * 5) // Gradually slow down the rolling
-  }
-
-  const handlePaletteSubmit = () => {
-    if (selectedMovie) {
-      console.log('Selected movie palette:', selectedMovie)
-      // Navigate to cards page with the selected movie's palette
-      navigation.goToCards({ 
-        movieId: selectedMovie.movie_id,
-        palette: currentPalette,
-        hexCodes: selectedMovie.hex_codes,
-        type: 'palette' 
-      })
-    }
-  }
 
   const toggleNav = () => {
     setNavOpen(!navOpen)
@@ -141,34 +70,6 @@ function Color() {
           input[type="color"]::-webkit-color-swatch {
             border: none;
             border-radius: 50%;
-          }
-          
-          @keyframes roll {
-            0% { transform: rotateX(0deg) rotateY(0deg); }
-            25% { transform: rotateX(90deg) rotateY(90deg); }
-            50% { transform: rotateX(180deg) rotateY(180deg); }
-            75% { transform: rotateX(270deg) rotateY(270deg); }
-            100% { transform: rotateX(360deg) rotateY(360deg); }
-          }
-          
-          .dice-rolling {
-            animation: roll 0.6s infinite;
-          }
-          
-          .color-swatch {
-            width: 60px;
-            height: 40px;
-            border-radius: 8px;
-            border: 2px solid #000;
-            transition: transform 0.2s ease;
-          }
-          
-          .color-palette {
-            display: flex;
-            gap: 8px;
-            justify-content: center;
-            align-items: center;
-            margin: 20px 0;
           }
         `}
       </style>
@@ -261,9 +162,8 @@ function Color() {
           Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras vel dolor sed massa bibendum consequat. Suspendisse viverra pulvinar blandit. Nam aliquam metus ut fermentum vehicula. Nullam at est dictum, fringilla risus at, vestibulum neque. Donec tempor sem tortor, ut semper odio aliquet at. Vivamus blandit urna vel nibh pulvinar, a dapibus nisl fringilla. Fusce
         </p>
 
-        {/* Original Color Picker Section */}
         <section style={{ 
-          marginBottom: '30px',
+          marginBottom: '20px',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -297,7 +197,7 @@ function Color() {
         <button
           onClick={handleSubmit}
           style={{
-            marginBottom: '40px',
+            marginTop: '20px',
             width: '150px',
             height: 'auto',
             background: 'transparent',
@@ -317,121 +217,9 @@ function Color() {
             }}
           />
         </button>
-
-        {/* Dice Rolling Section */}
-        <section style={{
-          marginTop: '40px',
-          paddingTop: '30px',
-          borderTop: '2px solid #ddd'
-        }}>
-          <h3 style={{
-            fontSize: '20px',
-            fontWeight: 600,
-            marginBottom: '20px',
-            color: '#000'
-          }}>
-            Or Roll for a Movie Palette
-          </h3>
-
-          {/* Dice Button */}
-          <button
-            onClick={rollDice}
-            disabled={isRolling || moviePalettes.length === 0}
-            style={{
-              background: 'transparent',
-              border: 'none',
-              cursor: isRolling ? 'not-allowed' : 'pointer',
-              marginBottom: '20px',
-              opacity: isRolling ? 0.7 : 1,
-              transition: 'opacity 0.3s ease',
-              width: '80px',
-              height: '80px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center'
-            }}
-            aria-label="Roll dice for random movie palette"
-          >
-            <img 
-              src="/dice.png" 
-              alt="Dice" 
-              style={{
-                width: '100%',
-                height: '100%',
-                objectFit: 'contain'
-              }}
-              className={isRolling ? 'dice-rolling' : ''}
-            />
-          </button>
-
-          {/* Color Palette Display */}
-          {currentPalette.length > 0 && (
-            <div className="color-palette">
-              {currentPalette.map((color, index) => (
-                <div
-                  key={index}
-                  className="color-swatch"
-                  style={{
-                    backgroundColor: color,
-                    transform: isRolling ? 'scale(0.9)' : 'scale(1)'
-                  }}
-                  title={color}
-                />
-              ))}
-            </div>
-          )}
-
-          {/* Movie Title and Submit */}
-          {selectedMovie && !isRolling && (
-            <div style={{ marginTop: '20px' }}>
-              <button
-                onClick={handlePaletteSubmit}
-                style={{
-                  width: '150px',
-                  height: 'auto',
-                  background: 'transparent',
-                  border: 'none',
-                  cursor: 'pointer',
-                  display: 'inline-block'
-                }}
-              >
-                <img 
-                  src="/Submit Button.png" 
-                  alt="Submit Palette" 
-                  style={{
-                    width: '100%',
-                    height: '100%',
-                    display: 'block',
-                    objectFit: 'contain'
-                  }}
-                />
-              </button>
-            </div>
-          )}
-
-          {isRolling && (
-            <p style={{
-              fontSize: '16px',
-              color: '#666',
-              marginTop: '10px'
-            }}>
-              Rolling for your perfect palette...
-            </p>
-          )}
-
-          {moviePalettes.length === 0 && (
-            <p style={{
-              fontSize: '14px',
-              color: '#999',
-              marginTop: '10px'
-            }}>
-              Loading movie palettes...
-            </p>
-          )}
-        </section>
       </main>
 
-      {/* Navigation Overlay - keeping your existing navigation */}
+      {/* Navigation Overlay */}
       <nav 
         style={{
           position: 'fixed',
