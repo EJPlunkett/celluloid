@@ -276,7 +276,11 @@ function Color() {
           whiteSpace: 'pre-wrap',
           textAlign: 'center'
         }}>
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras vel dolor sed massa bibendum consequat. Suspendisse viverra pulvinar blandit. Nam aliquam metus ut fermentum vehicula. Nullam at est dictum, fringilla risus at, vestibulum neque. Donec tempor sem tortor, ut semper odio aliquet at. Vivamus blandit urna vel nibh pulvinar, a dapibus nisl fringilla. Fusce
+          Color shapes the atmosphere of film. Explore cinema here through palettes taken directly from the archive.
+          {'\n\n'}
+          Pick a specific shade to find films that share its tone. Or roll the dice to surface random palettes and discover unexpected matches across decades of film.
+          {'\n\n'}
+          Every palette connects back to real design choices on screen, from the walls of an apartment to the glow of neon to the orange and yellow of subway seats.
         </p>
 
         {/* Original Color Picker Section */}
@@ -339,18 +343,18 @@ function Color() {
         {/* Dice Rolling Section */}
         <section style={{
           marginTop: '40px',
-          paddingTop: '30px',
+          paddingTop: '10px',
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center'
         }}>
           <h3 style={{
             fontSize: '20px',
-            fontWeight: 600,
+            fontWeight: 400,
             marginBottom: '20px',
             color: '#000'
           }}>
-            Or Roll for a Movie Palette
+            Roll to Reveal a Palette
           </h3>
 
           {/* Dice Button */}
@@ -364,8 +368,8 @@ function Color() {
               marginBottom: '20px',
               opacity: isRolling ? 0.7 : 1,
               transition: 'opacity 0.3s ease',
-              width: '80px',
-              height: '80px',
+              width: '100px',
+              height: '100px',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center'
