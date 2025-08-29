@@ -314,10 +314,21 @@ function Color() {
           </span>
         </section>
 
+        <h3 style={{
+          fontSize: '16px',
+          fontWeight: 400,
+          fontStyle: 'italic',
+          marginBottom: '15px',
+          color: '#000',
+          textAlign: 'center'
+        }}>
+          Pick a Color to Discover
+        </h3>
+
         <button
           onClick={handleSubmit}
           style={{
-            marginBottom: '10px',
+            marginBottom: '5px',
             width: '150px',
             height: 'auto',
             background: 'transparent',
@@ -340,15 +351,16 @@ function Color() {
 
         {/* Dice Rolling Section */}
         <section style={{
-          marginTop: '10px',
-          paddingTop: '5px',
+          marginTop: '5px',
+          paddingTop: '0px',
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center'
         }}>
           <h3 style={{
-            fontSize: '20px',
+            fontSize: '16px',
             fontWeight: 400,
+            fontStyle: 'italic',
             marginBottom: '20px',
             color: '#000'
           }}>
