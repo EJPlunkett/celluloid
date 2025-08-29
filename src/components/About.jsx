@@ -110,7 +110,20 @@ function About() {
           color: '#000',
           textAlign: 'center'
         }}>
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+          Celluloid by Design is a platform for discovering film through its aesthetics. Instead of relying on genre or storyline, movies here are catalogued by the qualities that define how they look: their colors, their settings, and their atmosphere. By organizing film through these elements, the site creates a different way of exploring cinema, one that makes aesthetic connections visible and usable.
+        </p>
+
+        <p style={{
+          fontWeight: 300,
+          fontSize: '16px',
+          lineHeight: 1.6,
+          margin: '5px 0 5px 0',
+          padding: 0,
+          whiteSpace: 'pre-wrap',
+          color: '#000',
+          textAlign: 'center'
+        }}>
+          The framework comes from my background in schema and process design. I have spent years building systems that connect scattered elements and make sense of messy stories and signals, and I wanted to see what would happen if I applied that same practice to cinema. Each entry follows a consistent structure designed to capture the details that make a film distinct and make those details searchable. It is not driven by algorithms or opaque rules, but by a framework that gives aesthetics a structure you can navigate.
         </p>
 
         <img 
@@ -134,6 +147,19 @@ function About() {
           textAlign: 'center'
         }}>
           Photo of me living the vibes of Working Girl 1988 on the Staten Island Ferry
+        </p>
+
+        <p style={{
+          fontWeight: 300,
+          fontSize: '16px',
+          lineHeight: 1.6,
+          margin: '0 0 30px 0',
+          padding: 0,
+          whiteSpace: 'pre-wrap',
+          color: '#000',
+          textAlign: 'center'
+        }}>
+          This project is also about re-engaging with cinema on a personal level. I grew up in a VHS store, surrounded by shelves of films that shaped how I saw the world. This work has resurfaced so many titles I had forgotten by name but never by aesthetic. I still remembered the airy lofts, the tenement apartments, the clothes and the sets, even when the stories had slipped away, and now I can connect those same aesthetics to films I had never seen before. With my watchlist locked in, I am on the ride with you, and I invite you to join me on Instagram as we watch them all.
         </p>
 
         <p style={{
