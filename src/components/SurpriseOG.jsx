@@ -37,10 +37,10 @@ function Surprise() {
     
     setCurrentVibe(vibes[randomIndex])
     
-    // Reset dice animation after 400ms to match the CSS animation duration
+    // Reset dice animation
     setTimeout(() => {
       setIsRolling(false)
-    }, 400)
+    }, 300)
   }
 
   const handleSubmit = () => {
@@ -48,22 +48,6 @@ function Surprise() {
     // Navigate to cards page with the surprise vibe
     navigation.goToCards({ vibe: currentVibe })
   }
-
-  // Shake animation keyframes
-  const shakeKeyframes = `
-    @keyframes shake {
-      0%, 100% { transform: translateX(0) translateY(0) rotate(0deg); }
-      10% { transform: translateX(-4px) translateY(-2px) rotate(-5deg); }
-      20% { transform: translateX(4px) translateY(2px) rotate(4deg); }
-      30% { transform: translateX(-3px) translateY(3px) rotate(-3deg); }
-      40% { transform: translateX(3px) translateY(-1px) rotate(6deg); }
-      50% { transform: translateX(-2px) translateY(2px) rotate(-4deg); }
-      60% { transform: translateX(2px) translateY(-3px) rotate(3deg); }
-      70% { transform: translateX(-2px) translateY(1px) rotate(-2deg); }
-      80% { transform: translateX(2px) translateY(-1px) rotate(5deg); }
-      90% { transform: translateX(-1px) translateY(2px) rotate(-3deg); }
-    }
-  `
 
   return (
     <div style={{
@@ -80,9 +64,6 @@ function Surprise() {
       minHeight: '100vh',
       position: 'relative'
     }}>
-      {/* Inject CSS animation */}
-      <style>{shakeKeyframes}</style>
-      
       <header style={{
         display: 'flex',
         alignItems: 'center',
@@ -213,7 +194,8 @@ function Surprise() {
               height: 'auto',
               display: 'block',
               userSelect: 'none',
-              animation: isRolling ? 'shake 0.4s infinite' : 'none'
+              transition: 'transform 0.3s ease',
+              transform: isRolling ? 'rotate(20deg)' : 'rotate(0deg)'
             }}
           />
         </button>
