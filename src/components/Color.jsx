@@ -276,11 +276,9 @@ function Color() {
           whiteSpace: 'pre-wrap',
           textAlign: 'center'
         }}>
-          Color shapes the atmosphere of film. Explore cinema here through palettes taken directly from the archive.
+          Color shapes the atmosphere of film. Explore cinema here through palettes taken directly from the archive. Pick a specific shade to find films that share its tone, or roll the dice to surface random palettes and discover unexpected matches across decades of cinema.
           {'\n\n'}
-          Pick a specific shade to find films that share its tone. Or roll the dice to surface random palettes and discover unexpected matches across decades of film.
-          {'\n\n'}
-          Every palette connects back to real design choices on screen, from the walls of an apartment to the glow of neon to the orange and yellow of subway seats.
+          Each palette connects back to real design choices on screen, from the pop of red lipstick to the crisp white of business shirts to the shimmer of neon reflected on wet pavement.
         </p>
 
         {/* Original Color Picker Section */}
@@ -319,7 +317,7 @@ function Color() {
         <button
           onClick={handleSubmit}
           style={{
-            marginBottom: '40px',
+            marginBottom: '20px',
             width: '150px',
             height: 'auto',
             background: 'transparent',
@@ -342,7 +340,7 @@ function Color() {
 
         {/* Dice Rolling Section */}
         <section style={{
-          marginTop: '40px',
+          marginTop: '20px',
           paddingTop: '10px',
           display: 'flex',
           flexDirection: 'column',
