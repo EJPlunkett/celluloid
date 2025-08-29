@@ -115,7 +115,7 @@ function About() {
 
         <p style={{
           fontWeight: 300,
-          fontSize: '15px',
+          fontSize: '16px',
           lineHeight: 1.6,
           margin: '20px 0 5px 0',
           padding: 0,
