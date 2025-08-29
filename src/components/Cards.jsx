@@ -147,7 +147,12 @@ function Cards() {
         height: '100vh',
         display: 'flex',
         justifyContent: 'center',
-        alignItems: 'center'
+        alignItems: 'center',
+        overflow: 'hidden',
+        position: 'fixed',
+        width: '100vw',
+        top: 0,
+        left: 0
       }}>
         <div style={{ fontSize: '18px', color: '#000' }}>
           Loading movies...
@@ -162,8 +167,11 @@ function Cards() {
       backgroundColor: '#f6f5f3',
       fontFamily: 'Arial, sans-serif',
       overflow: 'hidden',
-      position: 'relative',
-      height: '100vh'
+      position: 'fixed',
+      height: '100vh',
+      width: '100vw',
+      top: 0,
+      left: 0
     }}>
       <header style={{
         position: 'fixed',
@@ -277,11 +285,11 @@ function Cards() {
       </nav>
 
       <main style={{
-        position: 'absolute',
-        top: '30px',
+        position: 'fixed',
+        top: '60px',
         left: 0,
         right: 0,
-        bottom: '70px',
+        bottom: '40px',
         display: 'flex',
         justifyContent: 'center',
         alignItems: 'center',
@@ -298,9 +306,9 @@ function Cards() {
               borderRadius: '24px',
               width: '90vw',
               maxWidth: '400px',
-              height: 'calc(100vh - 160px)',
-              maxHeight: '580px',
-              minHeight: '500px',
+              height: 'calc(100vh - 120px)',
+              maxHeight: '600px',
+              minHeight: '400px',
               position: 'relative',
               padding: '16px',
               boxSizing: 'border-box',
@@ -493,13 +501,15 @@ function Cards() {
         bottom: 0,
         left: 0,
         right: 0,
-        fontSize: '14px',
+        fontSize: '12px',
         color: '#000',
         textAlign: 'center',
-        padding: '10px 20px',
+        padding: '8px 20px',
         background: '#f6f5f3',
         fontStyle: 'italic',
-        zIndex: 1100
+        zIndex: 1100,
+        height: '30px',
+        boxSizing: 'border-box'
       }}>
         <span>© 2025 Celluloid by Design</span>
       </footer>
