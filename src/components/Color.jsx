@@ -187,16 +187,21 @@ function Color() {
             }
           }
           
-          @keyframes roll {
-            0% { transform: rotateX(0deg) rotateY(0deg); }
-            25% { transform: rotateX(90deg) rotateY(90deg); }
-            50% { transform: rotateX(180deg) rotateY(180deg); }
-            75% { transform: rotateX(270deg) rotateY(270deg); }
-            100% { transform: rotateX(360deg) rotateY(360deg); }
+          @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            10% { transform: translateX(-3px) rotate(-2deg); }
+            20% { transform: translateX(3px) rotate(2deg); }
+            30% { transform: translateX(-2px) rotate(-1deg); }
+            40% { transform: translateX(2px) rotate(1deg); }
+            50% { transform: translateX(-1px); }
+            60% { transform: translateX(1px) rotate(1deg); }
+            70% { transform: translateX(-1px) rotate(-1deg); }
+            80% { transform: translateX(1px); }
+            90% { transform: translateX(-1px); }
           }
           
           .dice-rolling {
-            animation: roll 0.6s infinite;
+            animation: shake 0.5s infinite;
           }
           
           .color-swatch {
