@@ -186,7 +186,7 @@ function Color() {
             gap: 15px;
             justify-content: center;
             align-items: center;
-            margin: 20px 0;
+            margin: 10px 0;
           }
         `}
       </style>
@@ -282,8 +282,19 @@ function Color() {
         </p>
 
         {/* Original Color Picker Section */}
+        <h3 style={{
+          fontSize: '16px',
+          fontWeight: 400,
+          fontStyle: 'italic',
+          marginBottom: '15px',
+          color: '#000',
+          textAlign: 'center'
+        }}>
+          Pick a Color to Discover
+        </h3>
+
         <section style={{ 
-          marginBottom: '30px',
+          marginBottom: '20px',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -313,17 +324,6 @@ function Color() {
             {selectedColor}
           </span>
         </section>
-
-        <h3 style={{
-          fontSize: '16px',
-          fontWeight: 400,
-          fontStyle: 'italic',
-          marginBottom: '15px',
-          color: '#000',
-          textAlign: 'center'
-        }}>
-          Pick a Color to Discover
-        </h3>
 
         <button
           onClick={handleSubmit}
