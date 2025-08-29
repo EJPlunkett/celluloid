@@ -110,14 +110,14 @@ function About() {
           color: '#000',
           textAlign: 'center'
         }}>
-          Celluloid by Design is a platform for discovering film through its aesthetics. Instead of relying on genre or storyline, movies here are catalogued by the qualities that define how they look: their colors, their settings, and their atmosphere. By organizing film through these elements, the site creates a different way of exploring cinema, one that makes aesthetic connections visible and usable.
+          <em>Celluloid by Design</em> is a platform for discovering film through its aesthetics. Instead of relying on genre or storyline, movies here are catalogued by the qualities that define how they look: their colors, their settings, and their atmosphere. By organizing film through these elements, the site creates a different way of exploring cinema, one that makes aesthetic connections visible and usable.
         </p>
 
         <p style={{
           fontWeight: 300,
-          fontSize: '16px',
+          fontSize: '15px',
           lineHeight: 1.6,
-          margin: '5px 0 5px 0',
+          margin: '20px 0 5px 0',
           padding: 0,
           whiteSpace: 'pre-wrap',
           color: '#000',
@@ -141,7 +141,7 @@ function About() {
         <p style={{
           fontSize: '14px',
           fontWeight: 300,
-          margin: '0 0 60px 0',
+          margin: '0 0 20px 0',
           fontStyle: 'italic',
           color: '#000',
           textAlign: 'center'
@@ -277,7 +277,7 @@ function About() {
             />
           </a>
           <a 
-            href="https://instagram.com/yourprofile" 
+            href="https://www.instagram.com/celluloidbydesign/?igsh=YnU3Z2JmMDZhMmJo&utm_source=qr" 
             target="_blank" 
             rel="noopener noreferrer"
             style={{
