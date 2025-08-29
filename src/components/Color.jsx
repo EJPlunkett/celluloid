@@ -35,53 +35,38 @@ function Color() {
     try {
       console.log('Attempting to fetch movie palettes...')
       
-      // Let's first check if the table exists and has any data at all
-      const { data: testData, error: testError } = await supabase
+      const { data, error } = await supabase
         .from('celluloid_film_data')
-        .select('*')
-        .limit(5)
+        .select('movie_id, movie_title, hex_codes')
+        .not('hex_codes', 'is', null)
+        .neq('hex_codes', '')
+        .limit(100)
 
-      console.log('Test query - any data in table:', testData)
-      console.log('Test query - error:', testError)
-
-      if (testError) {
-        console.error('Database error:', testError)
+      if (error) {
+        console.error('Supabase error:', error)
+        throw error
+      }
+      
+      if (!data || data.length === 0) {
+        console.log('No data returned from Supabase')
         return
       }
 
-      if (!testData || testData.length === 0) {
-        console.log('Table exists but is empty')
-        return
-      }
-
-      // Show us what columns exist
-      console.log('Available columns:', Object.keys(testData[0]))
+      console.log(`Found ${data.length} movies with hex codes`)
       
-      // Show first movie's data structure
-      console.log('First movie sample:', testData[0])
-      
-      // Now try to find movies with color data - let's check different possible column names
-      const colorColumns = ['hex_codes', 'colors', 'palette', 'color_palette', 'movie_colors']
-      
-      for (const columnName of colorColumns) {
-        if (testData[0].hasOwnProperty(columnName)) {
-          console.log(`Found color column: ${columnName}`)
-          console.log(`Sample ${columnName} value:`, testData[0][columnName])
+      // Process the data to parse hex_codes string into arrays
+      const processedData = data.map(movie => {
+        const colorArray = movie.hex_codes ? 
+          movie.hex_codes.split(',').map(color => color.trim()) : []
+        
+        return {
+          ...movie,
+          colorArray
         }
-      }
-
-      // For now, let's just use the test data to keep the component working
-      const mockPalette = [
-        { 
-          movie_id: 1, 
-          movie_title: 'Test Movie', 
-          hex_codes: '#F0788C, #171615, #D0CD93, #EF9FF8, #A01518',
-          colorArray: ['#F0788C', '#171615', '#D0CD93', '#EF9FF8', '#A01518']
-        }
-      ]
+      }).filter(movie => movie.colorArray.length >= 5) // Only keep movies with at least 5 colors
       
-      setMoviePalettes(mockPalette)
-      console.log('Using mock data for now')
+      console.log(`Processed ${processedData.length} movies with 5+ colors`)
+      setMoviePalettes(processedData)
       
     } catch (error) {
       console.error('Error fetching movie palettes:', error)
