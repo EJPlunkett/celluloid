@@ -139,6 +139,7 @@ function Donate() {
   const getDonateButtonText = () => {
     if (loading) return 'Processing...'
     if (!stripe) return 'Payment system unavailable'
+    if (selectedAmount > 0) return `DONATE ${selectedAmount}`
     return 'DONATE'
   }
 
