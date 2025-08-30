@@ -19,9 +19,30 @@ function Donate() {
   ]
 
   useEffect(() => {
+    // Load BLANKA font
+    const fontLink = document.createElement('link')
+    fontLink.rel = 'preload'
+    fontLink.href = '/BLANKA.otf'
+    fontLink.as = 'font'
+    fontLink.type = 'font/otf'
+    fontLink.crossOrigin = 'anonymous'
+    document.head.appendChild(fontLink)
+
+    // Add font-face CSS
+    const style = document.createElement('style')
+    style.innerHTML = `
+      @font-face {
+        font-family: 'BLANKA';
+        src: url('/BLANKA.otf') format('opentype');
+        font-display: swap;
+      }
+    `
+    document.head.appendChild(style)
+
     // Initialize Stripe when component mounts
     const initializeStripe = () => {
       if (window.Stripe) {
+        // You'll need to replace with your actual publishable key
         const stripeInstance = window.Stripe('pk_test_51S1x6vK5FZkag6mVWEcgXT4e8Oddk9dXlJyTe6xHk5EyV6KLn2dc5vb6ZlCriXmeZp25ANenu8H2W12okGtRLxSk00UaTYyOPU')
         setStripe(stripeInstance)
       } else {
@@ -118,8 +139,7 @@ function Donate() {
   const getDonateButtonText = () => {
     if (loading) return 'Processing...'
     if (!stripe) return 'Payment system unavailable'
-    if (selectedAmount > 0) return `Donate $${selectedAmount}`
-    return 'Donate with Stripe'
+    return 'DONATE'
   }
 
   return (
@@ -222,8 +242,7 @@ function Donate() {
           whiteSpace: 'normal',
           textAlign: 'center'
         }}>
-          Help keep Celluloid by Design running!<br />
-          The AI-powered film matching uses OpenAI, which costs money with every search. Your donations helps cover these costs.
+          <em>Celluloid by Design</em> is built on curiosity, structure, and a love of cinema's details, with a touch of AI behind the scenes. Each search draws on OpenAI's technology, which carries a small cost every time. Your support helps keep the project alive and growing.
         </p>
 
         {/* Message display */}
@@ -336,27 +355,30 @@ function Donate() {
             onClick={handleDonate}
             disabled={selectedAmount < 1 || !stripe || loading}
             style={{
-              marginTop: '20px',
-              padding: '16px 32px',
+              marginTop: '30px',
+              padding: '16px 48px',
               background: (selectedAmount >= 1 && stripe && !loading) ? '#000' : '#ccc',
               color: '#fff',
-              border: 'none',
-              borderRadius: '8px',
+              border: '2px solid #000',
+              borderRadius: '50px',
               fontSize: '18px',
-              fontWeight: 500,
+              fontFamily: 'BLANKA, Arial, sans-serif',
               cursor: (selectedAmount >= 1 && stripe && !loading) ? 'pointer' : 'not-allowed',
-              transition: 'background-color 0.2s ease',
-              width: '200px',
-              position: 'relative'
+              transition: 'all 0.2s ease',
+              minWidth: '180px',
+              position: 'relative',
+              letterSpacing: '1px'
             }}
             onMouseEnter={(e) => {
               if (selectedAmount >= 1 && stripe && !loading) {
                 e.target.style.background = '#333'
+                e.target.style.transform = 'translateY(-2px)'
               }
             }}
             onMouseLeave={(e) => {
               if (selectedAmount >= 1 && stripe && !loading) {
                 e.target.style.background = '#000'
+                e.target.style.transform = 'translateY(0)'
               }
             }}
           >
