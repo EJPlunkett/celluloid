@@ -43,7 +43,7 @@ function Donate() {
     const initializeStripe = () => {
       if (window.Stripe) {
         // You'll need to replace with your actual publishable key
-        const stripeInstance = window.Stripe('pk_test_51S1x6vK5FZkag6mVWEcgXT4e8Oddk9dXlJyTe6xHk5EyV6KLn2dc5vb6ZlCriXmeZp25ANenu8H2W12okGtRLxSk00UaTYyOPU')
+        const stripeInstance = window.Stripe('pk_live_51S1x6pGbIJG1BY3zDUKQchiGRUV9u7W5jFd1xLq69dE44Cn4Y2dnSItRzNPkEQfFKeWYmIdTfM0pglisbB1nAEI600nF5EeaSP')
         setStripe(stripeInstance)
       } else {
         console.error('Stripe failed to load')
