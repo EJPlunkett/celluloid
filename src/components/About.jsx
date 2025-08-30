@@ -121,7 +121,7 @@ function About() {
             color: '#000',
             textAlign: 'center'
           }}>
-            <em>Celluloid by Design</em> is a platform for discovering film through its aesthetics. Instead of relying on genre or storyline, movies here are catalogued by the qualities that define how they look: their colors, their settings, and their atmosphere. By organizing film through these elements, the site creates a different way of exploring cinema, one that makes aesthetic connections visible and usable.
+            <em>Celluloid by Design</em> is a platform for discovering film through its aesthetics. Instead of relying on genre or storyline, movies here are catalogued by the qualities that define how they look: their colors, their settings, and their aesthetics. By organizing film through these elements, the site creates a different way of exploring cinema, one that makes aesthetic connections visible and usable.
           </p>
 
           <img 
@@ -144,7 +144,7 @@ function About() {
             color: '#000',
             textAlign: 'center'
           }}>
-            Photo of me living the vibes of Working Girl (1988) on the Staten Island Ferry.
+            Photo of me channeling the vibe of Working Girl (1988) on the Staten Island Ferry.
           </p>
 
           <p style={{

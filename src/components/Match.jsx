@@ -3,7 +3,7 @@ import { useNavigation } from '../hooks/useNavigation'
 
 function Match() {
   const [navOpen, setNavOpen] = useState(false)
-  const [diceRotation, setDiceRotation] = useState(0)
+  const [isRolling, setIsRolling] = useState(false)
   const navigation = useNavigation()
 
   const toggleNav = () => {
@@ -11,18 +11,31 @@ function Match() {
   }
 
   const jiggleAndGo = () => {
-    // Jiggle animation
-    setDiceRotation(30)
+    // Start shake animation
+    setIsRolling(true)
+    
+    // Stop animation and navigate after 400ms
     setTimeout(() => {
-      setDiceRotation(-30)
-      setTimeout(() => {
-        setDiceRotation(0)
-        setTimeout(() => {
-          navigation.goToSurprise()
-        }, 200)
-      }, 200)
-    }, 200)
+      setIsRolling(false)
+      navigation.goToSurprise()
+    }, 400)
   }
+
+  // Shake animation keyframes
+  const shakeKeyframes = `
+    @keyframes shake {
+      0%, 100% { transform: translateX(0) translateY(0) rotate(0deg); }
+      10% { transform: translateX(-4px) translateY(-2px) rotate(-5deg); }
+      20% { transform: translateX(4px) translateY(2px) rotate(4deg); }
+      30% { transform: translateX(-3px) translateY(3px) rotate(-3deg); }
+      40% { transform: translateX(3px) translateY(-1px) rotate(6deg); }
+      50% { transform: translateX(-2px) translateY(2px) rotate(-4deg); }
+      60% { transform: translateX(2px) translateY(-3px) rotate(3deg); }
+      70% { transform: translateX(-2px) translateY(1px) rotate(-2deg); }
+      80% { transform: translateX(2px) translateY(-1px) rotate(5deg); }
+      90% { transform: translateX(-1px) translateY(2px) rotate(-3deg); }
+    }
+  `
 
   return (
     <div style={{
@@ -39,6 +52,9 @@ function Match() {
       minHeight: '100vh',
       position: 'relative'
     }}>
+      {/* Inject CSS animation */}
+      <style>{shakeKeyframes}</style>
+      
       <header style={{
         display: 'flex',
         alignItems: 'center',
@@ -192,8 +208,7 @@ function Match() {
             display: 'block',
             width: '80px',
             margin: '20px auto 0',
-            cursor: 'pointer',
-            transition: 'transform 0.2s ease'
+            cursor: 'pointer'
           }}
         >
           <img 
@@ -204,8 +219,7 @@ function Match() {
               height: 'auto',
               userSelect: 'none',
               display: 'block',
-              transform: `rotate(${diceRotation}deg)`,
-              transition: 'transform 0.2s ease'
+              animation: isRolling ? 'shake 0.4s infinite' : 'none'
             }}
           />
         </div>
