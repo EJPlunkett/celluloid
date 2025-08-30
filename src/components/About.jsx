@@ -185,13 +185,13 @@ function About() {
           }}>
             <span style={{
               fontFamily: "'TheArtistScript', cursive",
-              fontSize: '20px'
+              fontSize: '30px'
             }}>
               Emily Plunkett
             </span>
             <br />
             <span style={{ fontStyle: 'italic' }}>
-              Creator of Celluloid by Design
+              Creator
             </span>
           </p>
 
