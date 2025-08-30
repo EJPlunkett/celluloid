@@ -170,7 +170,7 @@ function About() {
             color: '#000',
             textAlign: 'center'
           }}>
-            This project is also about re-engaging with cinema on a personal level. I grew up in a VHS store, surrounded by shelves of films that shaped how I saw the world. This work has resurfaced so many titles I had forgotten by name but never by aesthetic. I still remembered the airy lofts, the tenement apartments, the clothes and the sets, even when the stories had slipped away, and now I can connect those same aesthetics to films I had never seen before. With my watchlist locked in, I am on the ride with you, and I invite you to join me on Instagram as we watch them all.
+            This project is also about re-engaging with cinema on a personal level. I grew up in a VHS store, surrounded by shelves of films that shaped how I saw the world. Working on this has resurfaced so many titles I had forgotten by name but not by aesthetic. I still remembered the airy lofts, the tenement apartments, the clothes and the sets, even when the stories had faded. Now I can connect those same aesthetics to films I had never seen before. With my watchlist locked in, I am on the ride with you, and I invite you to join me on Instagram as we watch them all.
           </p>
 
           <p style={{
@@ -185,7 +185,7 @@ function About() {
           }}>
             <span style={{
               fontFamily: "'TheArtistScript', cursive",
-              fontSize: '30px'
+              fontSize: '35px'
             }}>
               Emily Plunkett
             </span>
