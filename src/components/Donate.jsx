@@ -6,6 +6,8 @@ function Donate() {
   const [selectedAmount, setSelectedAmount] = useState(0)
   const [customAmount, setCustomAmount] = useState('')
   const [stripe, setStripe] = useState(null)
+  const [loading, setLoading] = useState(false)
+  const [message, setMessage] = useState('')
   const navigation = useNavigation()
 
   // Updated donation amounts without equivalents
@@ -20,8 +22,7 @@ function Donate() {
     // Initialize Stripe when component mounts
     const initializeStripe = () => {
       if (window.Stripe) {
-        // You'll need to replace with your actual publishable key
-        const stripeInstance = window.Stripe('pk_test_YOUR_PUBLISHABLE_KEY_HERE')
+        const stripeInstance = window.Stripe('pk_test_51S1x6vK5FZkag6mVWEcgXT4e8Oddk9dXlJyTe6xHk5EyV6KLn2dc5vb6ZlCriXmeZp25ANenu8H2W12okGtRLxSk00UaTYyOPU')
         setStripe(stripeInstance)
       } else {
         console.error('Stripe failed to load')
@@ -37,6 +38,14 @@ function Donate() {
     } else {
       initializeStripe()
     }
+
+    // Check for success/cancel parameters in URL
+    const urlParams = new URLSearchParams(window.location.search)
+    if (urlParams.get('success')) {
+      setMessage('Thank you for your donation! Your payment was successful.')
+    } else if (urlParams.get('canceled')) {
+      setMessage('Your payment was canceled. You can try again anytime.')
+    }
   }, [])
 
   const toggleNav = () => {
@@ -46,57 +55,68 @@ function Donate() {
   const handleAmountSelect = (amount) => {
     setSelectedAmount(amount)
     setCustomAmount('')
+    setMessage('')
   }
 
   const handleCustomAmountChange = (e) => {
     const value = e.target.value
     setCustomAmount(value)
     setSelectedAmount(parseInt(value) || 0)
+    setMessage('')
   }
 
   const handleDonate = async () => {
-    if (selectedAmount <= 0 || !stripe) {
+    if (selectedAmount < 1 || !stripe) {
       if (!stripe) {
-        alert('Payment system is currently unavailable. Please try again later.')
+        setMessage('Payment system is currently unavailable. Please try again later.')
+      } else {
+        setMessage('Please enter an amount of at least $1.')
       }
       return
     }
 
+    setLoading(true)
+    setMessage('')
+
     try {
-      // This would call your backend to create a Stripe checkout session
-      console.log('Would create donation for:', selectedAmount)
-      alert(`This would process a $${selectedAmount} donation. Backend integration needed for Stripe.`)
-      
-      // When you set up the backend, it would look like this:
-      /*
-      const response = await fetch('/create-checkout-session', {
+      // Call Netlify function to create a Stripe checkout session
+      const response = await fetch('/.netlify/functions/create-checkout-session', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          amount: selectedAmount * 100, // Stripe uses cents
+          amount: selectedAmount * 100, // Convert to cents
           currency: 'usd',
-          description: 'Donation to Celluloid by Design'
+          description: `Donation to Celluloid by Design - $${selectedAmount}`
         })
       })
 
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to create checkout session')
+      }
+
       const session = await response.json()
+
+      // Redirect to Stripe Checkout
       const result = await stripe.redirectToCheckout({
         sessionId: session.id
       })
 
       if (result.error) {
-        alert(result.error.message)
+        setMessage(result.error.message)
       }
-      */
     } catch (error) {
       console.error('Error:', error)
-      alert('There was a problem processing your donation. Please try again.')
+      setMessage(`Error: ${error.message}`)
+    } finally {
+      setLoading(false)
     }
   }
 
   const getDonateButtonText = () => {
+    if (loading) return 'Processing...'
     if (!stripe) return 'Payment system unavailable'
     if (selectedAmount > 0) return `Donate $${selectedAmount}`
     return 'Donate with Stripe'
@@ -206,6 +226,22 @@ function Donate() {
           The AI-powered film matching uses OpenAI, which costs money with every search. Your donations helps cover these costs.
         </p>
 
+        {/* Message display */}
+        {message && (
+          <div style={{
+            margin: '20px auto',
+            padding: '12px',
+            backgroundColor: message.includes('successful') ? '#d4edda' : message.includes('Error') ? '#f8d7da' : '#fff3cd',
+            color: message.includes('successful') ? '#155724' : message.includes('Error') ? '#721c24' : '#856404',
+            border: `1px solid ${message.includes('successful') ? '#c3e6cb' : message.includes('Error') ? '#f5c6cb' : '#ffeaa7'}`,
+            borderRadius: '8px',
+            maxWidth: '400px',
+            fontSize: '14px'
+          }}>
+            {message}
+          </div>
+        )}
+
         <section style={{ marginBottom: '40px' }}>
           <div style={{
             fontSize: '14px',
@@ -227,6 +263,7 @@ function Donate() {
               <button
                 key={donation.amount}
                 onClick={() => handleAmountSelect(donation.amount)}
+                disabled={loading}
                 style={{
                   padding: '12px 24px',
                   border: '2px solid #000',
@@ -235,19 +272,20 @@ function Donate() {
                   color: selectedAmount === donation.amount && !customAmount ? '#fff' : '#000',
                   fontSize: '16px',
                   fontWeight: 500,
-                  cursor: 'pointer',
+                  cursor: loading ? 'not-allowed' : 'pointer',
                   transition: 'all 0.2s ease',
                   minWidth: '80px',
-                  position: 'relative'
+                  position: 'relative',
+                  opacity: loading ? 0.6 : 1
                 }}
                 onMouseEnter={(e) => {
-                  if (selectedAmount !== donation.amount || customAmount) {
+                  if (!loading && (selectedAmount !== donation.amount || customAmount)) {
                     e.target.style.background = '#000'
                     e.target.style.color = '#fff'
                   }
                 }}
                 onMouseLeave={(e) => {
-                  if (selectedAmount !== donation.amount || customAmount) {
+                  if (!loading && (selectedAmount !== donation.amount || customAmount)) {
                     e.target.style.background = '#fff'
                     e.target.style.color = '#000'
                   }
@@ -268,21 +306,25 @@ function Donate() {
               placeholder="$"
               min="1"
               max="999"
+              disabled={loading}
               style={{
                 padding: '12px 16px',
                 border: '2px solid #000',
                 borderRadius: '8px',
-                backgroundColor: '#fff',
+                backgroundColor: loading ? '#f5f5f5' : '#fff',
                 fontSize: '16px',
                 fontFamily: 'Arial, sans-serif',
                 color: '#000',
                 width: '120px',
                 textAlign: 'center',
-                marginTop: '8px'
+                marginTop: '8px',
+                opacity: loading ? 0.6 : 1
               }}
               onFocus={(e) => {
-                e.target.style.outline = 'none'
-                e.target.style.borderColor = '#666'
+                if (!loading) {
+                  e.target.style.outline = 'none'
+                  e.target.style.borderColor = '#666'
+                }
               }}
               onBlur={(e) => {
                 e.target.style.borderColor = '#000'
@@ -292,27 +334,28 @@ function Donate() {
 
           <button
             onClick={handleDonate}
-            disabled={selectedAmount <= 0 || !stripe}
+            disabled={selectedAmount < 1 || !stripe || loading}
             style={{
               marginTop: '20px',
               padding: '16px 32px',
-              background: selectedAmount > 0 && stripe ? '#000' : '#ccc',
+              background: (selectedAmount >= 1 && stripe && !loading) ? '#000' : '#ccc',
               color: '#fff',
               border: 'none',
               borderRadius: '8px',
               fontSize: '18px',
               fontWeight: 500,
-              cursor: selectedAmount > 0 && stripe ? 'pointer' : 'not-allowed',
+              cursor: (selectedAmount >= 1 && stripe && !loading) ? 'pointer' : 'not-allowed',
               transition: 'background-color 0.2s ease',
-              width: '200px'
+              width: '200px',
+              position: 'relative'
             }}
             onMouseEnter={(e) => {
-              if (selectedAmount > 0 && stripe) {
+              if (selectedAmount >= 1 && stripe && !loading) {
                 e.target.style.background = '#333'
               }
             }}
             onMouseLeave={(e) => {
-              if (selectedAmount > 0 && stripe) {
+              if (selectedAmount >= 1 && stripe && !loading) {
                 e.target.style.background = '#000'
               }
             }}
