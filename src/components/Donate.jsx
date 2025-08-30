@@ -385,6 +385,16 @@ function Donate() {
           >
             {getDonateButtonText()}
           </button>
+
+          <div style={{
+            fontSize: '12px',
+            color: '#666',
+            marginTop: '12px',
+            fontStyle: 'italic',
+            textAlign: 'center'
+          }}>
+            Secure payments powered by Stripe
+          </div>
         </section>
       </main>
 
