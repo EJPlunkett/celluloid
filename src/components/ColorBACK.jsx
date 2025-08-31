@@ -82,20 +82,13 @@ function Color() {
     }
 
     setIsRolling(true)
-    setSelectedMovie(null) // Clear previous selection
-    setCurrentPalette([]) // Clear previous palette
     
-    // Create rolling animation effect with better randomization
+    // Create rolling animation effect
     let rollCount = 0
     const maxRolls = 15 + Math.floor(Math.random() * 10) // Random number of rolls between 15-25
     
     const rollInterval = setInterval(() => {
-      // Better randomization - use crypto.getRandomValues if available
-      const randomIndex = crypto.getRandomValues ? 
-        crypto.getRandomValues(new Uint32Array(1))[0] % moviePalettes.length :
-        Math.floor(Math.random() * moviePalettes.length)
-        
-      const randomMovie = moviePalettes[randomIndex]
+      const randomMovie = moviePalettes[Math.floor(Math.random() * moviePalettes.length)]
       const palette = randomMovie.colorArray.slice(0, 5) // Take first 5 colors
       setCurrentPalette(palette)
       rollCount++
@@ -103,17 +96,7 @@ function Color() {
       if (rollCount >= maxRolls) {
         clearInterval(rollInterval)
         setIsRolling(false)
-        
-        // Final selection with additional randomization
-        const finalIndex = crypto.getRandomValues ? 
-          crypto.getRandomValues(new Uint32Array(1))[0] % moviePalettes.length :
-          Math.floor(Math.random() * moviePalettes.length)
-        const finalMovie = moviePalettes[finalIndex]
-        const finalPalette = finalMovie.colorArray.slice(0, 5)
-        
-        setSelectedMovie(finalMovie)
-        setCurrentPalette(finalPalette)
-        console.log('Final selection:', finalMovie.movie_title, finalPalette)
+        setSelectedMovie(randomMovie)
       }
     }, 100 + rollCount * 5) // Gradually slow down the rolling
   }
@@ -165,13 +148,10 @@ function Color() {
     setSelectedColor(e.target.value.toUpperCase())
   }
 
-  const handleSubmit = async (colorToUse = null) => {
-    // Use passed color or current selectedColor
-    const targetColor = colorToUse || selectedColor
-    
+  const handleSubmit = async () => {
     if (!colorSearching) {
       setColorSearching(true)
-      console.log('Selected color:', targetColor)
+      console.log('Selected color:', selectedColor)
       
       try {
         // Call the colorSearch API for single color matching
@@ -180,7 +160,7 @@ function Color() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             searchType: 'color',
-            color: targetColor,
+            color: selectedColor,
             timestamp: Date.now()
           })
         })
@@ -190,7 +170,7 @@ function Color() {
         if (results.success && results.results.length > 0) {
           // Navigate to cards page with the results
           navigation.goToCards({ 
-            color: targetColor,
+            color: selectedColor,
             results: results.results
           })
         } else {
@@ -482,7 +462,7 @@ function Color() {
         </section>
 
         <button
-          onClick={() => handleSubmit(document.getElementById('colorPicker').value)}
+          onClick={handleSubmit}
           disabled={colorSearching}
           className={`search-button ${colorSearching ? 'searching' : ''}`}
           style={{
