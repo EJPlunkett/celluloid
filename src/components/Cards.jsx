@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { useLocation } from 'react-router-dom'
 import { useNavigation } from '../hooks/useNavigation'
-// No import needed - will call Netlify function directly
 
 function Cards() {
   const [navOpen, setNavOpen] = useState(false)
@@ -78,15 +77,21 @@ function Cards() {
       console.log('Cards useEffect - processing inputData:', inputData)
       
       try {
-        // Handle color-based searches
-        if (inputData.color) {
-          console.log('Processing single color search:', inputData.color)
+        // PRIORITY 1: Use pre-fetched results if they exist
+        if (inputData.results && inputData.results.length > 0) {
+          console.log('Using pre-fetched search results:', inputData.results.length, 'movies')
+          setMovies(inputData.results)
+        }
+        // PRIORITY 2: Handle legacy single color searches (if no results passed)
+        else if (inputData.color) {
+          console.log('Making API call for single color search:', inputData.color)
           const response = await fetch('/.netlify/functions/colorSearch', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               searchType: 'color',
-              color: inputData.color
+              color: inputData.color,
+              timestamp: Date.now()
             })
           })
           const colorResults = await response.json()
@@ -96,19 +101,20 @@ function Cards() {
             setMovies(colorResults.results)
           } else {
             console.error('Color search failed:', colorResults)
-            setMovies([]) // Don't fall back to sample movies
+            setMovies([])
           }
         }
-        // Handle palette-based searches  
+        // PRIORITY 3: Handle legacy palette searches (if no results passed)
         else if (inputData.type === 'palette' && inputData.movieId) {
-          console.log('Processing palette search for movie:', inputData.movieId)
+          console.log('Making API call for palette search for movie:', inputData.movieId)
           const response = await fetch('/.netlify/functions/colorSearch', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               searchType: 'palette',
               movieId: inputData.movieId,
-              hexCodes: inputData.hexCodes
+              hexCodes: inputData.hexCodes,
+              timestamp: Date.now()
             })
           })
           const paletteResults = await response.json()
@@ -118,17 +124,12 @@ function Cards() {
             setMovies(paletteResults.results)
           } else {
             console.error('Palette search failed:', paletteResults)
-            setMovies([]) // Don't fall back to sample movies
+            setMovies([])
           }
         }
-        // Handle existing vibe/word search results
-        else if (inputData.results && inputData.results.length > 0) {
-          console.log('Using existing search results:', inputData.results)
-          setMovies(inputData.results)
-        }
-        // Fallback to sample movies
+        // PRIORITY 4: Fallback to sample movies for other cases
         else {
-          console.log('Using sample movies fallback')
+          console.log('Using sample movies fallback for type:', inputData.type)
           setMovies(sampleMovies)
         }
       } catch (error) {
