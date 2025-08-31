@@ -129,12 +129,13 @@ function Color() {
           })
         } else {
           console.error('Palette search failed:', results)
-          // Handle error - maybe show an error message or fallback
-          setPaletteSearching(false)
+          setPaletteSearching(false) // Reset state on failure
+          alert('Search failed. Please try again.') // User feedback
         }
       } catch (error) {
         console.error('Error calling palette search:', error)
-        setPaletteSearching(false)
+        setPaletteSearching(false) // Reset state on error
+        alert('Network error. Please try again.') // User feedback
       }
     }
   }
@@ -174,12 +175,13 @@ function Color() {
           })
         } else {
           console.error('Color search failed:', results)
-          // Handle error - maybe show an error message or fallback
-          setColorSearching(false)
+          setColorSearching(false) // Reset state on failure
+          alert('Search failed. Please try again.') // User feedback
         }
       } catch (error) {
         console.error('Error calling color search:', error)
-        setColorSearching(false)
+        setColorSearching(false) // Reset state on error
+        alert('Network error. Please try again.') // User feedback
       }
     }
   }
