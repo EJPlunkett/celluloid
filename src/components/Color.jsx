@@ -24,6 +24,8 @@ function Color() {
   const [currentPalette, setCurrentPalette] = useState([])
   const [moviePalettes, setMoviePalettes] = useState([])
   const [selectedMovie, setSelectedMovie] = useState(null)
+  const [colorSearching, setColorSearching] = useState(false)
+  const [paletteSearching, setPaletteSearching] = useState(false)
   const navigation = useNavigation()
 
   // Fetch movie color palettes from Supabase
@@ -99,16 +101,41 @@ function Color() {
     }, 100 + rollCount * 5) // Gradually slow down the rolling
   }
 
-  const handlePaletteSubmit = () => {
-    if (selectedMovie) {
+  const handlePaletteSubmit = async () => {
+    if (selectedMovie && !paletteSearching) {
+      setPaletteSearching(true)
       console.log('Selected movie palette:', selectedMovie)
-      // Navigate to cards page with the selected movie's palette
-      navigation.goToCards({ 
-        movieId: selectedMovie.movie_id,
-        palette: currentPalette,
-        hexCodes: selectedMovie.hex_codes,
-        type: 'palette' 
-      })
+      
+      try {
+        // Call the colorSearch API for palette matching
+        const response = await fetch('/.netlify/functions/colorSearch', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            searchType: 'palette',
+            movieId: selectedMovie.movie_id,
+            hexCodes: selectedMovie.hex_codes,
+            timestamp: Date.now()
+          })
+        })
+        
+        const results = await response.json()
+        
+        if (results.success && results.results.length > 0) {
+          // Navigate to cards page with the results
+          navigation.goToCards({ 
+            type: 'palette',
+            results: results.results
+          })
+        } else {
+          console.error('Palette search failed:', results)
+          // Handle error - maybe show an error message or fallback
+          setPaletteSearching(false)
+        }
+      } catch (error) {
+        console.error('Error calling palette search:', error)
+        setPaletteSearching(false)
+      }
     }
   }
 
@@ -120,10 +147,41 @@ function Color() {
     setSelectedColor(e.target.value.toUpperCase())
   }
 
-  const handleSubmit = () => {
-    console.log('Selected color:', selectedColor)
-    // Navigate to cards page with the color input
-    navigation.goToCards({ color: selectedColor })
+  const handleSubmit = async () => {
+    if (!colorSearching) {
+      setColorSearching(true)
+      console.log('Selected color:', selectedColor)
+      
+      try {
+        // Call the colorSearch API for single color matching
+        const response = await fetch('/.netlify/functions/colorSearch', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            searchType: 'color',
+            color: selectedColor,
+            timestamp: Date.now()
+          })
+        })
+        
+        const results = await response.json()
+        
+        if (results.success && results.results.length > 0) {
+          // Navigate to cards page with the results
+          navigation.goToCards({ 
+            color: selectedColor,
+            results: results.results
+          })
+        } else {
+          console.error('Color search failed:', results)
+          // Handle error - maybe show an error message or fallback
+          setColorSearching(false)
+        }
+      } catch (error) {
+        console.error('Error calling color search:', error)
+        setColorSearching(false)
+      }
+    }
   }
 
   return (
@@ -143,6 +201,13 @@ function Color() {
     }}>
       <style>
         {`
+          @font-face {
+            font-family: 'Blanka';
+            src: url('/BLANKA.otf') format('opentype');
+            font-weight: normal;
+            font-style: normal;
+          }
+          
           input[type="color"] {
             -webkit-appearance: none;
             -moz-appearance: none;
@@ -217,6 +282,44 @@ function Color() {
             justify-content: center;
             align-items: center;
             margin: 10px 0;
+          }
+          
+          .search-button {
+            width: 150px;
+            height: 40px;
+            background: #000;
+            color: #fff;
+            border: none;
+            border-radius: 25px;
+            font-family: 'Blanka', sans-serif;
+            font-size: 14px;
+            font-weight: 400;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-block;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+          }
+          
+          .search-button:hover:not(:disabled) {
+            background: #333;
+            transform: translateY(-1px);
+          }
+          
+          .search-button:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: none;
+          }
+          
+          .search-button.searching {
+            background: #666;
+            animation: pulse 1.5s infinite;
+          }
+          
+          @keyframes pulse {
+            0%, 100% { opacity: 0.7; }
+            50% { opacity: 1; }
           }
         `}
       </style>
@@ -336,6 +439,7 @@ function Color() {
             value={selectedColor}
             onChange={handleColorChange}
             aria-label="Color Picker"
+            disabled={colorSearching}
           />
           <span 
             style={{
@@ -357,26 +461,13 @@ function Color() {
 
         <button
           onClick={handleSubmit}
+          disabled={colorSearching}
+          className={`search-button ${colorSearching ? 'searching' : ''}`}
           style={{
-            marginBottom: '5px',
-            width: '150px',
-            height: 'auto',
-            background: 'transparent',
-            border: 'none',
-            cursor: 'pointer',
-            display: 'inline-block'
+            marginBottom: '5px'
           }}
         >
-          <img 
-            src="/Submit Button.png" 
-            alt="Submit" 
-            style={{
-              width: '100%',
-              height: '100%',
-              display: 'block',
-              objectFit: 'contain'
-            }}
-          />
+          {colorSearching ? 'SEARCHING' : 'SUBMIT'}
         </button>
 
         {/* Dice Rolling Section */}
@@ -400,13 +491,13 @@ function Color() {
           {/* Dice Button */}
           <button
             onClick={rollDice}
-            disabled={isRolling || moviePalettes.length === 0}
+            disabled={isRolling || moviePalettes.length === 0 || paletteSearching}
             style={{
               background: 'transparent',
               border: 'none',
-              cursor: isRolling ? 'not-allowed' : 'pointer',
+              cursor: (isRolling || paletteSearching) ? 'not-allowed' : 'pointer',
               marginBottom: '20px',
-              opacity: isRolling ? 0.7 : 1,
+              opacity: (isRolling || paletteSearching) ? 0.7 : 1,
               transition: 'opacity 0.3s ease',
               width: '100px',
               height: '100px',
@@ -449,26 +540,13 @@ function Color() {
           {selectedMovie && !isRolling && (
             <button
               onClick={handlePaletteSubmit}
+              disabled={paletteSearching}
+              className={`search-button ${paletteSearching ? 'searching' : ''}`}
               style={{
-                marginTop: '20px',
-                width: '150px',
-                height: 'auto',
-                background: 'transparent',
-                border: 'none',
-                cursor: 'pointer',
-                display: 'inline-block'
+                marginTop: '20px'
               }}
             >
-              <img 
-                src="/Submit Button.png" 
-                alt="Submit Palette" 
-                style={{
-                  width: '100%',
-                  height: '100%',
-                  display: 'block',
-                  objectFit: 'contain'
-                }}
-              />
+              {paletteSearching ? 'SEARCHING' : 'SUBMIT'}
             </button>
           )}
 

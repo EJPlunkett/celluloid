@@ -204,7 +204,7 @@ async function searchByPalette(exactMovieId, paletteHexCodes) {
       .not('hex_codes', 'is', null)
       .neq('hex_codes', '')
       .neq('movie_id', exactMovieId)
-      .limit(700) // Limit comparison set for better performance
+      .limit(700) // Back to 700 for good variety
     
     if (allError) {
       throw new Error(`Database error: ${allError.message}`)
@@ -223,40 +223,22 @@ async function searchByPalette(exactMovieId, paletteHexCodes) {
     // Use the EXACT movie's hex_codes for palette comparison, not the passed palette
     const targetPalette = exactMovie.hex_codes
     
-    // Calculate palette similarities with lower threshold to get more results
+    // Calculate palette similarities with a single pass
     const moviesWithSimilarity = allMovies.map(movie => {
       const similarity = calculatePaletteSimilarity(targetPalette, movie.hex_codes)
       return {
         ...movie,
         palette_similarity: similarity
       }
-    }).filter(movie => movie.palette_similarity > 10) // Lower threshold - accept movies with at least 10% similarity
+    }).filter(movie => movie.palette_similarity > 5) // Single threshold - at least 5% similarity
     
     // Sort by similarity (highest first)
     moviesWithSimilarity.sort((a, b) => b.palette_similarity - a.palette_similarity)
     
-    // If we still don't have enough, lower the threshold further
-    if (moviesWithSimilarity.length < 6) {
-      console.log('Not enough matches with 10% threshold, trying 5%')
-      const moreMovies = allMovies.map(movie => {
-        const similarity = calculatePaletteSimilarity(targetPalette, movie.hex_codes)
-        return {
-          ...movie,
-          palette_similarity: similarity
-        }
-      }).filter(movie => movie.palette_similarity > 5) // Accept movies with at least 5% similarity
-      
-      moviesWithSimilarity.push(...moreMovies.filter(movie => 
-        !moviesWithSimilarity.some(existing => existing.movie_id === movie.movie_id)
-      ))
-      
-      moviesWithSimilarity.sort((a, b) => b.palette_similarity - a.palette_similarity)
-    }
-    
-    // Take up to 6 similar movies (will be fewer if not enough matches exist)
+    // Take up to 6 similar movies
     const finalSimilarMovies = moviesWithSimilarity.slice(0, 6)
     
-    console.log('Found', finalSimilarMovies.length, 'movies with color similarity above threshold')
+    console.log('Found', finalSimilarMovies.length, 'movies with color similarity above 5%')
     
     console.log('Top similar movies:', similarMovies.slice(0, 3).map(m => `${m.movie_title} (${m.palette_similarity.toFixed(1)})`))
     
