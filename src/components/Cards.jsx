@@ -25,7 +25,7 @@ function Cards() {
   // DEBUG: Log the input data
   console.log('Cards component inputData:', inputData)
 
-  const maxCards = 10
+  const maxCards = 7
 
   // Sample movies fallback (for non-vibe searches until you implement other search types)
   const sampleMovies = [

@@ -138,6 +138,9 @@ async function searchByColor(targetHex) {
     if (error) throw new Error(`Database error: ${error.message}`)
     if (!movies) return { success: false, results: [] }
     
+    const usedIds = new Set()
+    const uniqueMovies = []
+    
     const moviesWithDistance = movies.map(movie => {
       const distance = findMinColorDistance(targetHex, movie.hex_codes)
       return {
@@ -147,10 +150,20 @@ async function searchByColor(targetHex) {
     }).filter(movie => movie.similarity_score > 0)
     
     moviesWithDistance.sort((a, b) => b.similarity_score - a.similarity_score)
-    const results = moviesWithDistance.slice(0, 7)
     
-    console.log('Found', results.length, 'color matches')
-    return { success: true, results }
+    // Add unique movies until we have 7
+    for (const movie of moviesWithDistance) {
+      if (uniqueMovies.length >= 7) break
+      if (!usedIds.has(movie.movie_id)) {
+        uniqueMovies.push(movie)
+        usedIds.add(movie.movie_id)
+      }
+    }
+    
+    console.log('Found', uniqueMovies.length, 'unique color matches')
+    console.log('All unique:', new Set(uniqueMovies.map(m => m.movie_id)).size === uniqueMovies.length)
+    
+    return { success: true, results: uniqueMovies }
     
   } catch (error) {
     console.error('Color search error:', error)
@@ -185,17 +198,29 @@ async function searchByPalette(exactMovieId, paletteHexCodes) {
     if (allError) throw new Error(`Database error: ${allError.message}`)
     if (!allMovies) return { success: true, results: [exactMovie] }
     
-    // Calculate similarities
+    // Calculate similarities and ensure unique results
+    const usedIds = new Set([exactMovieId])
+    const uniqueMovies = []
+    
     const moviesWithSimilarity = allMovies.map(movie => ({
       ...movie,
       similarity_score: calculatePaletteSimilarity(exactMovie.hex_codes, movie.hex_codes)
     })).filter(movie => movie.similarity_score > 0)
     
     moviesWithSimilarity.sort((a, b) => b.similarity_score - a.similarity_score)
-    const similarMovies = moviesWithSimilarity.slice(0, 6)
     
-    const results = [exactMovie, ...similarMovies]
-    console.log('Palette search complete:', results.length, 'movies')
+    // Add unique movies until we have 6 (plus exact movie = 7 total)
+    for (const movie of moviesWithSimilarity) {
+      if (uniqueMovies.length >= 6) break
+      if (!usedIds.has(movie.movie_id)) {
+        uniqueMovies.push(movie)
+        usedIds.add(movie.movie_id)
+      }
+    }
+    
+    const results = [exactMovie, ...uniqueMovies]
+    console.log('Palette search complete:', results.length, 'unique movies')
+    console.log('All unique:', new Set(results.map(r => r.movie_id)).size === results.length)
     
     return { success: true, results }
     
