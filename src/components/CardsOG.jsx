@@ -7,10 +7,12 @@ function Cards() {
   const [currentIndex, setCurrentIndex] = useState(0)
   const [isDragging, setIsDragging] = useState(false)
   const [touchStartX, setTouchStartX] = useState(0)
+  const [dragOffset, setDragOffset] = useState(0) // Add this for visual feedback
   const [showWatchlist, setShowWatchlist] = useState(false)
   const [popcornRotation, setPopcornRotation] = useState(0)
   const [movies, setMovies] = useState([])
   const [currentMovie, setCurrentMovie] = useState(null)
+  const [showSynopsis, setShowSynopsis] = useState(false) // Add synopsis toggle
   const cardStackRef = useRef(null)
   const location = useLocation()
   const navigation = useNavigation()
@@ -30,35 +32,40 @@ function Cards() {
       movie_title: "Liquid Sky", 
       year: "1982", 
       depicted_decade: "1980s", 
-      aesthetic_summary: "Neon-drenched punk surrealism with harsh primary colors, stark geometric makeup, and crystalline sci-fi textures creating an alien downtown art scene" 
+      aesthetic_summary: "Neon-drenched punk surrealism with harsh primary colors, stark geometric makeup, and crystalline sci-fi textures creating an alien downtown art scene",
+      synopsis: "A bizarre alien entity feeds on the endorphins produced during sexual climax, targeting New Wave club kids in 1980s New York."
     },
     { 
       movie_id: "sample2",
       movie_title: "Desperately Seeking Susan", 
       year: "1985", 
       depicted_decade: "1980s", 
-      aesthetic_summary: "Vibrant downtown bohemian chaos with layered vintage textures, warm golden lighting, and eclectic thrift-store maximalism" 
+      aesthetic_summary: "Vibrant downtown bohemian chaos with layered vintage textures, warm golden lighting, and eclectic thrift-store maximalism",
+      synopsis: "A bored housewife becomes entangled in a case of mistaken identity after following personal ads in 1980s New York."
     },
     { 
       movie_id: "sample3",
       movie_title: "Basquiat", 
       year: "1996", 
       depicted_decade: "1980s", 
-      aesthetic_summary: "Raw artistic authenticity with paint-splattered loft spaces, warm amber gallery lighting, and gritty creative disorder" 
+      aesthetic_summary: "Raw artistic authenticity with paint-splattered loft spaces, warm amber gallery lighting, and gritty creative disorder",
+      synopsis: "The meteoric rise and tragic fall of Jean-Michel Basquiat, from homeless graffiti artist to international art world darling."
     },
     { 
       movie_id: "sample4",
       movie_title: "After Hours", 
       year: "1985", 
       depicted_decade: "1980s", 
-      aesthetic_summary: "Surreal nocturnal nightmare with harsh fluorescent whites, deep shadow contrasts, and claustrophobic urban maze aesthetics" 
+      aesthetic_summary: "Surreal nocturnal nightmare with harsh fluorescent whites, deep shadow contrasts, and claustrophobic urban maze aesthetics",
+      synopsis: "A computer programmer's night out in SoHo turns into a surreal nightmare of missed connections and escalating paranoia."
     },
     { 
       movie_id: "sample5",
       movie_title: "Party Girl", 
       year: "1995", 
       depicted_decade: "1990s", 
-      aesthetic_summary: "Glossy club-kid excess with strobing dance floor lights, metallic fashion textures, and high-energy nightlife glamour" 
+      aesthetic_summary: "Glossy club-kid excess with strobing dance floor lights, metallic fashion textures, and high-energy nightlife glamour",
+      synopsis: "A hedonistic party girl finds purpose when she discovers a love for the Dewey Decimal System while working at the library."
     }
   ]
 
@@ -89,6 +96,7 @@ function Cards() {
         console.log('Setting current movie:', movieToShow)
         setCurrentMovie(movieToShow)
         setShowWatchlist(false) // Make sure we show cards, not watchlist
+        setShowSynopsis(false) // Reset synopsis view for new card
       } else {
         console.log('Showing watchlist - reached max cards')
         setShowWatchlist(true)
@@ -116,15 +124,24 @@ function Cards() {
     }
   }
 
+  // Enhanced touch handlers with visual feedback
   const handleTouchStart = (e) => {
+    const flipButton = e.target.closest('.flip-button')
+    if (flipButton) {
+      return
+    }
     setTouchStartX(e.touches[0].clientX)
     setIsDragging(true)
+    setDragOffset(0)
   }
 
   const handleTouchMove = (e) => {
     if (!isDragging) return
-    // Prevent scrolling while swiping
     e.preventDefault()
+    
+    const currentX = e.touches[0].clientX
+    const diffX = currentX - touchStartX
+    setDragOffset(diffX)
   }
 
   const handleTouchEnd = (e) => {
@@ -135,12 +152,28 @@ function Cards() {
     const diffX = touchEndX - touchStartX
     
     if (Math.abs(diffX) > 80) {
-      if (diffX > 0) {
-        swipeRight()
-      } else {
-        swipeLeft()
-      }
+      // Animate card off screen before switching
+      setDragOffset(diffX > 0 ? 400 : -400)
+      
+      setTimeout(() => {
+        if (diffX > 0) {
+          swipeRight()
+        } else {
+          swipeLeft()
+        }
+        setDragOffset(0)
+      }, 300)
+    } else {
+      // Snap back to center
+      setDragOffset(0)
     }
+  }
+
+  const toggleFlip = (e) => {
+    e.preventDefault()
+    e.stopPropagation()
+    console.log('FLIP BUTTON CLICKED - showSynopsis before:', showSynopsis)
+    setShowSynopsis(prev => !prev)
   }
 
   const jigglePopcorn = (e) => {
@@ -175,7 +208,12 @@ function Cards() {
         height: '100vh',
         display: 'flex',
         justifyContent: 'center',
-        alignItems: 'center'
+        alignItems: 'center',
+        overflow: 'hidden',
+        position: 'fixed',
+        width: '100vw',
+        top: 0,
+        left: 0
       }}>
         <div style={{
           fontSize: '18px',
@@ -193,9 +231,11 @@ function Cards() {
       backgroundColor: '#f6f5f3',
       fontFamily: 'Arial, sans-serif',
       overflow: 'hidden',
-      position: 'relative',
+      position: 'fixed',
       height: '100vh',
-      height: '100dvh'
+      width: '100vw',
+      top: 0,
+      left: 0
     }}>
       <header style={{
         position: 'fixed',
@@ -386,11 +426,11 @@ function Cards() {
 
       {/* Main Content */}
       <main style={{
-        position: 'absolute',
-        top: '70px',
+        position: 'fixed',
+        top: '60px',
         left: 0,
         right: 0,
-        bottom: '70px',
+        bottom: '40px',
         display: 'flex',
         justifyContent: 'center',
         alignItems: 'center',
@@ -407,17 +447,19 @@ function Cards() {
               borderRadius: '24px',
               width: '90vw',
               maxWidth: '400px',
-              height: 'calc(100vh - 160px)',
-              maxHeight: '580px',
-              minHeight: '500px',
+              height: 'calc(100vh - 120px)',
+              maxHeight: '600px',
+              minHeight: '400px',
               position: 'relative',
               padding: '16px',
               boxSizing: 'border-box',
               display: 'flex',
               flexDirection: 'column',
               justifyContent: 'space-between',
-              transition: 'transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94), opacity 0.6s ease',
-              cursor: 'grab',
+              transition: isDragging ? 'none' : 'transform 0.3s ease, opacity 0.3s ease',
+              transform: `translateX(${dragOffset}px) rotate(${dragOffset * 0.1}deg)`,
+              opacity: Math.abs(dragOffset) > 150 ? 0.5 : 1,
+              cursor: isDragging ? 'grabbing' : 'grab',
               touchAction: 'none'
             }}
             onMouseDown={() => document.body.style.cursor = 'grabbing'}
@@ -427,7 +469,7 @@ function Cards() {
               flex: 1,
               borderRadius: '20px',
               border: '2px solid #f6f5f3',
-              padding: '24px 20px',
+              padding: '60px 20px 24px 20px',
               boxSizing: 'border-box',
               display: 'flex',
               flexDirection: 'column',
@@ -438,88 +480,130 @@ function Cards() {
                 textAlign: 'center',
                 display: 'flex',
                 flexDirection: 'column',
-                justifyContent: 'center',
+                justifyContent: 'flex-start',
                 flexGrow: 1,
                 gap: '16px',
-                overflow: 'hidden'
+                overflow: 'hidden',
+                paddingTop: '80px'
               }}>
                 <h1 style={{
                   color: '#f6f5f3',
                   margin: 0,
                   fontSize: '1.8em',
-                  fontWeight: 700
+                  fontWeight: 700,
+                  flexShrink: 0
                 }}>
                   {currentMovie?.movie_title || currentMovie?.title} ({currentMovie?.year})
                 </h1>
-                <h2 style={{
-                  color: '#f6f5f3',
-                  margin: 0,
-                  fontSize: '1.3em',
-                  fontWeight: 500
-                }}>
-                  {currentMovie?.depicted_decade || currentMovie?.decade}
-                </h2>
-                <p style={{
+                <div style={{
                   color: '#f6f5f3',
                   margin: 0,
                   fontSize: '1.1em',
                   fontWeight: 'normal',
-                  fontStyle: 'italic',
-                  lineHeight: 1.5
+                  fontStyle: showSynopsis ? 'normal' : 'italic',
+                  lineHeight: 1.5,
+                  minHeight: '120px',
+                  display: 'flex',
+                  alignItems: 'flex-start',
+                  justifyContent: 'center'
                 }}>
-                  {currentMovie?.aesthetic_summary || currentMovie?.desc}
-                </p>
+                  <p style={{ margin: 0 }}>
+                    {showSynopsis ? 
+                      (currentMovie?.synopsis || 'Synopsis not available') : 
+                      (currentMovie?.aesthetic_summary || currentMovie?.desc)
+                    }
+                  </p>
+                </div>
               </div>
+              
               <div style={{
                 display: 'flex',
-                justifyContent: 'space-evenly',
+                flexDirection: 'column',
                 alignItems: 'center',
                 paddingTop: '16px',
-                flexShrink: 0
+                flexShrink: 0,
+                gap: '12px'
               }}>
-                <div 
-                  onClick={swipeLeft}
+                <button
+                  className="flip-button"
+                  onClick={toggleFlip}
                   style={{
-                    width: '60px',
-                    height: '60px',
-                    borderRadius: '50%',
-                    backgroundColor: '#f6f5f3',
+                    background: 'transparent',
+                    border: 'none',
+                    cursor: 'pointer',
+                    padding: '8px',
                     display: 'flex',
-                    justifyContent: 'center',
                     alignItems: 'center',
-                    cursor: 'pointer'
+                    justifyContent: 'center',
+                    borderRadius: '50%',
+                    transition: 'all 0.2s ease',
+                    zIndex: 1000
                   }}
                 >
                   <img 
-                    src="/cross.png" 
-                    alt="Dislike" 
+                    src="/flip.png"
+                    alt="Flip content" 
                     style={{
-                      width: '28px',
-                      height: '28px'
+                      width: '24px',
+                      height: '24px',
+                      objectFit: 'contain',
+                      transition: 'transform 0.3s ease',
+                      transform: showSynopsis ? 'rotate(180deg)' : 'rotate(0deg)',
+                      pointerEvents: 'none'
                     }}
                   />
-                </div>
-                <div 
-                  onClick={swipeRight}
-                  style={{
-                    width: '60px',
-                    height: '60px',
-                    borderRadius: '50%',
-                    backgroundColor: '#f6f5f3',
-                    display: 'flex',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    cursor: 'pointer'
-                  }}
-                >
-                  <img 
-                    src="/heart.png" 
-                    alt="Like" 
+                </button>
+
+                <div style={{
+                  display: 'flex',
+                  justifyContent: 'space-evenly',
+                  alignItems: 'center',
+                  width: '100%'
+                }}>
+                  <div 
+                    onClick={swipeLeft}
                     style={{
-                      width: '28px',
-                      height: '28px'
+                      width: '60px',
+                      height: '60px',
+                      borderRadius: '50%',
+                      backgroundColor: '#f6f5f3',
+                      display: 'flex',
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                      cursor: 'pointer'
                     }}
-                  />
+                  >
+                    <img 
+                      src="/cross.png" 
+                      alt="Dislike" 
+                      style={{
+                        width: '28px',
+                        height: '28px'
+                      }}
+                    />
+                  </div>
+                  <div 
+                    onClick={swipeRight}
+                    style={{
+                      width: '60px',
+                      height: '60px',
+                      borderRadius: '50%',
+                      backgroundColor: '#f6f5f3',
+                      display: 'flex',
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    <img 
+                      src="/heart.png" 
+                      alt="Like" 
+                      style={{
+                        width: '28px',
+                        height: '28px'
+                      }}
+                    />
+                  </div>
                 </div>
               </div>
             </div>
@@ -595,13 +679,15 @@ function Cards() {
         bottom: 0,
         left: 0,
         right: 0,
-        fontSize: '14px',
+        fontSize: '12px',
         color: '#000',
         textAlign: 'center',
-        padding: '10px 20px',
+        padding: '8px 20px',
         background: '#f6f5f3',
         fontStyle: 'italic',
-        zIndex: 1100
+        zIndex: 1100,
+        height: '30px',
+        boxSizing: 'border-box'
       }}>
         <span>© 2025 Celluloid by Design</span>
       </footer>

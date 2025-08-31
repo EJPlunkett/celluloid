@@ -1,18 +1,20 @@
 import { useState, useEffect, useRef } from 'react'
 import { useLocation } from 'react-router-dom'
 import { useNavigation } from '../hooks/useNavigation'
+// No import needed - will call Netlify function directly
 
 function Cards() {
   const [navOpen, setNavOpen] = useState(false)
   const [currentIndex, setCurrentIndex] = useState(0)
   const [isDragging, setIsDragging] = useState(false)
   const [touchStartX, setTouchStartX] = useState(0)
-  const [dragOffset, setDragOffset] = useState(0) // Add this for visual feedback
+  const [dragOffset, setDragOffset] = useState(0)
   const [showWatchlist, setShowWatchlist] = useState(false)
   const [popcornRotation, setPopcornRotation] = useState(0)
   const [movies, setMovies] = useState([])
   const [currentMovie, setCurrentMovie] = useState(null)
-  const [showSynopsis, setShowSynopsis] = useState(false) // Add synopsis toggle
+  const [showSynopsis, setShowSynopsis] = useState(false)
+  const [loading, setLoading] = useState(false)
   const cardStackRef = useRef(null)
   const location = useLocation()
   const navigation = useNavigation()
@@ -71,21 +73,76 @@ function Cards() {
 
   // Initialize movies based on input type
   useEffect(() => {
-    console.log('Cards useEffect - checking inputData.results:', inputData.results)
-    console.log('Results length:', inputData.results ? inputData.results.length : 'no results')
-    
-    if (inputData.results && inputData.results.length > 0) {
-      // Real search results from API
-      console.log('Using real search results:', inputData.results)
-      setMovies(inputData.results)
-    } else {
-      // Fallback to sample movies for other input types
-      console.log('Using sample movies fallback')
-      setMovies(sampleMovies)
+    async function loadMovies() {
+      setLoading(true)
+      console.log('Cards useEffect - processing inputData:', inputData)
+      
+      try {
+        // Handle color-based searches
+        if (inputData.color) {
+          console.log('Processing single color search:', inputData.color)
+          const response = await fetch('/.netlify/functions/colorSearch', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              searchType: 'color',
+              color: inputData.color
+            })
+          })
+          const colorResults = await response.json()
+          
+          if (colorResults.success && colorResults.results.length > 0) {
+            console.log('Color search successful:', colorResults.results)
+            setMovies(colorResults.results)
+          } else {
+            console.log('Color search failed, using sample movies')
+            setMovies(sampleMovies)
+          }
+        }
+        // Handle palette-based searches  
+        else if (inputData.type === 'palette' && inputData.movieId) {
+          console.log('Processing palette search for movie:', inputData.movieId)
+          const response = await fetch('/.netlify/functions/colorSearch', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              searchType: 'palette',
+              movieId: inputData.movieId,
+              hexCodes: inputData.hexCodes
+            })
+          })
+          const paletteResults = await response.json()
+          
+          if (paletteResults.success && paletteResults.results.length > 0) {
+            console.log('Palette search successful:', paletteResults.results)
+            setMovies(paletteResults.results)
+          } else {
+            console.log('Palette search failed, using sample movies')
+            setMovies(sampleMovies)
+          }
+        }
+        // Handle existing vibe/word search results
+        else if (inputData.results && inputData.results.length > 0) {
+          console.log('Using existing search results:', inputData.results)
+          setMovies(inputData.results)
+        }
+        // Fallback to sample movies
+        else {
+          console.log('Using sample movies fallback')
+          setMovies(sampleMovies)
+        }
+      } catch (error) {
+        console.error('Error loading movies:', error)
+        setMovies(sampleMovies)
+      } finally {
+        setLoading(false)
+      }
     }
+
+    loadMovies()
   }, [inputData])
 
-  // Update current movie when index changes - FIXED VERSION
+  // Update current movie when index changes
   useEffect(() => {
     console.log('Current index:', currentIndex, 'Movies length:', movies.length, 'Max cards:', maxCards)
     
@@ -95,8 +152,8 @@ function Cards() {
         const movieToShow = movies[currentIndex % movies.length]
         console.log('Setting current movie:', movieToShow)
         setCurrentMovie(movieToShow)
-        setShowWatchlist(false) // Make sure we show cards, not watchlist
-        setShowSynopsis(false) // Reset synopsis view for new card
+        setShowWatchlist(false)
+        setShowSynopsis(false)
       } else {
         console.log('Showing watchlist - reached max cards')
         setShowWatchlist(true)
@@ -197,9 +254,9 @@ function Cards() {
     navigation.goToMatch()
   }
 
-  // Handle loading state - IMPROVED VERSION
-  if (movies.length === 0 || (!currentMovie && !showWatchlist)) {
-    console.log('Showing loading state - movies.length:', movies.length, 'currentMovie:', currentMovie, 'showWatchlist:', showWatchlist)
+  // Handle loading state
+  if (loading || (movies.length === 0 || (!currentMovie && !showWatchlist))) {
+    console.log('Showing loading state - loading:', loading, 'movies.length:', movies.length, 'currentMovie:', currentMovie, 'showWatchlist:', showWatchlist)
     return (
       <div style={{
         margin: 0,
@@ -219,7 +276,7 @@ function Cards() {
           fontSize: '18px',
           color: '#000'
         }}>
-          Loading movies...
+          {loading ? 'Finding your perfect matches...' : 'Loading movies...'}
         </div>
       </div>
     )
@@ -353,7 +410,7 @@ function Cards() {
             </button>
           </li>
           <li style={{ marginBottom: '12px' }}>
-            <button onClick={() => { navigation.goToSurprace(); setNavOpen(false) }} style={{ color: '#000', textDecoration: 'none', cursor: 'pointer', background: 'transparent', border: 'none', fontSize: '18px', fontWeight: 400, padding: 0, textAlign: 'left' }}>
+            <button onClick={() => { navigation.goToSurprise(); setNavOpen(false) }} style={{ color: '#000', textDecoration: 'none', cursor: 'pointer', background: 'transparent', border: 'none', fontSize: '18px', fontWeight: 400, padding: 0, textAlign: 'left' }}>
               Surprise Me
             </button>
           </li>
@@ -649,7 +706,7 @@ function Cards() {
               lineHeight: 1.5,
               whiteSpace: 'pre-wrap'
             }}>
-              Watchlist complete, curated by your {inputData.type}.{'\n'}Tap the popcorn to view your movies, or click below to explore more vibes.
+              Watchlist complete, curated by your {inputData.type === 'palette' ? 'movie palette' : inputData.color ? 'color choice' : inputData.type}.{'\n'}Tap the popcorn to view your movies, or click below to explore more vibes.
             </p>
             <button
               onClick={handleGoExplore}
