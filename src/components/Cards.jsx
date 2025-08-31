@@ -95,8 +95,8 @@ function Cards() {
             console.log('Color search successful:', colorResults.results)
             setMovies(colorResults.results)
           } else {
-            console.log('Color search failed, using sample movies')
-            setMovies(sampleMovies)
+            console.error('Color search failed:', colorResults)
+            setMovies([]) // Don't fall back to sample movies
           }
         }
         // Handle palette-based searches  
@@ -117,8 +117,8 @@ function Cards() {
             console.log('Palette search successful:', paletteResults.results)
             setMovies(paletteResults.results)
           } else {
-            console.log('Palette search failed, using sample movies')
-            setMovies(sampleMovies)
+            console.error('Palette search failed:', paletteResults)
+            setMovies([]) // Don't fall back to sample movies
           }
         }
         // Handle existing vibe/word search results
