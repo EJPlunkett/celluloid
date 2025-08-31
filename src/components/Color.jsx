@@ -42,7 +42,7 @@ function Color() {
         .select('movie_id, movie_title, hex_codes')
         .not('hex_codes', 'is', null)
         .neq('hex_codes', '')
-        .limit(100)
+        .limit(500) // Increase from 100 to 500 for more variety
 
       if (error) {
         console.error('Supabase error:', error)
@@ -102,18 +102,22 @@ function Color() {
 
       if (rollCount >= maxRolls) {
         clearInterval(rollInterval)
-        setIsRolling(false)
         
-        // Final selection with additional randomization
-        const finalIndex = crypto.getRandomValues ? 
-          crypto.getRandomValues(new Uint32Array(1))[0] % moviePalettes.length :
-          Math.floor(Math.random() * moviePalettes.length)
-        const finalMovie = moviePalettes[finalIndex]
-        const finalPalette = finalMovie.colorArray.slice(0, 5)
-        
-        setSelectedMovie(finalMovie)
-        setCurrentPalette(finalPalette)
-        console.log('Final selection:', finalMovie.movie_title, finalPalette)
+        // Small delay before final selection to ensure different from last animation frame
+        setTimeout(() => {
+          setIsRolling(false)
+          
+          // Final selection with additional randomization
+          const finalIndex = crypto.getRandomValues ? 
+            crypto.getRandomValues(new Uint32Array(1))[0] % moviePalettes.length :
+            Math.floor(Math.random() * moviePalettes.length)
+          const finalMovie = moviePalettes[finalIndex]
+          const finalPalette = finalMovie.colorArray.slice(0, 5)
+          
+          setSelectedMovie(finalMovie)
+          setCurrentPalette(finalPalette)
+          console.log('Final selection:', finalMovie.movie_title, finalPalette)
+        }, 100)
       }
     }, 100 + rollCount * 5) // Gradually slow down the rolling
   }
