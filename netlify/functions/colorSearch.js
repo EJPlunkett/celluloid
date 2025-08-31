@@ -180,6 +180,7 @@ async function searchByColor(targetHex) {
 async function searchByPalette(exactMovieId, paletteHexCodes) {
   try {
     console.log('Searching for movies similar to palette from movie:', exactMovieId)
+    console.log('Looking for exact movie with ID:', exactMovieId)
     
     // First, get the exact movie that was rolled
     const { data: exactMovie, error: exactError } = await supabase
@@ -189,8 +190,11 @@ async function searchByPalette(exactMovieId, paletteHexCodes) {
       .single()
     
     if (exactError) {
+      console.error('Error fetching exact movie:', exactError)
       throw new Error(`Error fetching exact movie: ${exactError.message}`)
     }
+    
+    console.log('Found exact movie:', exactMovie.movie_title, 'with colors:', exactMovie.hex_codes)
     
     // Then fetch all other movies with hex codes for comparison
     const { data: allMovies, error: allError } = await supabase
@@ -205,16 +209,17 @@ async function searchByPalette(exactMovieId, paletteHexCodes) {
     }
     
     if (!allMovies || allMovies.length === 0) {
+      console.log('No other movies found, returning just the exact movie')
       return { 
         success: true, 
         results: [formatMovieResult(exactMovie, 100)] 
       }
     }
     
-    // Convert palette to array if needed
-    const targetPalette = typeof paletteHexCodes === 'string' 
-      ? paletteHexCodes.split(',').map(c => c.trim())
-      : paletteHexCodes
+    console.log('Comparing against', allMovies.length, 'other movies')
+    
+    // Use the EXACT movie's hex_codes for palette comparison, not the passed palette
+    const targetPalette = exactMovie.hex_codes
     
     // Calculate palette similarities
     const moviesWithSimilarity = allMovies.map(movie => {
@@ -231,13 +236,15 @@ async function searchByPalette(exactMovieId, paletteHexCodes) {
     // Take top 6 similar movies
     const similarMovies = moviesWithSimilarity.slice(0, 6)
     
+    console.log('Top similar movies:', similarMovies.slice(0, 3).map(m => `${m.movie_title} (${m.palette_similarity.toFixed(1)})`))
+    
     // Format results: exact movie first, then similar movies
     const results = [
-      formatMovieResult(exactMovie, 100),
+      formatMovieResult(exactMovie, 100), // This should ALWAYS be first
       ...similarMovies.map(movie => formatMovieResult(movie, movie.palette_similarity))
     ]
     
-    console.log('Palette search found exact movie +', similarMovies.length, 'similar matches')
+    console.log('Final results order:', results.map(r => r.movie_title))
     
     return { success: true, results }
     
