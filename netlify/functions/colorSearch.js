@@ -135,12 +135,13 @@ async function searchByColor(targetHex) {
   try {
     console.log('Searching for movies similar to color:', targetHex)
     
-    // Fetch all movies with hex codes
+    // Fetch all movies with hex codes (limit for performance)
     const { data: movies, error } = await supabase
       .from('celluloid_film_data')
       .select('*')
       .not('hex_codes', 'is', null)
       .neq('hex_codes', '')
+      .limit(1000) // Limit to 1000 movies for better performance
     
     if (error) {
       throw new Error(`Database error: ${error.message}`)
@@ -196,13 +197,14 @@ async function searchByPalette(exactMovieId, paletteHexCodes) {
     
     console.log('Found exact movie:', exactMovie.movie_title, 'with colors:', exactMovie.hex_codes)
     
-    // Then fetch all other movies with hex codes for comparison
+    // Then fetch other movies for comparison (limit for performance)
     const { data: allMovies, error: allError } = await supabase
       .from('celluloid_film_data')
       .select('*')
       .not('hex_codes', 'is', null)
       .neq('hex_codes', '')
       .neq('movie_id', exactMovieId)
+      .limit(700) // Limit comparison set for better performance
     
     if (allError) {
       throw new Error(`Database error: ${allError.message}`)
