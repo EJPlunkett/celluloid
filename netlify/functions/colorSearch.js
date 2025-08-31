@@ -133,6 +133,7 @@ async function searchByColor(targetHex) {
       .select('*')
       .not('hex_codes', 'is', null)
       .neq('hex_codes', '')
+      .limit(1000) // Add limit to prevent timeout
     
     if (error) throw new Error(`Database error: ${error.message}`)
     if (!movies) return { success: false, results: [] }
@@ -172,13 +173,14 @@ async function searchByPalette(exactMovieId, paletteHexCodes) {
     if (exactError) throw new Error(`Exact movie error: ${exactError.message}`)
     console.log('Found exact movie:', exactMovie.movie_title)
     
-    // Get other movies
+    // Get other movies (add limit to prevent timeout)
     const { data: allMovies, error: allError } = await supabase
       .from('celluloid_film_data')
       .select('*')
       .not('hex_codes', 'is', null)
       .neq('hex_codes', '')
       .neq('movie_id', exactMovieId)
+      .limit(800) // Limit to prevent database timeout
     
     if (allError) throw new Error(`Database error: ${allError.message}`)
     if (!allMovies) return { success: true, results: [exactMovie] }
