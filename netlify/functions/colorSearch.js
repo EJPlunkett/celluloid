@@ -130,10 +130,10 @@ async function searchByColor(targetHex) {
     
     const { data: movies, error } = await supabase
       .from('celluloid_film_data')
-      .select('*')
+      .select('movie_id, movie_title, year, hex_codes, aesthetic_summary, synopsis, depicted_decade, letterboxd_link')
       .not('hex_codes', 'is', null)
       .neq('hex_codes', '')
-      .limit(1000) // Add limit to prevent timeout
+      .limit(400) // Reduce from 1000 to 400 to prevent timeout
     
     if (error) throw new Error(`Database error: ${error.message}`)
     if (!movies) return { success: false, results: [] }
