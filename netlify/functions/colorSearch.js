@@ -164,10 +164,10 @@ async function searchByColor(targetHex) {
     // Sort by color similarity (smallest distance = most similar)
     moviesWithDistance.sort((a, b) => a.color_distance - b.color_distance)
     
-    // Return top 7 matches
+    // Return top 7 matches (ensure we always try to get 7)
     const results = moviesWithDistance.slice(0, 7).map(movie => formatMovieResult(movie, movie.similarity_score))
     
-    console.log('Color search found', results.length, 'matches')
+    console.log('Color search returning', results.length, 'matches out of', moviesWithDistance.length, 'candidates')
     
     return { success: true, results }
     
@@ -223,30 +223,51 @@ async function searchByPalette(exactMovieId, paletteHexCodes) {
     // Use the EXACT movie's hex_codes for palette comparison, not the passed palette
     const targetPalette = exactMovie.hex_codes
     
-    // Calculate palette similarities
+    // Calculate palette similarities with lower threshold to get more results
     const moviesWithSimilarity = allMovies.map(movie => {
       const similarity = calculatePaletteSimilarity(targetPalette, movie.hex_codes)
       return {
         ...movie,
         palette_similarity: similarity
       }
-    }).filter(movie => movie.palette_similarity > 0)
+    }).filter(movie => movie.palette_similarity > 10) // Lower threshold - accept movies with at least 10% similarity
     
     // Sort by similarity (highest first)
     moviesWithSimilarity.sort((a, b) => b.palette_similarity - a.palette_similarity)
     
-    // Take top 6 similar movies
-    const similarMovies = moviesWithSimilarity.slice(0, 6)
+    // If we still don't have enough, lower the threshold further
+    if (moviesWithSimilarity.length < 6) {
+      console.log('Not enough matches with 10% threshold, trying 5%')
+      const moreMovies = allMovies.map(movie => {
+        const similarity = calculatePaletteSimilarity(targetPalette, movie.hex_codes)
+        return {
+          ...movie,
+          palette_similarity: similarity
+        }
+      }).filter(movie => movie.palette_similarity > 5) // Accept movies with at least 5% similarity
+      
+      moviesWithSimilarity.push(...moreMovies.filter(movie => 
+        !moviesWithSimilarity.some(existing => existing.movie_id === movie.movie_id)
+      ))
+      
+      moviesWithSimilarity.sort((a, b) => b.palette_similarity - a.palette_similarity)
+    }
+    
+    // Take up to 6 similar movies (will be fewer if not enough matches exist)
+    const finalSimilarMovies = moviesWithSimilarity.slice(0, 6)
+    
+    console.log('Found', finalSimilarMovies.length, 'movies with color similarity above threshold')
     
     console.log('Top similar movies:', similarMovies.slice(0, 3).map(m => `${m.movie_title} (${m.palette_similarity.toFixed(1)})`))
     
     // Format results: exact movie first, then similar movies
     const results = [
       formatMovieResult(exactMovie, 100), // This should ALWAYS be first
-      ...similarMovies.map(movie => formatMovieResult(movie, movie.palette_similarity))
+      ...finalSimilarMovies.map(movie => formatMovieResult(movie, movie.palette_similarity))
     ]
     
     console.log('Final results order:', results.map(r => r.movie_title))
+    console.log('Returning exactly', results.length, 'movies')
     
     return { success: true, results }
     
