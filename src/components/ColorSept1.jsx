@@ -318,7 +318,7 @@ function Color() {
             border: none;
             border-radius: 25px;
             font-family: 'Blanka', sans-serif;
-            font-size: 16px;
+            font-size: 14px;
             font-weight: 400;
             cursor: pointer;
             transition: all 0.3s ease;
@@ -432,9 +432,12 @@ function Color() {
           lineHeight: 1.5,
           margin: '0 0 15px 0',
           color: '#000',
+          whiteSpace: 'pre-wrap',
           textAlign: 'center'
         }}>
-          Pick a shade that draws your eye or roll the dice for a palette pulled from the archive. Every color connects back to real design choices on screen, linking you to films that share the same visual tone.
+          Color shapes the atmosphere of film. Explore cinema here through palettes taken directly from the archive. Pick a specific shade to find films that share its tone, or roll the dice to surface random palettes and discover unexpected matches across decades of cinema.
+          {'\n\n'}
+          Each palette connects back to real design choices on screen, from the pop of red lipstick to the crisp white of business shirts to the shimmer of neon reflected on wet pavement.
         </p>
 
         {/* Original Color Picker Section */}
@@ -485,38 +488,12 @@ function Color() {
         <button
           onClick={() => handleSubmit(document.getElementById('colorPicker').value)}
           disabled={colorSearching}
-          className={colorSearching ? 'search-button searching' : ''}
+          className={`search-button ${colorSearching ? 'searching' : ''}`}
           style={{
-            marginBottom: '5px',
-            width: '150px',
-            height: colorSearching ? '40px' : 'auto',
-            background: colorSearching ? '#000' : 'transparent',
-            border: 'none',
-            cursor: colorSearching ? 'not-allowed' : 'pointer',
-            display: 'block',
-            marginLeft: 'auto',
-            marginRight: 'auto',
-            opacity: colorSearching ? 0.6 : 1,
-            borderRadius: colorSearching ? '25px' : '0',
-            color: colorSearching ? '#fff' : 'transparent',
-            fontFamily: colorSearching ? "'Blanka', sans-serif" : 'inherit',
-            fontSize: colorSearching ? '16px' : 'inherit',
-            textTransform: colorSearching ? 'uppercase' : 'none',
-            letterSpacing: colorSearching ? '1px' : 'normal'
+            marginBottom: '5px'
           }}
         >
-          {colorSearching ? 'SEARCHING' : (
-            <img 
-              src="/Submit Button.png" 
-              alt="Submit"
-              style={{
-                width: '100%',
-                height: 'auto',
-                display: 'block',
-                objectFit: 'contain'
-              }}
-            />
-          )}
+          {colorSearching ? 'SEARCHING' : 'SUBMIT'}
         </button>
 
         {/* Dice Rolling Section */}
@@ -590,38 +567,12 @@ function Color() {
             <button
               onClick={handlePaletteSubmit}
               disabled={paletteSearching}
-              className={paletteSearching ? 'search-button searching' : ''}
+              className={`search-button ${paletteSearching ? 'searching' : ''}`}
               style={{
-                marginTop: '20px',
-                width: '150px',
-                height: paletteSearching ? '40px' : 'auto',
-                background: paletteSearching ? '#000' : 'transparent',
-                border: 'none',
-                cursor: paletteSearching ? 'not-allowed' : 'pointer',
-                display: 'block',
-                marginLeft: 'auto',
-                marginRight: 'auto',
-                opacity: paletteSearching ? 0.6 : 1,
-                borderRadius: paletteSearching ? '25px' : '0',
-                color: paletteSearching ? '#fff' : 'transparent',
-                fontFamily: paletteSearching ? "'Blanka', sans-serif" : 'inherit',
-                fontSize: paletteSearching ? '16px' : 'inherit',
-                textTransform: paletteSearching ? 'uppercase' : 'none',
-                letterSpacing: paletteSearching ? '1px' : 'normal'
+                marginTop: '20px'
               }}
             >
-              {paletteSearching ? 'SEARCHING' : (
-                <img 
-                  src="/Submit Button.png" 
-                  alt="Submit"
-                  style={{
-                    width: '100%',
-                    height: 'auto',
-                    display: 'block',
-                    objectFit: 'contain'
-                  }}
-                />
-              )}
+              {paletteSearching ? 'SEARCHING' : 'SUBMIT'}
             </button>
           )}
 

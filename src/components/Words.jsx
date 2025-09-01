@@ -191,7 +191,7 @@ function Words() {
           whiteSpace: 'normal',
           textAlign: 'center'
         }}>
-          Choose up to 10 words for the vibe you want to watch.
+          Select from the words provided or type in your own. Combining two to ten creates a thread that guides the system, pulling together films defined by the details you choose.
         </p>
 
         {notification && (

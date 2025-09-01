@@ -160,7 +160,7 @@ function Vibes() {
           whiteSpace: 'pre-wrap',
           textAlign: 'center'
         }}>
-          Describe the aesthetic vibe you're looking for and we'll find NYC films that match your description.
+          Describe your vibe in free text and see where it takes you. Whether it is gritty subway cars or airy lofts, the words you choose will surface films that carry that same aesthetic energy.
         </p>
 
         <textarea 
