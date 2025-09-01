@@ -179,6 +179,10 @@ async function searchByWords(keywords) {
       let totalScore = 0
       let scoreCount = 0
       
+      // Debug logging for embeddings
+      console.log(`Movie ${movie.movie_title}: contextEmbedding exists: ${!!contextEmbedding}, movie.context_embedding exists: ${!!movie.context_embedding}`)
+      console.log(`Movie ${movie.movie_title}: aestheticEmbedding exists: ${!!aestheticEmbedding}, movie.embedding exists: ${!!movie.embedding}`)
+      
       // Context similarity
       if (contextEmbedding && movie.context_embedding) {
         try {
