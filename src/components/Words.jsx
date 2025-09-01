@@ -75,11 +75,40 @@ function Words() {
       return
     }
     
-    setIsSearching(true)
-    console.log('Selected words:', selectedTags)
-    
-    // Navigate to cards page with the selected words
-    navigation.goToCards({ words: selectedTags })
+    if (!isSearching) {
+      setIsSearching(true)
+      console.log('Selected words:', selectedTags)
+      
+      try {
+        // Call your word search API
+        const response = await fetch('/.netlify/functions/wordSearch', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            keywords: selectedTags,
+            timestamp: Date.now()
+          })
+        })
+        
+        const results = await response.json()
+        
+        if (results.success && results.results.length > 0) {
+          // Navigate to cards page with the results
+          navigation.goToCards({ 
+            words: selectedTags,
+            results: results.results
+          })
+        } else {
+          console.error('Word search failed:', results)
+          setIsSearching(false)
+          alert('Search failed. Please try again.')
+        }
+      } catch (error) {
+        console.error('Error calling word search:', error)
+        setIsSearching(false)
+        alert('Network error. Please try again.')
+      }
+    }
   }
 
   const handleNotificationClick = () => {
