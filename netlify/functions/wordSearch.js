@@ -180,11 +180,11 @@ async function searchByWords(keywords) {
       let scoreCount = 0
       
       // Debug logging for embeddings
-      console.log(`Movie ${movie.movie_title}: contextEmbedding exists: ${!!contextEmbedding}, movie.context_embedding exists: ${!!movie.context_embedding}`)
-      console.log(`Movie ${movie.movie_title}: aestheticEmbedding exists: ${!!aestheticEmbedding}, movie.embedding exists: ${!!movie.embedding}`)
+      console.log(`Movie ${movie.movie_title}: contextEmbedding exists: ${!!contextEmbedding}, movie.context_embedding type: ${typeof movie.context_embedding}, value: ${movie.context_embedding ? 'has value' : 'null/undefined'}`)
+      console.log(`Movie ${movie.movie_title}: aestheticEmbedding exists: ${!!aestheticEmbedding}, movie.embedding type: ${typeof movie.embedding}, value: ${movie.embedding ? 'has value' : 'null/undefined'}`)
       
       // Context similarity
-      if (contextEmbedding && movie.context_embedding) {
+      if (contextEmbedding && movie.context_embedding !== null && movie.context_embedding !== undefined) {
         try {
           const { data: contextSimilarity, error: contextError } = await supabase
             .rpc('words_search_context_similarity', {
@@ -211,7 +211,7 @@ async function searchByWords(keywords) {
       }
       
       // Aesthetic similarity  
-      if (aestheticEmbedding && movie.embedding) {
+      if (aestheticEmbedding && movie.embedding !== null && movie.embedding !== undefined) {
         try {
           const { data: aestheticSimilarity, error: aestheticError } = await supabase
             .rpc('words_search_aesthetic_similarity', {
