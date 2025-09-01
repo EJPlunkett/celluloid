@@ -189,6 +189,12 @@ async function searchByWords(keywords) {
               similarity_threshold: 0.1
             })
           
+          if (contextError) {
+            console.error(`Context RPC error for ${movie.movie_title}:`, contextError)
+          } else {
+            console.log(`Context RPC success for ${movie.movie_title}:`, contextSimilarity)
+          }
+          
           if (!contextError && contextSimilarity && contextSimilarity.length > 0) {
             const similarity = contextSimilarity[0].similarity || 0
             totalScore += similarity * 100
@@ -209,6 +215,12 @@ async function searchByWords(keywords) {
               target_movie_id: movie.movie_id,
               similarity_threshold: 0.1
             })
+          
+          if (aestheticError) {
+            console.error(`Aesthetic RPC error for ${movie.movie_title}:`, aestheticError)
+          } else {
+            console.log(`Aesthetic RPC success for ${movie.movie_title}:`, aestheticSimilarity)
+          }
           
           if (!aestheticError && aestheticSimilarity && aestheticSimilarity.length > 0) {
             const similarity = aestheticSimilarity[0].similarity || 0
