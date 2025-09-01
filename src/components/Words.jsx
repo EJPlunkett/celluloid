@@ -111,6 +111,13 @@ function Words() {
       minHeight: '100vh'
     }}>
       <style>{`
+        @font-face {
+          font-family: 'Blanka';
+          src: url('/BLANKA.otf') format('opentype');
+          font-weight: normal;
+          font-style: normal;
+        }
+        
         .search-button {
           width: 150px;
           height: 40px;
@@ -118,7 +125,7 @@ function Words() {
           color: #fff;
           border: none;
           border-radius: 25px;
-          font-family: 'Arial', sans-serif;
+          font-family: 'Blanka', sans-serif;
           font-size: 16px;
           font-weight: 400;
           cursor: pointer;
@@ -126,7 +133,6 @@ function Words() {
           display: inline-block;
           text-transform: uppercase;
           letter-spacing: 1px;
-          margin: 30px auto 0 auto;
         }
         
         .search-button:hover:not(:disabled) {
@@ -434,15 +440,16 @@ function Words() {
           disabled={selectedTags.length === 0 || isSearching}
           className={isSearching ? 'search-button searching' : ''}
           style={{
-            margin: '30px auto 0 auto',
+            marginBottom: '5px',
             width: '150px',
             height: isSearching ? '40px' : 'auto',
             background: isSearching ? '#000' : 'transparent',
             border: 'none',
             cursor: isSearching ? 'not-allowed' : (selectedTags.length === 0 ? 'not-allowed' : 'pointer'),
             display: 'block',
-            opacity: (selectedTags.length === 0 || isSearching) ? 0.5 : 1,
-            pointerEvents: (selectedTags.length === 0 || isSearching) ? 'none' : 'auto',
+            marginLeft: 'auto',
+            marginRight: 'auto',
+            opacity: isSearching ? 0.6 : (selectedTags.length === 0 ? 0.5 : 1),
             borderRadius: isSearching ? '25px' : '0',
             color: isSearching ? '#fff' : 'transparent',
             fontFamily: isSearching ? "'Blanka', sans-serif" : 'inherit',
@@ -454,7 +461,7 @@ function Words() {
           {isSearching ? 'SEARCHING' : (
             <img 
               src="/Submit Button.png" 
-              alt="Submit Button" 
+              alt="Submit"
               style={{
                 width: '100%',
                 height: 'auto',
