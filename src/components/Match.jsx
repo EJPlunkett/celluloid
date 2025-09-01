@@ -197,9 +197,10 @@ function Match() {
           lineHeight: 1.5,
           margin: '0 0 30px 0',
           color: '#000',
-          textAlign: 'center'
+          textAlign: 'center',
+          whiteSpace: 'pre-wrap'
         }}>
-          Feeling indecisive?{'\n'}Roll the dice to let chance reveal your next aesthetic match.
+          Feeling indecisive?{'\n\n'}Roll the dice to let chance reveal your next aesthetic match.
         </p>
         
         <div 
