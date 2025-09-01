@@ -199,7 +199,7 @@ function Match() {
           color: '#000',
           textAlign: 'center'
         }}>
-          Feeling indecisive?
+          Feeling indecisive?{'\n'}Roll the dice to let chance reveal your next aesthetic match.
         </p>
         
         <div 
