@@ -6,7 +6,6 @@ function Words() {
   const [selectedTags, setSelectedTags] = useState([])
   const [inputValue, setInputValue] = useState('')
   const [notification, setNotification] = useState('')
-  const [isSearching, setIsSearching] = useState(false)
   const inputRef = useRef(null)
   const navigation = useNavigation()
 
@@ -69,15 +68,12 @@ function Words() {
     }
   }
 
-  const handleSubmit = async () => {
+  const handleSubmit = () => {
     if (selectedTags.length === 0) {
       alert('Please select at least one word!')
       return
     }
-    
-    setIsSearching(true)
     console.log('Selected words:', selectedTags)
-    
     // Navigate to cards page with the selected words
     navigation.goToCards({ words: selectedTags })
   }
@@ -110,47 +106,6 @@ function Words() {
       flexDirection: 'column',
       minHeight: '100vh'
     }}>
-      <style>{`
-        .search-button {
-          width: 150px;
-          height: 40px;
-          background: #000;
-          color: #fff;
-          border: none;
-          border-radius: 25px;
-          font-family: 'Arial', sans-serif;
-          font-size: 16px;
-          font-weight: 400;
-          cursor: pointer;
-          transition: all 0.3s ease;
-          display: inline-block;
-          text-transform: uppercase;
-          letter-spacing: 1px;
-          margin: 30px auto 0 auto;
-        }
-        
-        .search-button:hover:not(:disabled) {
-          background: #333;
-          transform: translateY(-1px);
-        }
-        
-        .search-button:disabled {
-          opacity: 0.7;
-          cursor: not-allowed;
-          transform: none;
-        }
-        
-        .search-button.searching {
-          background: #666;
-          animation: pulse 1.5s infinite;
-        }
-        
-        @keyframes pulse {
-          0%, 100% { opacity: 0.7; }
-          50% { opacity: 1; }
-        }
-      `}</style>
-
       <header style={{
         display: 'flex',
         alignItems: 'center',
@@ -431,38 +386,29 @@ function Words() {
 
         <button
           onClick={handleSubmit}
-          disabled={selectedTags.length === 0 || isSearching}
-          className={isSearching ? 'search-button searching' : ''}
+          disabled={selectedTags.length === 0}
           style={{
             margin: '30px auto 0 auto',
             width: '150px',
-            height: isSearching ? '40px' : 'auto',
-            background: isSearching ? '#000' : 'transparent',
+            height: 'auto',
+            background: 'transparent',
             border: 'none',
-            cursor: isSearching ? 'not-allowed' : (selectedTags.length === 0 ? 'not-allowed' : 'pointer'),
+            cursor: selectedTags.length === 0 ? 'not-allowed' : 'pointer',
             display: 'block',
-            opacity: (selectedTags.length === 0 || isSearching) ? 0.5 : 1,
-            pointerEvents: (selectedTags.length === 0 || isSearching) ? 'none' : 'auto',
-            borderRadius: isSearching ? '25px' : '0',
-            color: isSearching ? '#fff' : 'transparent',
-            fontFamily: isSearching ? "'Blanka', sans-serif" : 'inherit',
-            fontSize: isSearching ? '16px' : 'inherit',
-            textTransform: isSearching ? 'uppercase' : 'none',
-            letterSpacing: isSearching ? '1px' : 'normal'
+            opacity: selectedTags.length === 0 ? 0.5 : 1,
+            pointerEvents: selectedTags.length === 0 ? 'none' : 'auto'
           }}
         >
-          {isSearching ? 'SEARCHING' : (
-            <img 
-              src="/Submit Button.png" 
-              alt="Submit Button" 
-              style={{
-                width: '100%',
-                height: 'auto',
-                display: 'block',
-                objectFit: 'contain'
-              }}
-            />
-          )}
+          <img 
+            src="/Submit Button.png" 
+            alt="Submit Button" 
+            style={{
+              width: '100%',
+              height: 'auto',
+              display: 'block',
+              objectFit: 'contain'
+            }}
+          />
         </button>
       </main>
 

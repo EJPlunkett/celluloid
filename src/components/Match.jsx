@@ -140,7 +140,7 @@ function Match() {
           color: '#000',
           textAlign: 'center'
         }}>
-          Some vibe-related prompt or placeholder goes here.
+          Describe your vibe and uncover films that share its aesthetic.
         </p>
 
         <img 
@@ -164,7 +164,7 @@ function Match() {
           color: '#000',
           textAlign: 'center'
         }}>
-          Some color-related prompt or placeholder goes here.
+          Choose a color or palette to reveal films with matching tones.
         </p>
 
         <img 
@@ -188,7 +188,7 @@ function Match() {
           color: '#000',
           textAlign: 'center'
         }}>
-          Some word-related prompt or placeholder goes here.
+          Combine a few words to surface films defined by those details.
         </p>
 
         <p style={{
