@@ -166,7 +166,7 @@ function Surprise() {
           color: '#000',
           whiteSpace: 'pre-wrap'
         }}>
-          Describe your vibe in a few words and hit submit to find matching movies.
+          Not sure where to start? Roll the dice to uncover a vibe at random, then explore films that share its distinct aesthetic energy.
         </p>
         
         <div style={{

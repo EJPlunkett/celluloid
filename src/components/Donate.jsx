@@ -243,7 +243,7 @@ function Donate() {
           whiteSpace: 'normal',
           textAlign: 'center'
         }}>
-          <em>Celluloid by Design</em> is built on curiosity, structure, and a love of cinema's details, with a touch of AI behind the scenes. Each search draws on OpenAI's technology, which carries a small cost every time. Your support helps keep the project alive and growing.
+          <em>Celluloid by Design</em> is built on curiosity, structure, and a touch of AI behind the scenes. Each search draws on OpenAI's technology, which carries a small cost every time. Your support helps keep the project alive and growing.
         </p>
 
         {/* Message display */}

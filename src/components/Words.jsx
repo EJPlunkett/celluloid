@@ -9,7 +9,7 @@ function Words() {
   const inputRef = useRef(null)
   const navigation = useNavigation()
 
-  const maxTags = 10
+  const maxTags = 7
 
   const words = [
     // Decade Tags
@@ -191,7 +191,7 @@ function Words() {
           whiteSpace: 'normal',
           textAlign: 'center'
         }}>
-          Select from the words provided or type in your own. Combining two to ten creates a thread that guides the system, pulling together films defined by the details you choose.
+          Select from the words provided or type in your own. Combining 3 to 7 creates a thread that guides the system, pulling together films defined by the details you choose.
         </p>
 
         {notification && (
