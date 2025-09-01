@@ -195,12 +195,11 @@ function Match() {
           fontWeight: 300,
           fontSize: '16px',
           lineHeight: 1.5,
-          margin: '0 0 30px 0',
+          margin: '0 0 15px 0',
           color: '#000',
-          textAlign: 'center',
-          whiteSpace: 'pre-wrap'
+          textAlign: 'center'
         }}>
-          Feeling indecisive?{'\n\n'}Roll the dice to let chance reveal your next aesthetic match.
+          Feeling indecisive?
         </p>
         
         <div 
@@ -208,7 +207,7 @@ function Match() {
           style={{
             display: 'block',
             width: '80px',
-            margin: '20px auto 0',
+            margin: '15px auto',
             cursor: 'pointer'
           }}
         >
@@ -224,6 +223,17 @@ function Match() {
             }}
           />
         </div>
+
+        <p style={{
+          fontWeight: 300,
+          fontSize: '16px',
+          lineHeight: 1.5,
+          margin: '0 0 30px 0',
+          color: '#000',
+          textAlign: 'center'
+        }}>
+          Roll the dice to let chance reveal your next aesthetic match.
+        </p>
       </main>
 
       {/* Navigation Overlay */}
