@@ -152,123 +152,52 @@ async function searchByWords(keywords) {
       aestheticEmbedding = await getEmbedding(aestheticQuery)
     }
     
-    // Step 4: Build Supabase query
-    let query = supabase
-      .from('celluloid_film_data')
-      .select('movie_id, movie_title, year, hex_codes, aesthetic_summary, synopsis, depicted_decade, letterboxd_link')
+    // Step 4: Use the single RPC function to get movies with similarity scores
+    const { data: movies, error } = await supabase
+      .rpc('search_movies_with_embeddings', {
+        decade_filter: decadeFilter,
+        context_query_embedding: contextEmbedding,
+        aesthetic_query_embedding: aestheticEmbedding,
+        similarity_threshold: 0.01, // Lower threshold for better results
+        result_limit: 7
+      })
     
-    // Apply decade filter if specified
-    if (decadeFilter) {
-      query = query.eq('depicted_decade', decadeFilter)
-    }
-    
-    query = query.limit(300) // Reasonable limit
-    
-    const { data: movies, error } = await query
-    
-    if (error) throw new Error(`Database error: ${error.message}`)
+    if (error) throw new Error(`RPC error: ${error.message}`)
     if (!movies || movies.length === 0) {
-      console.log('No movies found with current filters')
+      console.log('No movies found with current search parameters')
       return { success: true, results: [] }
     }
     
-    console.log(`Found ${movies.length} movies after decade filtering`)
+    console.log(`Found ${movies.length} movies with similarity scores`)
     
-    // Step 5: Calculate similarity scores for each movie
-    const moviesWithScores = await Promise.all(movies.map(async (movie) => {
-      let totalScore = 0
-      let scoreCount = 0
-      
-      // Debug logging for embeddings
-      console.log(`Movie ${movie.movie_title}: contextEmbedding exists: ${!!contextEmbedding}, movie.context_embedding type: ${typeof movie.context_embedding}, value: ${movie.context_embedding ? 'has value' : 'null/undefined'}`)
-      console.log(`Movie ${movie.movie_title}: aestheticEmbedding exists: ${!!aestheticEmbedding}, movie.embedding type: ${typeof movie.embedding}, value: ${movie.embedding ? 'has value' : 'null/undefined'}`)
-      
-      // Context similarity
-      if (contextEmbedding && movie.context_embedding !== null && movie.context_embedding !== undefined) {
-        try {
-          const { data: contextSimilarity, error: contextError } = await supabase
-            .rpc('words_search_context_similarity', {
-              query_embedding: contextEmbedding,
-              target_movie_id: movie.movie_id,
-              similarity_threshold: 0.1
-            })
-          
-          if (contextError) {
-            console.error(`Context RPC error for ${movie.movie_title}:`, contextError)
-          } else {
-            console.log(`Context RPC success for ${movie.movie_title}:`, contextSimilarity)
-          }
-          
-          if (!contextError && contextSimilarity && contextSimilarity.length > 0) {
-            const similarity = contextSimilarity[0].similarity || 0
-            totalScore += similarity * 100
-            scoreCount++
-            console.log(`Context similarity for ${movie.movie_title}: ${similarity}`)
-          }
-        } catch (error) {
-          console.error(`Context similarity error for ${movie.movie_title}:`, error)
-        }
-      }
-      
-      // Aesthetic similarity  
-      if (aestheticEmbedding && movie.embedding !== null && movie.embedding !== undefined) {
-        try {
-          const { data: aestheticSimilarity, error: aestheticError } = await supabase
-            .rpc('words_search_aesthetic_similarity', {
-              query_embedding: aestheticEmbedding,
-              target_movie_id: movie.movie_id,
-              similarity_threshold: 0.1
-            })
-          
-          if (aestheticError) {
-            console.error(`Aesthetic RPC error for ${movie.movie_title}:`, aestheticError)
-          } else {
-            console.log(`Aesthetic RPC success for ${movie.movie_title}:`, aestheticSimilarity)
-          }
-          
-          if (!aestheticError && aestheticSimilarity && aestheticSimilarity.length > 0) {
-            const similarity = aestheticSimilarity[0].similarity || 0
-            totalScore += similarity * 100
-            scoreCount++
-            console.log(`Aesthetic similarity for ${movie.movie_title}: ${similarity}`)
-          }
-        } catch (error) {
-          console.error(`Aesthetic similarity error for ${movie.movie_title}:`, error)
-        }
-      }
-      
-      // If no embeddings to compare, but movie matches decade, give it a base score
-      if (scoreCount === 0 && decadeFilter) {
-        totalScore = 50 // Base score for decade match
-        scoreCount = 1
-      }
-      
-      const averageScore = scoreCount > 0 ? totalScore / scoreCount : 0
-      
-      return {
-        ...movie,
-        similarity_score: averageScore
-      }
-    }))
+    // Step 5: Log similarity scores for debugging
+    movies.forEach(movie => {
+      console.log(`${movie.movie_title}: context_similarity=${movie.context_similarity}, aesthetic_similarity=${movie.aesthetic_similarity}, combined_score=${movie.combined_score}`)
+    })
     
-    // Step 6: Sort by similarity and ensure uniqueness
+    // Step 6: Convert to expected format and ensure uniqueness
     const usedIds = new Set()
     const uniqueMovies = []
     
-    const sortedMovies = moviesWithScores
-      .filter(movie => movie.similarity_score > 0)
-      .sort((a, b) => b.similarity_score - a.similarity_score)
-    
-    // Add unique movies until we have 7
-    for (const movie of sortedMovies) {
+    for (const movie of movies) {
       if (uniqueMovies.length >= 7) break
       if (!usedIds.has(movie.movie_id)) {
-        uniqueMovies.push(movie)
+        uniqueMovies.push({
+          movie_id: movie.movie_id,
+          movie_title: movie.movie_title,
+          year: movie.year,
+          hex_codes: movie.hex_codes,
+          aesthetic_summary: movie.aesthetic_summary,
+          synopsis: movie.synopsis,
+          depicted_decade: movie.depicted_decade,
+          letterboxd_link: movie.letterboxd_link,
+          similarity_score: movie.combined_score * 100 // Convert to 0-100 scale
+        })
         usedIds.add(movie.movie_id)
       }
     }
     
-    console.log(`Found ${uniqueMovies.length} unique word matches`)
+    console.log(`Returning ${uniqueMovies.length} unique word matches`)
     return { success: true, results: uniqueMovies }
     
   } catch (error) {
