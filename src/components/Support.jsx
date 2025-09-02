@@ -224,15 +224,15 @@ function Support() {
       }}>
         <h1 style={{
           fontFamily: 'BLANKA, Arial, sans-serif',
-          fontSize: 'clamp(48px, 12vw, 72px)',
+          fontSize: 'clamp(64px, 16vw, 96px)',
           fontWeight: 'normal',
-          letterSpacing: '2px',
+          letterSpacing: '3px',
           textAlign: 'center',
           margin: '25px auto 0px auto',
           maxWidth: '480px',
           width: '100%',
           color: '#000',
-          lineHeight: 1.2,
+          lineHeight: 1.1,
           padding: '0 20px',
           boxSizing: 'border-box'
         }}>
@@ -669,11 +669,11 @@ function Support() {
         >
           <span style={{
             fontFamily: 'BLANKA, Arial, sans-serif',
-            fontSize: '20px',
+            fontSize: '24px',
             color: '#000',
             letterSpacing: '1px',
-            height: '24px',
-            lineHeight: '24px',
+            height: '30px',
+            lineHeight: '30px',
             display: 'block'
           }}>
             SUPPORT
