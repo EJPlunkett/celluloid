@@ -222,22 +222,17 @@ function Support() {
         flexGrow: 1,
         textAlign: 'center'
       }}>
-        <h1 style={{
-          fontFamily: 'BLANKA, Arial, sans-serif',
-          fontSize: '12vw',
-          fontWeight: 'normal',
-          letterSpacing: '1px',
-          textAlign: 'center',
-          margin: '25px 0 20px 0',
-          width: '100%',
-          color: '#000',
-          lineHeight: 1,
-          padding: 0,
-          boxSizing: 'border-box',
-          display: 'block'
-        }}>
-          SUPPORT
-        </h1>
+        <img 
+          src="/Support Header.png" 
+          alt="Support" 
+          style={{
+            display: 'block',
+            maxWidth: '480px',
+            width: '100%',
+            height: 'auto',
+            margin: '25px auto 20px auto'
+          }}
+        />
 
         <p style={{
           fontWeight: 300,
