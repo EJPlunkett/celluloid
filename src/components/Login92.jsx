@@ -2,51 +2,15 @@ import { useState } from 'react'
 import { useNavigation } from '../hooks/useNavigation'
 import { supabase } from '../supabase'
 
-function Create() {
+function Login() {
   const [navOpen, setNavOpen] = useState(false)
-  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
+  const [showSuccess, setShowSuccess] = useState(false)
   const [formData, setFormData] = useState({
-    firstName: '',
-    lastName: '',
     email: '',
-    password: '',
-    confirmPassword: '',
-    region: ''
+    password: ''
   })
   const navigation = useNavigation()
-
-  // Common streaming regions
-  const regions = [
-    { value: 'US', label: 'United States' },
-    { value: 'CA', label: 'Canada' },
-    { value: 'GB', label: 'United Kingdom' },
-    { value: 'IE', label: 'Ireland' },
-    { value: 'AU', label: 'Australia' },
-    { value: 'NZ', label: 'New Zealand' },
-    { value: 'FR', label: 'France' },
-    { value: 'DE', label: 'Germany' },
-    { value: 'ES', label: 'Spain' },
-    { value: 'IT', label: 'Italy' },
-    { value: 'NL', label: 'Netherlands' },
-    { value: 'SE', label: 'Sweden' },
-    { value: 'DK', label: 'Denmark' },
-    { value: 'NO', label: 'Norway' },
-    { value: 'FI', label: 'Finland' },
-    { value: 'BR', label: 'Brazil' },
-    { value: 'MX', label: 'Mexico' },
-    { value: 'AR', label: 'Argentina' },
-    { value: 'IN', label: 'India' },
-    { value: 'JP', label: 'Japan' },
-    { value: 'KR', label: 'South Korea' },
-    { value: 'ZA', label: 'South Africa' },
-    { value: 'TR', label: 'Turkey' },
-    { value: 'PL', label: 'Poland' },
-    { value: 'CH', label: 'Switzerland' },
-    { value: 'AT', label: 'Austria' },
-    { value: 'BE', label: 'Belgium' },
-    { value: 'PT', label: 'Portugal' },
-    { value: 'OTHER', label: 'Other' }
-  ]
 
   const toggleNav = () => {
     setNavOpen(!navOpen)
@@ -62,61 +26,31 @@ function Create() {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+    setIsLoading(true)
+    console.log('Login form submitted:', formData)
     
-    // Check if passwords match
-    if (formData.password !== formData.confirmPassword) {
-      alert('Passwords do not match. Please try again.')
-      return
-    }
-
-    setIsSubmitting(true)
-
     try {
-      // 1. Sign up the user with Supabase Auth
-      const { data: authData, error: authError } = await supabase.auth.signUp({
+      const { data, error } = await supabase.auth.signInWithPassword({
         email: formData.email,
-        password: formData.password,
-        options: {
-          data: {
-            first_name: formData.firstName,
-            last_name: formData.lastName,
-            region: formData.region
-          }
-        }
+        password: formData.password
       })
-
-      if (authError) {
-        throw authError
+      
+      if (error) {
+        console.error('Login error:', error.message)
+        alert(`Login failed: ${error.message}`)
+      } else {
+        console.log('Login successful:', data.user)
+        setShowSuccess(true)
+        // Wait a moment to show success message, then navigate
+        setTimeout(() => {
+          navigation.goToWatchlist()
+        }, 1500)
       }
-
-      // 2. If auth successful, create profile record
-      if (authData.user) {
-        const { error: profileError } = await supabase
-          .from('profiles')
-          .insert([
-            {
-              user_id: authData.user.id,
-              first_name: formData.firstName,
-              last_name: formData.lastName,
-              email: formData.email,
-              watching_region: formData.region
-            }
-          ])
-
-        if (profileError) {
-          console.error('Profile creation error:', profileError)
-          // Note: User auth was created, so we don't throw here
-        }
-      }
-
-      // Navigate to welcome page with user's first name
-      navigation.goToWelcome({ firstName: formData.firstName })
-
     } catch (error) {
-      console.error('Error creating account:', error)
-      alert(error.message || 'Error creating account. Please try again.')
+      console.error('Unexpected error:', error)
+      alert('An unexpected error occurred. Please try again.')
     } finally {
-      setIsSubmitting(false)
+      setIsLoading(false)
     }
   }
 
@@ -211,19 +145,6 @@ function Create() {
           }}
         />
 
-        <p style={{
-          fontWeight: 300,
-          fontSize: '16px',
-          lineHeight: 1.5,
-          margin: '0 0 30px 0',
-          color: '#000',
-          whiteSpace: 'normal',
-          textAlign: 'center'
-        }}>
-          Build your personal archive.<br />
-          Create an account to save matches and curate films by aesthetic.
-        </p>
-
         <form 
           onSubmit={handleSubmit}
           style={{
@@ -231,81 +152,12 @@ function Create() {
             flexDirection: 'column',
             gap: '20px',
             marginBottom: '30px',
-            textAlign: 'left'
+            marginTop: '30px',
+            textAlign: 'left',
+            width: '100%',
+            maxWidth: '480px'
           }}
         >
-          <div style={{
-            display: 'flex',
-            flexDirection: 'column'
-          }}>
-            <label 
-              htmlFor="firstName"
-              style={{
-                fontWeight: 500,
-                fontSize: '16px',
-                marginBottom: '8px',
-                color: '#000'
-              }}
-            >
-              First Name
-            </label>
-            <input 
-              type="text"
-              id="firstName"
-              name="firstName"
-              value={formData.firstName}
-              onChange={handleInputChange}
-              required
-              placeholder="Enter your first name"
-              style={{
-                padding: '12px 16px',
-                border: '2px solid #000',
-                borderRadius: '8px',
-                backgroundColor: '#fff',
-                fontSize: '16px',
-                fontFamily: 'Arial, sans-serif',
-                color: '#000',
-                transition: 'border-color 0.2s ease'
-              }}
-            />
-          </div>
-
-          <div style={{
-            display: 'flex',
-            flexDirection: 'column'
-          }}>
-            <label 
-              htmlFor="lastName"
-              style={{
-                fontWeight: 500,
-                fontSize: '16px',
-                marginBottom: '8px',
-                color: '#000'
-              }}
-            >
-              Last Name
-            </label>
-            <input 
-              type="text"
-              id="lastName"
-              name="lastName"
-              value={formData.lastName}
-              onChange={handleInputChange}
-              required
-              placeholder="Enter your last name"
-              style={{
-                padding: '12px 16px',
-                border: '2px solid #000',
-                borderRadius: '8px',
-                backgroundColor: '#fff',
-                fontSize: '16px',
-                fontFamily: 'Arial, sans-serif',
-                color: '#000',
-                transition: 'border-color 0.2s ease'
-              }}
-            />
-          </div>
-
           <div style={{
             display: 'flex',
             flexDirection: 'column'
@@ -328,16 +180,19 @@ function Create() {
               value={formData.email}
               onChange={handleInputChange}
               required
+              disabled={isLoading}
               placeholder="Enter your email address"
               style={{
                 padding: '12px 16px',
                 border: '2px solid #000',
                 borderRadius: '8px',
-                backgroundColor: '#fff',
+                backgroundColor: isLoading ? '#f0f0f0' : '#fff',
                 fontSize: '16px',
                 fontFamily: 'Arial, sans-serif',
                 color: '#000',
-                transition: 'border-color 0.2s ease'
+                transition: 'border-color 0.2s ease',
+                width: '100%',
+                boxSizing: 'border-box'
               }}
             />
           </div>
@@ -364,130 +219,44 @@ function Create() {
               value={formData.password}
               onChange={handleInputChange}
               required
-              placeholder="Create a password"
+              disabled={isLoading}
+              placeholder="Enter your password"
               style={{
                 padding: '12px 16px',
                 border: '2px solid #000',
                 borderRadius: '8px',
-                backgroundColor: '#fff',
+                backgroundColor: isLoading ? '#f0f0f0' : '#fff',
                 fontSize: '16px',
                 fontFamily: 'Arial, sans-serif',
                 color: '#000',
-                transition: 'border-color 0.2s ease'
-              }}
-            />
-          </div>
-
-          <div style={{
-            display: 'flex',
-            flexDirection: 'column'
-          }}>
-            <label 
-              htmlFor="confirmPassword"
-              style={{
-                fontWeight: 500,
-                fontSize: '16px',
-                marginBottom: '8px',
-                color: '#000'
-              }}
-            >
-              Confirm Password
-            </label>
-            <input 
-              type="password"
-              id="confirmPassword"
-              name="confirmPassword"
-              value={formData.confirmPassword}
-              onChange={handleInputChange}
-              required
-              placeholder="Confirm your password"
-              style={{
-                padding: '12px 16px',
-                border: '2px solid #000',
-                borderRadius: '8px',
-                backgroundColor: '#fff',
-                fontSize: '16px',
-                fontFamily: 'Arial, sans-serif',
-                color: '#000',
-                transition: 'border-color 0.2s ease'
-              }}
-            />
-          </div>
-
-          <div style={{
-            display: 'flex',
-            flexDirection: 'column'
-          }}>
-            <label 
-              htmlFor="region"
-              style={{
-                fontWeight: 500,
-                fontSize: '16px',
-                marginBottom: '8px',
-                color: '#000'
-              }}
-            >
-              Watching Region
-            </label>
-            <p style={{
-              fontSize: '14px',
-              color: '#666',
-              margin: '0 0 8px 0',
-              lineHeight: 1.4,
-              fontStyle: 'italic'
-            }}>
-              Pick your region to fine-tune results. Market-based streaming filters coming soon.
-            </p>
-            <select 
-              id="region"
-              name="region"
-              value={formData.region}
-              onChange={handleInputChange}
-              required
-              style={{
-                padding: '12px 16px',
-                border: '2px solid #000',
-                borderRadius: '8px',
-                backgroundColor: '#fff',
-                fontSize: '16px',
-                fontFamily: 'Arial, sans-serif',
-                color: formData.region ? '#000' : '#666',
                 transition: 'border-color 0.2s ease',
-                cursor: 'pointer'
+                width: '100%',
+                boxSizing: 'border-box'
               }}
-            >
-              <option value="" disabled style={{ color: '#666' }}>
-                Select your region
-              </option>
-              {regions.map((region) => (
-                <option key={region.value} value={region.value} style={{ color: '#000' }}>
-                  {region.label}
-                </option>
-              ))}
-            </select>
+            />
           </div>
         </form>
 
         <button 
           type="submit"
           onClick={handleSubmit}
-          disabled={isSubmitting}
+          disabled={isLoading}
           style={{
             marginTop: '20px',
             width: '150px',
             height: 'auto',
             background: 'transparent',
             border: 'none',
-            cursor: isSubmitting ? 'not-allowed' : 'pointer',
+            cursor: isLoading ? 'not-allowed' : 'pointer',
             display: 'block',
             marginLeft: 'auto',
             marginRight: 'auto',
-            opacity: isSubmitting ? 0.6 : 1
+            opacity: isLoading ? 0.6 : 1
           }}
         >
           <img 
             src="/Submit Button.png" 
-            alt={isSubmitting ? "Creating Account..." : "Create Account"}
+            alt={isLoading ? "Signing In..." : "Sign In"}
             style={{
               width: '100%',
               height: 'auto',
@@ -496,6 +265,50 @@ function Create() {
             }}
           />
         </button>
+        
+        {isLoading && (
+          <p style={{
+            textAlign: 'center',
+            marginTop: '10px',
+            fontSize: '14px',
+            color: '#666'
+          }}>
+            Signing you in...
+          </p>
+        )}
+        
+        {showSuccess && (
+          <div style={{
+            position: 'fixed',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            backgroundColor: '#000',
+            border: '3px solid #000',
+            borderRadius: '12px',
+            padding: '30px 40px',
+            textAlign: 'center',
+            zIndex: 2000,
+            boxShadow: '0 8px 24px rgba(0,0,0,0.3)',
+            animation: 'fadeIn 0.3s ease'
+          }}>
+            <p style={{
+              margin: 0,
+              fontSize: '18px',
+              fontWeight: 'bold',
+              color: '#f6f5f3'
+            }}>
+              Login successful! 
+            </p>
+            <p style={{
+              margin: '8px 0 0 0',
+              fontSize: '14px',
+              color: '#f6f5f3'
+            }}>
+              Redirecting to your watchlist...
+            </p>
+          </div>
+        )}
       </main>
 
       {/* Navigation Overlay */}
@@ -750,7 +563,7 @@ function Create() {
         
         <button 
           onClick={() => {
-            navigation.goToSupport()
+            navigation.goToDonate()
             setNavOpen(false)
           }}
           style={{ 
@@ -763,10 +576,10 @@ function Create() {
           }}
         >
           <img 
-            src="/Support Header.png" 
-            alt="Support" 
+            src="/donate menu.png" 
+            alt="Donate" 
             style={{
-              height: '25px',
+              height: '24px',
               width: 'auto',
               maxWidth: '280px',
               cursor: 'pointer',
@@ -800,4 +613,4 @@ function Create() {
   )
 }
 
-export default Create
+export default Login

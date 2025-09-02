@@ -487,12 +487,12 @@ function Cards() {
           />
         </button>
         
-        <button onClick={() => { navigation.goToSupport(); setNavOpen(false) }} style={{ display: 'block', marginBottom: '16px', background: 'transparent', border: 'none', padding: 0, cursor: 'pointer' }}>
+        <button onClick={() => { navigation.goToDonate(); setNavOpen(false) }} style={{ display: 'block', marginBottom: '16px', background: 'transparent', border: 'none', padding: 0, cursor: 'pointer' }}>
           <img 
-            src="/Support Header.png" 
-            alt="Support" 
+            src="/donate menu.png" 
+            alt="Donate" 
             style={{
-              height: '25px',
+              height: '24px',
               width: 'auto',
               maxWidth: '280px',
               cursor: 'pointer',

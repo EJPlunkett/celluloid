@@ -754,7 +754,7 @@ function Words() {
         
         <button 
           onClick={() => {
-            navigation.goToSupport()
+            navigation.goToDonate()
             setNavOpen(false)
           }}
           style={{ 
@@ -767,10 +767,10 @@ function Words() {
           }}
         >
           <img 
-            src="/Support Header.png" 
-            alt="Support" 
+            src="/donate menu.png" 
+            alt="Donate" 
             style={{
-              height: '25px',
+              height: '24px',
               width: 'auto',
               maxWidth: '280px',
               cursor: 'pointer',

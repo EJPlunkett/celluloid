@@ -1,58 +1,69 @@
 import { useState } from 'react'
 import { useNavigation } from '../hooks/useNavigation'
-import { supabase } from '../supabase'
 
-function Login() {
+function Surprise() {
   const [navOpen, setNavOpen] = useState(false)
-  const [isLoading, setIsLoading] = useState(false)
-  const [showSuccess, setShowSuccess] = useState(false)
-  const [formData, setFormData] = useState({
-    email: '',
-    password: ''
-  })
+  const [currentVibe, setCurrentVibe] = useState("Rooftop gardens overlooking a sprawling city skyline.")
+  const [isRolling, setIsRolling] = useState(false)
   const navigation = useNavigation()
+
+  // Array of surprise vibes
+  const vibes = [
+    "NY nightclubs, underground art parties, and warehouse loft gatherings in the '80s.",
+    "Moody jazz bars with smoky light and intimate conversations.",
+    "Sun-dappled Brooklyn stoops in late summer evenings.",
+    "Grimy subway rides amidst graffiti and punk energy.",
+    "High-end SoHo galleries showcasing avant-garde street art.",
+    "Corner deli mornings filled with the scent of fresh coffee and bagels.",
+    "Rain-soaked streets reflecting neon lights and taxi cabs.",
+    "Bohemian loft apartments cluttered with vintage vinyl and typewriters.",
+    "Hip hop block parties with vibrant crowd energy.",
+    "Quiet walks in Central Park under autumn leaves.",
+    "Rooftop gardens overlooking a sprawling city skyline."
+  ]
 
   const toggleNav = () => {
     setNavOpen(!navOpen)
   }
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }))
+  const rollDice = () => {
+    setIsRolling(true)
+    
+    // Get a random vibe that's different from the current one
+    let randomIndex
+    do {
+      randomIndex = Math.floor(Math.random() * vibes.length)
+    } while (vibes[randomIndex] === currentVibe)
+    
+    setCurrentVibe(vibes[randomIndex])
+    
+    // Reset dice animation after 400ms to match the CSS animation duration
+    setTimeout(() => {
+      setIsRolling(false)
+    }, 400)
   }
 
-  const handleSubmit = async (e) => {
-    e.preventDefault()
-    setIsLoading(true)
-    console.log('Login form submitted:', formData)
-    
-    try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email: formData.email,
-        password: formData.password
-      })
-      
-      if (error) {
-        console.error('Login error:', error.message)
-        alert(`Login failed: ${error.message}`)
-      } else {
-        console.log('Login successful:', data.user)
-        setShowSuccess(true)
-        // Wait a moment to show success message, then navigate
-        setTimeout(() => {
-          navigation.goToWatchlist()
-        }, 1500)
-      }
-    } catch (error) {
-      console.error('Unexpected error:', error)
-      alert('An unexpected error occurred. Please try again.')
-    } finally {
-      setIsLoading(false)
-    }
+  const handleSubmit = () => {
+    console.log('Surprise vibe:', currentVibe)
+    // Navigate to cards page with the surprise vibe
+    navigation.goToCards({ vibe: currentVibe })
   }
+
+  // Shake animation keyframes
+  const shakeKeyframes = `
+    @keyframes shake {
+      0%, 100% { transform: translateX(0) translateY(0) rotate(0deg); }
+      10% { transform: translateX(-4px) translateY(-2px) rotate(-5deg); }
+      20% { transform: translateX(4px) translateY(2px) rotate(4deg); }
+      30% { transform: translateX(-3px) translateY(3px) rotate(-3deg); }
+      40% { transform: translateX(3px) translateY(-1px) rotate(6deg); }
+      50% { transform: translateX(-2px) translateY(2px) rotate(-4deg); }
+      60% { transform: translateX(2px) translateY(-3px) rotate(3deg); }
+      70% { transform: translateX(-2px) translateY(1px) rotate(-2deg); }
+      80% { transform: translateX(2px) translateY(-1px) rotate(5deg); }
+      90% { transform: translateX(-1px) translateY(2px) rotate(-3deg); }
+    }
+  `
 
   return (
     <div style={{
@@ -69,6 +80,9 @@ function Login() {
       minHeight: '100vh',
       position: 'relative'
     }}>
+      {/* Inject CSS animation */}
+      <style>{shakeKeyframes}</style>
+      
       <header style={{
         display: 'flex',
         alignItems: 'center',
@@ -80,7 +94,7 @@ function Login() {
         <button 
           onClick={toggleNav}
           style={{
-            position: 'absolute',
+            position: 'fixed',
             top: '13px',
             left: '13px',
             width: '36px',
@@ -92,7 +106,6 @@ function Login() {
             justifyContent: 'space-between',
             background: 'transparent',
             borderRadius: '6px',
-            boxShadow: 'none',
             border: 'none',
             padding: 0
           }}
@@ -134,181 +147,104 @@ function Login() {
         textAlign: 'center'
       }}>
         <img 
-          src="/Login Header.png" 
-          alt="Header" 
+          src="/Vibes Header.png" 
+          alt="Vibes Header" 
           style={{
             display: 'block',
             maxWidth: '480px',
             width: '100%',
             height: 'auto',
-            margin: '35px auto 10px auto'
+            margin: '25px auto 10px auto'
           }}
         />
-
-        <form 
-          onSubmit={handleSubmit}
-          style={{
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '20px',
-            marginBottom: '30px',
-            marginTop: '30px',
-            textAlign: 'left',
-            width: '100%',
-            maxWidth: '480px'
-          }}
-        >
-          <div style={{
-            display: 'flex',
-            flexDirection: 'column'
-          }}>
-            <label 
-              htmlFor="email"
-              style={{
-                fontWeight: 500,
-                fontSize: '16px',
-                marginBottom: '8px',
-                color: '#000'
-              }}
-            >
-              Email Address
-            </label>
-            <input 
-              type="email"
-              id="email"
-              name="email"
-              value={formData.email}
-              onChange={handleInputChange}
-              required
-              disabled={isLoading}
-              placeholder="Enter your email address"
-              style={{
-                padding: '12px 16px',
-                border: '2px solid #000',
-                borderRadius: '8px',
-                backgroundColor: isLoading ? '#f0f0f0' : '#fff',
-                fontSize: '16px',
-                fontFamily: 'Arial, sans-serif',
-                color: '#000',
-                transition: 'border-color 0.2s ease',
-                width: '100%',
-                boxSizing: 'border-box'
-              }}
-            />
-          </div>
-
-          <div style={{
-            display: 'flex',
-            flexDirection: 'column'
-          }}>
-            <label 
-              htmlFor="password"
-              style={{
-                fontWeight: 500,
-                fontSize: '16px',
-                marginBottom: '8px',
-                color: '#000'
-              }}
-            >
-              Password
-            </label>
-            <input 
-              type="password"
-              id="password"
-              name="password"
-              value={formData.password}
-              onChange={handleInputChange}
-              required
-              disabled={isLoading}
-              placeholder="Enter your password"
-              style={{
-                padding: '12px 16px',
-                border: '2px solid #000',
-                borderRadius: '8px',
-                backgroundColor: isLoading ? '#f0f0f0' : '#fff',
-                fontSize: '16px',
-                fontFamily: 'Arial, sans-serif',
-                color: '#000',
-                transition: 'border-color 0.2s ease',
-                width: '100%',
-                boxSizing: 'border-box'
-              }}
-            />
-          </div>
-        </form>
-
+        
+        <p style={{
+          fontWeight: 300,
+          fontSize: '16px',
+          lineHeight: 1.5,
+          margin: '0 0 15px 0',
+          color: '#000',
+          whiteSpace: 'pre-wrap'
+        }}>
+          Not sure where to start? Roll the dice to uncover a vibe at random, then explore films that share its distinct aesthetic energy.
+        </p>
+        
+        <div style={{
+          width: '100%',
+          maxWidth: '480px',
+          margin: '30px auto 15px auto',
+          minHeight: '120px',
+          border: '2px solid #000',
+          borderRadius: '15px',
+          padding: '20px',
+          fontStyle: 'italic',
+          fontWeight: 400,
+          fontSize: '16px',
+          lineHeight: 1.5,
+          background: '#fff',
+          userSelect: 'none',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          boxSizing: 'border-box'
+        }}>
+          {currentVibe}
+        </div>
+        
         <button 
-          type="submit"
-          onClick={handleSubmit}
-          disabled={isLoading}
+          onClick={rollDice}
           style={{
-            marginTop: '20px',
-            width: '150px',
-            height: 'auto',
+            cursor: 'pointer',
             background: 'transparent',
             border: 'none',
-            cursor: isLoading ? 'not-allowed' : 'pointer',
+            padding: 0,
+            margin: '20px auto 0 auto',
             display: 'block',
-            marginLeft: 'auto',
-            marginRight: 'auto',
-            opacity: isLoading ? 0.6 : 1
+            width: '80px',
+            height: 'auto'
           }}
+          aria-label="Roll the dice to generate a new vibe"
         >
           <img 
-            src="/Submit Button.png" 
-            alt={isLoading ? "Signing In..." : "Sign In"}
+            src="/Dice.png" 
+            alt="Roll Dice" 
             style={{
               width: '100%',
               height: 'auto',
               display: 'block',
-              objectFit: 'contain'
+              userSelect: 'none',
+              animation: isRolling ? 'shake 0.4s infinite' : 'none'
             }}
           />
         </button>
-        
-        {isLoading && (
-          <p style={{
-            textAlign: 'center',
-            marginTop: '10px',
-            fontSize: '14px',
-            color: '#666'
-          }}>
-            Signing you in...
-          </p>
-        )}
-        
-        {showSuccess && (
-          <div style={{
-            position: 'fixed',
-            top: '50%',
-            left: '50%',
-            transform: 'translate(-50%, -50%)',
-            backgroundColor: '#000',
-            border: '3px solid #000',
-            borderRadius: '12px',
-            padding: '30px 40px',
-            textAlign: 'center',
-            zIndex: 2000,
-            boxShadow: '0 8px 24px rgba(0,0,0,0.3)',
-            animation: 'fadeIn 0.3s ease'
-          }}>
-            <p style={{
-              margin: 0,
-              fontSize: '18px',
-              fontWeight: 'bold',
-              color: '#f6f5f3'
-            }}>
-              Login successful! 
-            </p>
-            <p style={{
-              margin: '8px 0 0 0',
-              fontSize: '14px',
-              color: '#f6f5f3'
-            }}>
-              Redirecting to your watchlist...
-            </p>
-          </div>
-        )}
+
+        <div style={{
+          textAlign: 'center',
+          marginTop: '20px'
+        }}>
+          <button
+            onClick={handleSubmit}
+            style={{
+              width: '150px',
+              height: 'auto',
+              background: 'transparent',
+              border: 'none',
+              cursor: 'pointer',
+              display: 'inline-block'
+            }}
+          >
+            <img 
+              src="/Submit Button.png" 
+              alt="Submit Button" 
+              style={{
+                width: '100%',
+                height: 'auto',
+                display: 'block',
+                objectFit: 'contain'
+              }}
+            />
+          </button>
+        </div>
       </main>
 
       {/* Navigation Overlay */}
@@ -323,7 +259,6 @@ function Login() {
           border: '10px solid #000',
           borderRadius: '0 20px 20px 0',
           boxSizing: 'border-box',
-          boxShadow: 'none',
           transform: navOpen ? 'translateX(0)' : 'translateX(calc(-100% - 20px))',
           transition: 'transform 0.3s ease',
           zIndex: 1050,
@@ -563,7 +498,7 @@ function Login() {
         
         <button 
           onClick={() => {
-            navigation.goToSupport()
+            navigation.goToDonate()
             setNavOpen(false)
           }}
           style={{ 
@@ -576,10 +511,10 @@ function Login() {
           }}
         >
           <img 
-            src="/Support Header.png" 
-            alt="Support" 
+            src="/donate menu.png" 
+            alt="Donate" 
             style={{
-              height: '25px',
+              height: '24px',
               width: 'auto',
               maxWidth: '280px',
               cursor: 'pointer',
@@ -597,15 +532,7 @@ function Login() {
         padding: '20px',
         userSelect: 'none',
         background: '#f6f5f3',
-        fontStyle: 'italic',
-        position: 'static',
-        width: 'auto',
-        bottom: 'auto',
-        left: 'auto',
-        opacity: 1,
-        pointerEvents: 'auto',
-        transition: 'none',
-        zIndex: 'auto'
+        fontStyle: 'italic'
       }}>
         <span>© 2025 Celluloid by Design</span>
       </footer>
@@ -613,4 +540,4 @@ function Login() {
   )
 }
 
-export default Login
+export default Surprise
