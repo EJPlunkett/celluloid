@@ -350,12 +350,12 @@ function Match() {
           />
         </a>
         
-        <a href="#" onClick={(e) => { e.preventDefault(); navigation.goToDonate() }} style={{ display: 'block', marginBottom: '16px' }}>
+        <a href="#" onClick={(e) => { e.preventDefault(); navigation.goToSupport() }} style={{ display: 'block', marginBottom: '16px' }}>
           <img 
-            src="/donate menu.png" 
-            alt="Donate" 
+            src="/Support Header.png" 
+            alt="Support" 
             style={{
-              height: '24px',
+              height: '25px',
               width: 'auto',
               maxWidth: '280px',
               cursor: 'pointer',
