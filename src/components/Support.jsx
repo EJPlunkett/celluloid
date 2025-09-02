@@ -666,7 +666,7 @@ function Support() {
             src="/Support Header.png" 
             alt="Support" 
             style={{
-              height: '30px',
+              height: '26px',
               width: 'auto',
               maxWidth: '280px',
               cursor: 'pointer',
