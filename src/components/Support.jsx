@@ -224,9 +224,9 @@ function Support() {
       }}>
         <h1 style={{
           fontFamily: 'BLANKA, Arial, sans-serif',
-          fontSize: '15vw',
+          fontSize: '12vw',
           fontWeight: 'normal',
-          letterSpacing: '0',
+          letterSpacing: '1px',
           textAlign: 'center',
           margin: '25px 0 20px 0',
           width: '100%',
