@@ -228,12 +228,11 @@ function Support() {
           fontWeight: 'normal',
           letterSpacing: '4px',
           textAlign: 'center',
-          margin: '25px auto 20px auto',
-          maxWidth: '480px',
+          margin: '25px 0 20px 0',
           width: '100%',
           color: '#000',
           lineHeight: 1,
-          padding: '0 20px',
+          padding: 0,
           boxSizing: 'border-box',
           display: 'block'
         }}>
