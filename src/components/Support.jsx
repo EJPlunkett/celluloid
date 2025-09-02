@@ -662,17 +662,18 @@ function Support() {
             cursor: 'pointer'
           }}
         >
-          <span style={{
-            fontFamily: 'BLANKA, Arial, sans-serif',
-            fontSize: '28px',
-            color: '#000',
-            letterSpacing: '1px',
-            height: '32px',
-            lineHeight: '32px',
-            display: 'block'
-          }}>
-            SUPPORT
-          </span>
+          <img 
+            src="/Support Header.png" 
+            alt="Support" 
+            style={{
+              height: '30px',
+              width: 'auto',
+              maxWidth: '280px',
+              cursor: 'pointer',
+              display: 'block',
+              objectFit: 'contain'
+            }}
+          />
         </button>
       </nav>
 
