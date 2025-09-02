@@ -7,7 +7,8 @@ import Color from './components/Color'
 import Create from './components/Create'
 import Cards from './components/Cards'
 import Login from './components/Login'
-import Donate from './components/Donate'
+import Donate from './components/Donate'     // Keep the old one
+import Support from './components/Support'   // Add the new one
 import Surprise from './components/Surprise'
 import Terms from './components/Terms'
 import Vibes from './components/Vibes'
@@ -28,7 +29,8 @@ function App() {
           <Route path="/create" element={<Create />} />
           <Route path="/cards" element={<Cards />} />
           <Route path="/login" element={<Login />} />
-          <Route path="/donate" element={<Donate />} />
+          <Route path="/donate" element={<Donate />} />       {/* Keep existing */}
+          <Route path="/support" element={<Support />} />     {/* Add new one */}
           <Route path="/surprise" element={<Surprise />} />
           <Route path="/terms" element={<Terms />} />
           <Route path="/vibes" element={<Vibes />} />
