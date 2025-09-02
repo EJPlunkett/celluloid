@@ -224,9 +224,9 @@ function Support() {
       }}>
         <h1 style={{
           fontFamily: 'BLANKA, Arial, sans-serif',
-          fontSize: 'clamp(80px, 20vw, 120px)',
+          fontSize: 'clamp(90px, 22vw, 140px)',
           fontWeight: 'normal',
-          letterSpacing: '4px',
+          letterSpacing: '0px',
           textAlign: 'center',
           margin: '25px 0 20px 0',
           width: '100%',
@@ -234,7 +234,8 @@ function Support() {
           lineHeight: 1,
           padding: 0,
           boxSizing: 'border-box',
-          display: 'block'
+          display: 'block',
+          wordSpacing: '-0.1em'
         }}>
           SUPPORT
         </h1>
