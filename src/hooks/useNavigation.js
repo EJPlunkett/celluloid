@@ -12,11 +12,12 @@ export const useNavigation = () => {
     goToCards: (data) => navigate('/cards', { state: data }),
     goToLogin: () => navigate('/login'),
     goToDonate: () => navigate('/donate'),
+    goToSupport: () => navigate('/support'),
     goToSurprise: () => navigate('/surprise'),
     goToTerms: () => navigate('/terms'),
     goToVibes: () => navigate('/vibes'),
     goToWatchlist: () => navigate('/watchlist'),
     goToWords: () => navigate('/words'),
-    goToWelcome: (data) => navigate('/welcome', { state: data }) // ADD THIS LINE
+    goToWelcome: (data) => navigate('/welcome', { state: data })
   }
 }
