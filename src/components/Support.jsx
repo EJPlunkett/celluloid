@@ -228,13 +228,14 @@ function Support() {
           fontWeight: 'normal',
           letterSpacing: '4px',
           textAlign: 'center',
-          margin: '25px auto 0px auto',
+          margin: '25px auto 20px auto',
           maxWidth: '480px',
           width: '100%',
           color: '#000',
           lineHeight: 1,
           padding: '0 20px',
-          boxSizing: 'border-box'
+          boxSizing: 'border-box',
+          display: 'block'
         }}>
           SUPPORT
         </h1>
