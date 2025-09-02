@@ -229,11 +229,10 @@ function Support() {
           letterSpacing: '4px',
           textAlign: 'center',
           margin: '25px 0 20px 0',
-          maxWidth: '480px',
           width: '100%',
           color: '#000',
           lineHeight: 1,
-          padding: '0 20px',
+          padding: 0,
           boxSizing: 'border-box',
           display: 'block'
         }}>
