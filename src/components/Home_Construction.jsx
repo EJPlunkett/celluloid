@@ -41,7 +41,8 @@ function Home_Construction() {
           src="/construction.png" 
           alt="Under Construction" 
           style={{
-            width: '200px',
+            maxWidth: '480px',
+            width: '100%',
             height: 'auto',
             margin: '0 auto 40px',
             display: 'block'
@@ -61,7 +62,7 @@ function Home_Construction() {
           fontStyle: 'italic',
           color: '#000'
         }}>
-          Designed and developed by Emily Plunkett
+          Conceptualized and crafted by Emily Plunkett
         </span>
       </footer>
     </div>
