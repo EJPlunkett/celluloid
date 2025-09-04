@@ -16,52 +16,36 @@ function Reset() {
   const navigation = useNavigation()
 
   useEffect(() => {
+    // Debug the full URL and hash
+    console.log('Full URL:', window.location.href)
+    console.log('Hash:', window.location.hash)
+    
     // Check for tokens in URL hash immediately
     const hash = window.location.hash.slice(1)
+    console.log('Hash after slice:', hash)
+    
     const hashParams = new URLSearchParams(hash)
     const accessToken = hashParams.get('access_token')
     const refreshToken = hashParams.get('refresh_token')
     const type = hashParams.get('type')
     
     console.log('URL hash params:', { accessToken: !!accessToken, refreshToken: !!refreshToken, type })
+    console.log('Raw values:', { accessToken: accessToken?.substring(0, 20) + '...', refreshToken, type })
 
     if (accessToken && refreshToken && type === 'recovery') {
-      console.log('Setting session with tokens...')
-      // Set the session using the tokens from the URL
-      supabase.auth.setSession({
-        access_token: accessToken,
-        refresh_token: refreshToken
-      }).then(({ data, error }) => {
-        console.log('setSession result:', { data, error })
-        if (error) {
-          console.error('Error setting session:', error)
-          setIsValidSession(false)
-          setIsCheckingSession(false)
-        } else {
-          console.log('Session set successfully, checking session...')
-          // Double-check the session was set
-          supabase.auth.getSession().then(({ data: sessionData, error: sessionError }) => {
-            console.log('getSession after setSession:', { sessionData, sessionError })
-            if (sessionData?.session) {
-              console.log('Valid session confirmed!')
-              setIsValidSession(true)
-            } else {
-              console.log('No session found after setting')
-              setIsValidSession(false)
-            }
-            setIsCheckingSession(false)
-          })
-        }
-      }).catch(err => {
-        console.error('setSession threw error:', err)
-        setIsValidSession(false)
-        setIsCheckingSession(false)
-      })
+      console.log('Recovery tokens found - allowing password reset')
+      // For password recovery, we can proceed without setting the full session
+      // We'll use the access token directly for the password update
+      setIsValidSession(true)
+      setIsCheckingSession(false)
+      
+      // Store the access token for later use
+      window.resetAccessToken = accessToken
     } else {
       console.log('No recovery tokens found, checking existing session...')
       // Check for existing session
       supabase.auth.getSession().then(({ data: { session }, error }) => {
-        console.log('Existing session check:', { session, error })
+        console.log('Existing session check:', { session: !!session, error })
         if (error) {
           console.error('Session check error:', error)
           setIsValidSession(false)
@@ -75,19 +59,6 @@ function Reset() {
         setIsCheckingSession(false)
       })
     }
-
-    // Also listen for auth state changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log('Auth state change event:', event, !!session)
-      
-      if (event === 'PASSWORD_RECOVERY' || (event === 'SIGNED_IN' && session)) {
-        console.log('Auth state indicates valid session')
-        setIsValidSession(true)
-        setIsCheckingSession(false)
-      }
-    })
-
-    return () => subscription.unsubscribe()
   }, [])
 
   const toggleNav = () => {
@@ -118,6 +89,21 @@ function Reset() {
     setIsLoading(true)
     
     try {
+      // If we have a stored access token from password recovery, try setting session first
+      if (window.resetAccessToken) {
+        console.log('Using stored access token for password update')
+        const hash = window.location.hash.slice(1)
+        const hashParams = new URLSearchParams(hash)
+        const refreshToken = hashParams.get('refresh_token')
+        
+        if (refreshToken) {
+          await supabase.auth.setSession({
+            access_token: window.resetAccessToken,
+            refresh_token: refreshToken
+          })
+        }
+      }
+
       const { error } = await supabase.auth.updateUser({
         password: formData.password
       })
@@ -126,6 +112,7 @@ function Reset() {
         console.error('Password update error:', error.message)
         alert(`Failed to update password: ${error.message}`)
       } else {
+        console.log('Password updated successfully')
         setShowSuccess(true)
         setTimeout(() => {
           navigation.goToWatchlist()
