@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigation } from '../hooks/useNavigation'
-import { supabase } from '../supabaseOLD'
+import { supabase } from '../lib/supabase'
 
 function Color() {
   // Predefined color palette
