@@ -37,10 +37,10 @@ function Surprise() {
     
     setCurrentVibe(vibes[randomIndex])
     
-    // Reset dice animation
+    // Reset dice animation after 400ms to match the CSS animation duration
     setTimeout(() => {
       setIsRolling(false)
-    }, 300)
+    }, 400)
   }
 
   const handleSubmit = () => {
@@ -48,6 +48,22 @@ function Surprise() {
     // Navigate to cards page with the surprise vibe
     navigation.goToCards({ vibe: currentVibe })
   }
+
+  // Shake animation keyframes
+  const shakeKeyframes = `
+    @keyframes shake {
+      0%, 100% { transform: translateX(0) translateY(0) rotate(0deg); }
+      10% { transform: translateX(-4px) translateY(-2px) rotate(-5deg); }
+      20% { transform: translateX(4px) translateY(2px) rotate(4deg); }
+      30% { transform: translateX(-3px) translateY(3px) rotate(-3deg); }
+      40% { transform: translateX(3px) translateY(-1px) rotate(6deg); }
+      50% { transform: translateX(-2px) translateY(2px) rotate(-4deg); }
+      60% { transform: translateX(2px) translateY(-3px) rotate(3deg); }
+      70% { transform: translateX(-2px) translateY(1px) rotate(-2deg); }
+      80% { transform: translateX(2px) translateY(-1px) rotate(5deg); }
+      90% { transform: translateX(-1px) translateY(2px) rotate(-3deg); }
+    }
+  `
 
   return (
     <div style={{
@@ -64,6 +80,9 @@ function Surprise() {
       minHeight: '100vh',
       position: 'relative'
     }}>
+      {/* Inject CSS animation */}
+      <style>{shakeKeyframes}</style>
+      
       <header style={{
         display: 'flex',
         alignItems: 'center',
@@ -147,7 +166,7 @@ function Surprise() {
           color: '#000',
           whiteSpace: 'pre-wrap'
         }}>
-          Describe your vibe in a few words and hit submit to find matching movies.
+          Not sure where to start? Roll the dice to uncover a vibe at random, then explore films that share its distinct aesthetic energy.
         </p>
         
         <div style={{
@@ -194,8 +213,7 @@ function Surprise() {
               height: 'auto',
               display: 'block',
               userSelect: 'none',
-              transition: 'transform 0.3s ease',
-              transform: isRolling ? 'rotate(20deg)' : 'rotate(0deg)'
+              animation: isRolling ? 'shake 0.4s infinite' : 'none'
             }}
           />
         </button>
@@ -480,7 +498,7 @@ function Surprise() {
         
         <button 
           onClick={() => {
-            navigation.goToDonate()
+            navigation.goToSupport()
             setNavOpen(false)
           }}
           style={{ 
@@ -493,10 +511,10 @@ function Surprise() {
           }}
         >
           <img 
-            src="/donate menu.png" 
-            alt="Donate" 
+            src="/Support Header.png" 
+            alt="Support" 
             style={{
-              height: '24px',
+              height: '25px',
               width: 'auto',
               maxWidth: '280px',
               cursor: 'pointer',

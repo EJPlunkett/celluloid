@@ -1,69 +1,64 @@
 import { useState } from 'react'
 import { useNavigation } from '../hooks/useNavigation'
 
-function Surprise() {
+function Vibes() {
   const [navOpen, setNavOpen] = useState(false)
-  const [currentVibe, setCurrentVibe] = useState("Rooftop gardens overlooking a sprawling city skyline.")
-  const [isRolling, setIsRolling] = useState(false)
+  const [vibeText, setVibeText] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
   const navigation = useNavigation()
-
-  // Array of surprise vibes
-  const vibes = [
-    "NY nightclubs, underground art parties, and warehouse loft gatherings in the '80s.",
-    "Moody jazz bars with smoky light and intimate conversations.",
-    "Sun-dappled Brooklyn stoops in late summer evenings.",
-    "Grimy subway rides amidst graffiti and punk energy.",
-    "High-end SoHo galleries showcasing avant-garde street art.",
-    "Corner deli mornings filled with the scent of fresh coffee and bagels.",
-    "Rain-soaked streets reflecting neon lights and taxi cabs.",
-    "Bohemian loft apartments cluttered with vintage vinyl and typewriters.",
-    "Hip hop block parties with vibrant crowd energy.",
-    "Quiet walks in Central Park under autumn leaves.",
-    "Rooftop gardens overlooking a sprawling city skyline."
-  ]
 
   const toggleNav = () => {
     setNavOpen(!navOpen)
   }
 
-  const rollDice = () => {
-    setIsRolling(true)
-    
-    // Get a random vibe that's different from the current one
-    let randomIndex
-    do {
-      randomIndex = Math.floor(Math.random() * vibes.length)
-    } while (vibes[randomIndex] === currentVibe)
-    
-    setCurrentVibe(vibes[randomIndex])
-    
-    // Reset dice animation after 400ms to match the CSS animation duration
-    setTimeout(() => {
-      setIsRolling(false)
-    }, 400)
+  const handleVibeChange = (e) => {
+    setVibeText(e.target.value)
   }
 
-  const handleSubmit = () => {
-    console.log('Surprise vibe:', currentVibe)
-    // Navigate to cards page with the surprise vibe
-    navigation.goToCards({ vibe: currentVibe })
-  }
-
-  // Shake animation keyframes
-  const shakeKeyframes = `
-    @keyframes shake {
-      0%, 100% { transform: translateX(0) translateY(0) rotate(0deg); }
-      10% { transform: translateX(-4px) translateY(-2px) rotate(-5deg); }
-      20% { transform: translateX(4px) translateY(2px) rotate(4deg); }
-      30% { transform: translateX(-3px) translateY(3px) rotate(-3deg); }
-      40% { transform: translateX(3px) translateY(-1px) rotate(6deg); }
-      50% { transform: translateX(-2px) translateY(2px) rotate(-4deg); }
-      60% { transform: translateX(2px) translateY(-3px) rotate(3deg); }
-      70% { transform: translateX(-2px) translateY(1px) rotate(-2deg); }
-      80% { transform: translateX(2px) translateY(-1px) rotate(5deg); }
-      90% { transform: translateX(-1px) translateY(2px) rotate(-3deg); }
+  const handleSubmit = async () => {
+    if (!vibeText.trim()) {
+      alert('Please describe a vibe first!')
+      return
     }
-  `
+
+    setIsLoading(true)
+
+    try {
+      const response = await fetch('/.netlify/functions/search', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userInput: vibeText.trim(),
+          limit: 10 // Match your maxCards in Cards.jsx
+        }),
+      })
+
+      if (!response.ok) {
+        throw new Error(`Search failed: ${response.status}`)
+      }
+
+      const data = await response.json()
+
+      if (data.success && data.results.length > 0) {
+        // Navigate to cards with search results
+        navigation.goToCards({ 
+          type: 'vibe', 
+          value: vibeText.trim(),
+          results: data.results,
+          query_info: data.query_info
+        })
+      } else {
+        alert('No movies found for that vibe. Try a different description!')
+      }
+    } catch (error) {
+      console.error('Search error:', error)
+      alert('Search failed. Please check your connection and try again.')
+    } finally {
+      setIsLoading(false)
+    }
+  }
 
   return (
     <div style={{
@@ -80,9 +75,6 @@ function Surprise() {
       minHeight: '100vh',
       position: 'relative'
     }}>
-      {/* Inject CSS animation */}
-      <style>{shakeKeyframes}</style>
-      
       <header style={{
         display: 'flex',
         alignItems: 'center',
@@ -94,7 +86,7 @@ function Surprise() {
         <button 
           onClick={toggleNav}
           style={{
-            position: 'fixed',
+            position: 'absolute',
             top: '13px',
             left: '13px',
             width: '36px',
@@ -106,6 +98,7 @@ function Surprise() {
             justifyContent: 'space-between',
             background: 'transparent',
             borderRadius: '6px',
+            boxShadow: 'none',
             border: 'none',
             padding: 0
           }}
@@ -148,7 +141,7 @@ function Surprise() {
       }}>
         <img 
           src="/Vibes Header.png" 
-          alt="Vibes Header" 
+          alt="Header" 
           style={{
             display: 'block',
             maxWidth: '480px',
@@ -157,82 +150,86 @@ function Surprise() {
             margin: '25px auto 10px auto'
           }}
         />
-        
+
         <p style={{
           fontWeight: 300,
           fontSize: '16px',
           lineHeight: 1.5,
           margin: '0 0 15px 0',
           color: '#000',
-          whiteSpace: 'pre-wrap'
+          whiteSpace: 'pre-wrap',
+          textAlign: 'center'
         }}>
-          Not sure where to start? Roll the dice to uncover a vibe at random, then explore films that share its distinct aesthetic energy.
+          Describe your vibe in free text and see where it takes you. Whether it is gritty subway cars or airy lofts, the words you choose will surface films that carry that same aesthetic energy.
         </p>
-        
-        <div style={{
-          width: '100%',
-          maxWidth: '480px',
-          margin: '30px auto 15px auto',
-          minHeight: '120px',
-          border: '2px solid #000',
-          borderRadius: '15px',
-          padding: '20px',
-          fontStyle: 'italic',
-          fontWeight: 400,
-          fontSize: '16px',
-          lineHeight: 1.5,
-          background: '#fff',
-          userSelect: 'none',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          boxSizing: 'border-box'
-        }}>
-          {currentVibe}
-        </div>
-        
-        <button 
-          onClick={rollDice}
+
+        <textarea 
+          value={vibeText}
+          onChange={handleVibeChange}
+          placeholder="Ex: NY nightclubs, underground art parties, and warehouse loft gatherings in the '80s."
+          disabled={isLoading}
           style={{
-            cursor: 'pointer',
+            width: '100%',
+            maxWidth: '480px',
+            height: '120px',
+            padding: '12px 16px',
+            fontSize: '16px',
+            fontFamily: 'Arial, sans-serif',
+            fontStyle: vibeText ? 'normal' : 'italic',
+            color: vibeText ? '#000' : '#666',
+            border: '2px solid #000',
+            borderRadius: '15px',
+            resize: 'vertical',
+            boxSizing: 'border-box',
+            marginBottom: '20px',
+            outline: 'none',
+            opacity: isLoading ? 0.6 : 1
+          }}
+          onFocus={(e) => {
+            e.target.style.color = '#000'
+            e.target.style.fontStyle = 'normal'
+          }}
+          onBlur={(e) => {
+            if (!e.target.value) {
+              e.target.style.color = '#666'
+              e.target.style.fontStyle = 'italic'
+            }
+          }}
+        />
+
+        <button
+          onClick={handleSubmit}
+          disabled={isLoading || !vibeText.trim()}
+          style={{
+            marginTop: '20px',
+            width: '150px',
+            height: 'auto',
             background: 'transparent',
             border: 'none',
-            padding: 0,
-            margin: '20px auto 0 auto',
+            cursor: isLoading ? 'not-allowed' : 'pointer',
             display: 'block',
-            width: '80px',
-            height: 'auto'
+            margin: '20px auto 0',
+            opacity: isLoading ? 0.6 : 1,
+            transform: isLoading ? 'scale(0.95)' : 'scale(1)',
+            transition: 'all 0.2s ease'
           }}
-          aria-label="Roll the dice to generate a new vibe"
         >
-          <img 
-            src="/Dice.png" 
-            alt="Roll Dice" 
-            style={{
-              width: '100%',
-              height: 'auto',
-              display: 'block',
-              userSelect: 'none',
-              animation: isRolling ? 'shake 0.4s infinite' : 'none'
-            }}
-          />
-        </button>
-
-        <div style={{
-          textAlign: 'center',
-          marginTop: '20px'
-        }}>
-          <button
-            onClick={handleSubmit}
-            style={{
+          {isLoading ? (
+            <div style={{
               width: '150px',
-              height: 'auto',
-              background: 'transparent',
-              border: 'none',
-              cursor: 'pointer',
-              display: 'inline-block'
-            }}
-          >
+              height: '40px',
+              backgroundColor: '#000',
+              borderRadius: '20px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: '#f6f5f3',
+              fontSize: '14px',
+              fontWeight: 'bold'
+            }}>
+              Searching...
+            </div>
+          ) : (
             <img 
               src="/Submit Button.png" 
               alt="Submit Button" 
@@ -243,8 +240,8 @@ function Surprise() {
                 objectFit: 'contain'
               }}
             />
-          </button>
-        </div>
+          )}
+        </button>
       </main>
 
       {/* Navigation Overlay */}
@@ -259,6 +256,7 @@ function Surprise() {
           border: '10px solid #000',
           borderRadius: '0 20px 20px 0',
           boxSizing: 'border-box',
+          boxShadow: 'none',
           transform: navOpen ? 'translateX(0)' : 'translateX(calc(-100% - 20px))',
           transition: 'transform 0.3s ease',
           zIndex: 1050,
@@ -498,7 +496,7 @@ function Surprise() {
         
         <button 
           onClick={() => {
-            navigation.goToDonate()
+            navigation.goToSupport()
             setNavOpen(false)
           }}
           style={{ 
@@ -511,10 +509,10 @@ function Surprise() {
           }}
         >
           <img 
-            src="/donate menu.png" 
-            alt="Donate" 
+            src="/Support Header.png" 
+            alt="Support" 
             style={{
-              height: '24px',
+              height: '25px',
               width: 'auto',
               maxWidth: '280px',
               cursor: 'pointer',
@@ -532,7 +530,15 @@ function Surprise() {
         padding: '20px',
         userSelect: 'none',
         background: '#f6f5f3',
-        fontStyle: 'italic'
+        fontStyle: 'italic',
+        position: 'static',
+        width: 'auto',
+        bottom: 'auto',
+        left: 'auto',
+        opacity: 1,
+        pointerEvents: 'auto',
+        transition: 'none',
+        zIndex: 'auto'
       }}>
         <span>© 2025 Celluloid by Design</span>
       </footer>
@@ -540,4 +546,4 @@ function Surprise() {
   )
 }
 
-export default Surprise
+export default Vibes

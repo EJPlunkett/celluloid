@@ -1,63 +1,146 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigation } from '../hooks/useNavigation'
 
-function Vibes() {
+function Support() {
   const [navOpen, setNavOpen] = useState(false)
-  const [vibeText, setVibeText] = useState('')
-  const [isLoading, setIsLoading] = useState(false)
+  const [selectedAmount, setSelectedAmount] = useState(0)
+  const [customAmount, setCustomAmount] = useState('')
+  const [stripe, setStripe] = useState(null)
+  const [loading, setLoading] = useState(false)
+  const [message, setMessage] = useState('')
   const navigation = useNavigation()
+
+  // Updated donation amounts without equivalents
+  const donationAmounts = [
+    { amount: 10, label: '$10' },
+    { amount: 25, label: '$25' },
+    { amount: 50, label: '$50' },
+    { amount: 100, label: '$100' }
+  ]
+
+  useEffect(() => {
+    // Load BLANKA font
+    const fontLink = document.createElement('link')
+    fontLink.rel = 'preload'
+    fontLink.href = '/BLANKA.otf'
+    fontLink.as = 'font'
+    fontLink.type = 'font/otf'
+    fontLink.crossOrigin = 'anonymous'
+    document.head.appendChild(fontLink)
+
+    // Add font-face CSS
+    const style = document.createElement('style')
+    style.innerHTML = `
+      @font-face {
+        font-family: 'BLANKA';
+        src: url('/BLANKA.otf') format('opentype');
+        font-display: swap;
+      }
+    `
+    document.head.appendChild(style)
+
+    // Initialize Stripe when component mounts
+    const initializeStripe = () => {
+      if (window.Stripe) {
+        // You'll need to replace with your actual publishable key
+        const stripeInstance = window.Stripe('pk_live_51S1x6pGbIJG1BY3zDUKQchiGRUV9u7W5jFd1xLq69dE44Cn4Y2dnSItRzNPkEQfFKeWYmIdTfM0pglisbB1nAEI600nF5EeaSP')
+        setStripe(stripeInstance)
+      } else {
+        console.error('Stripe failed to load')
+      }
+    }
+
+    // Load Stripe script if not already loaded
+    if (!window.Stripe) {
+      const script = document.createElement('script')
+      script.src = 'https://js.stripe.com/v3/'
+      script.onload = initializeStripe
+      document.head.appendChild(script)
+    } else {
+      initializeStripe()
+    }
+
+    // Check for success/cancel parameters in URL
+    const urlParams = new URLSearchParams(window.location.search)
+    if (urlParams.get('success')) {
+      setMessage('Thank you for your support! Your payment was successful.')
+    } else if (urlParams.get('canceled')) {
+      setMessage('Your payment was canceled. You can try again anytime.')
+    }
+  }, [])
 
   const toggleNav = () => {
     setNavOpen(!navOpen)
   }
 
-  const handleVibeChange = (e) => {
-    setVibeText(e.target.value)
+  const handleAmountSelect = (amount) => {
+    setSelectedAmount(amount)
+    setCustomAmount('')
+    setMessage('')
   }
 
-  const handleSubmit = async () => {
-    if (!vibeText.trim()) {
-      alert('Please describe a vibe first!')
+  const handleCustomAmountChange = (e) => {
+    const value = e.target.value
+    setCustomAmount(value)
+    setSelectedAmount(parseInt(value) || 0)
+    setMessage('')
+  }
+
+  const handleSupport = async () => {
+    if (selectedAmount < 1 || !stripe) {
+      if (!stripe) {
+        setMessage('Payment system is currently unavailable. Please try again later.')
+      } else {
+        setMessage('Please enter an amount of at least $1.')
+      }
       return
     }
 
-    setIsLoading(true)
+    setLoading(true)
+    setMessage('')
 
     try {
-      const response = await fetch('/.netlify/functions/search', {
+      // Call Netlify function to create a Stripe checkout session
+      const response = await fetch('/.netlify/functions/create-checkout-session', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          userInput: vibeText.trim(),
-          limit: 10 // Match your maxCards in Cards.jsx
-        }),
+          amount: selectedAmount * 100, // Convert to cents
+          currency: 'usd',
+          description: `Support for Celluloid by Design - $${selectedAmount}`
+        })
       })
 
       if (!response.ok) {
-        throw new Error(`Search failed: ${response.status}`)
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to create checkout session')
       }
 
-      const data = await response.json()
+      const session = await response.json()
 
-      if (data.success && data.results.length > 0) {
-        // Navigate to cards with search results
-        navigation.goToCards({ 
-          type: 'vibe', 
-          value: vibeText.trim(),
-          results: data.results,
-          query_info: data.query_info
-        })
-      } else {
-        alert('No movies found for that vibe. Try a different description!')
+      // Redirect to Stripe Checkout
+      const result = await stripe.redirectToCheckout({
+        sessionId: session.id
+      })
+
+      if (result.error) {
+        setMessage(result.error.message)
       }
     } catch (error) {
-      console.error('Search error:', error)
-      alert('Search failed. Please check your connection and try again.')
+      console.error('Error:', error)
+      setMessage(`Error: ${error.message}`)
     } finally {
-      setIsLoading(false)
+      setLoading(false)
     }
+  }
+
+  const getTipButtonText = () => {
+    if (loading) return 'Processing...'
+    if (!stripe) return 'Payment system unavailable'
+    if (selectedAmount > 0) return `TIP $${selectedAmount}`
+    return 'TIP'
   }
 
   return (
@@ -140,14 +223,14 @@ function Vibes() {
         textAlign: 'center'
       }}>
         <img 
-          src="/Vibes Header.png" 
-          alt="Header" 
+          src="/Support Header.png" 
+          alt="Support" 
           style={{
             display: 'block',
             maxWidth: '480px',
             width: '100%',
             height: 'auto',
-            margin: '25px auto 10px auto'
+            margin: '25px auto 20px auto'
           }}
         />
 
@@ -155,93 +238,164 @@ function Vibes() {
           fontWeight: 300,
           fontSize: '16px',
           lineHeight: 1.5,
-          margin: '0 0 15px 0',
+          margin: 0,
           color: '#000',
-          whiteSpace: 'pre-wrap',
+          whiteSpace: 'normal',
           textAlign: 'center'
         }}>
-          Describe your vibe in free text and see where it takes you. Whether it is gritty subway cars or airy lofts, the words you choose will surface films that carry that same aesthetic energy.
+          <em>Celluloid by Design</em> is built on curiosity, structure, and a touch of AI behind the scenes. Each search draws on OpenAI's technology, which carries a small cost every time. This is an independent creative project, not a crowdfunding platform or nonprofit, and your support works like a tip that goes directly toward keeping the project alive and growing.
         </p>
 
-        <textarea 
-          value={vibeText}
-          onChange={handleVibeChange}
-          placeholder="Ex: NY nightclubs, underground art parties, and warehouse loft gatherings in the '80s."
-          disabled={isLoading}
-          style={{
-            width: '100%',
-            maxWidth: '480px',
-            height: '120px',
-            padding: '12px 16px',
-            fontSize: '16px',
-            fontFamily: 'Arial, sans-serif',
-            fontStyle: vibeText ? 'normal' : 'italic',
-            color: vibeText ? '#000' : '#666',
-            border: '2px solid #000',
-            borderRadius: '15px',
-            resize: 'vertical',
-            boxSizing: 'border-box',
-            marginBottom: '20px',
-            outline: 'none',
-            opacity: isLoading ? 0.6 : 1
-          }}
-          onFocus={(e) => {
-            e.target.style.color = '#000'
-            e.target.style.fontStyle = 'normal'
-          }}
-          onBlur={(e) => {
-            if (!e.target.value) {
-              e.target.style.color = '#666'
-              e.target.style.fontStyle = 'italic'
-            }
-          }}
-        />
+        {/* Message display */}
+        {message && (
+          <div style={{
+            margin: '20px auto',
+            padding: '12px',
+            backgroundColor: message.includes('successful') ? '#d4edda' : message.includes('Error') ? '#f8d7da' : '#fff3cd',
+            color: message.includes('successful') ? '#155724' : message.includes('Error') ? '#721c24' : '#856404',
+            border: `1px solid ${message.includes('successful') ? '#c3e6cb' : message.includes('Error') ? '#f5c6cb' : '#ffeaa7'}`,
+            borderRadius: '8px',
+            maxWidth: '400px',
+            fontSize: '14px'
+          }}>
+            {message}
+          </div>
+        )}
 
-        <button
-          onClick={handleSubmit}
-          disabled={isLoading || !vibeText.trim()}
-          style={{
-            marginTop: '20px',
-            width: '150px',
-            height: 'auto',
-            background: 'transparent',
-            border: 'none',
-            cursor: isLoading ? 'not-allowed' : 'pointer',
-            display: 'block',
-            margin: '20px auto 0',
-            opacity: isLoading ? 0.6 : 1,
-            transform: isLoading ? 'scale(0.95)' : 'scale(1)',
-            transition: 'all 0.2s ease'
-          }}
-        >
-          {isLoading ? (
-            <div style={{
-              width: '150px',
-              height: '40px',
-              backgroundColor: '#000',
-              borderRadius: '20px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: '#f6f5f3',
-              fontSize: '14px',
-              fontWeight: 'bold'
-            }}>
-              Searching...
-            </div>
-          ) : (
-            <img 
-              src="/Submit Button.png" 
-              alt="Submit Button" 
+        <section style={{ marginBottom: '40px' }}>
+          <div style={{
+            fontSize: '14px',
+            color: '#666',
+            margin: '10px 0',
+            fontStyle: 'italic'
+          }}>
+            USD amounts shown - local currency detected at checkout
+          </div>
+          
+          <div style={{
+            display: 'flex',
+            flexWrap: 'wrap',
+            gap: '12px',
+            justifyContent: 'center',
+            marginBottom: '20px'
+          }}>
+            {donationAmounts.map((donation) => (
+              <button
+                key={donation.amount}
+                onClick={() => handleAmountSelect(donation.amount)}
+                disabled={loading}
+                style={{
+                  padding: '12px 24px',
+                  border: '2px solid #000',
+                  borderRadius: '9999px',
+                  background: selectedAmount === donation.amount && !customAmount ? '#000' : '#fff',
+                  color: selectedAmount === donation.amount && !customAmount ? '#fff' : '#000',
+                  fontSize: '16px',
+                  fontWeight: 500,
+                  cursor: loading ? 'not-allowed' : 'pointer',
+                  transition: 'all 0.2s ease',
+                  minWidth: '80px',
+                  position: 'relative',
+                  opacity: loading ? 0.6 : 1
+                }}
+                onMouseEnter={(e) => {
+                  if (!loading && (selectedAmount !== donation.amount || customAmount)) {
+                    e.target.style.background = '#000'
+                    e.target.style.color = '#fff'
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (!loading && (selectedAmount !== donation.amount || customAmount)) {
+                    e.target.style.background = '#fff'
+                    e.target.style.color = '#000'
+                  }
+                }}
+              >
+                {donation.label}
+              </button>
+            ))}
+          </div>
+          
+          <div style={{ margin: '20px 0' }}>
+            <label htmlFor="customAmount">Or enter custom amount:</label><br />
+            <input 
+              type="number"
+              id="customAmount"
+              value={customAmount}
+              onChange={handleCustomAmountChange}
+              placeholder="$"
+              min="1"
+              max="999"
+              disabled={loading}
               style={{
-                width: '100%',
-                height: 'auto',
-                display: 'block',
-                objectFit: 'contain'
+                padding: '12px 16px',
+                border: '2px solid #000',
+                borderRadius: '8px',
+                backgroundColor: loading ? '#f5f5f5' : '#fff',
+                fontSize: '16px',
+                fontFamily: 'Arial, sans-serif',
+                color: '#000',
+                width: '120px',
+                textAlign: 'center',
+                marginTop: '8px',
+                opacity: loading ? 0.6 : 1
+              }}
+              onFocus={(e) => {
+                if (!loading) {
+                  e.target.style.outline = 'none'
+                  e.target.style.borderColor = '#666'
+                }
+              }}
+              onBlur={(e) => {
+                e.target.style.borderColor = '#000'
               }}
             />
-          )}
-        </button>
+          </div>
+
+          <button
+            onClick={handleSupport}
+            disabled={selectedAmount < 1 || !stripe || loading}
+            style={{
+              marginTop: '30px',
+              padding: '16px 48px',
+              background: (selectedAmount >= 1 && stripe && !loading) ? '#000' : '#ccc',
+              color: '#fff',
+              border: '2px solid #000',
+              borderRadius: '50px',
+              fontSize: '18px',
+              fontFamily: 'BLANKA, Arial, sans-serif',
+              cursor: (selectedAmount >= 1 && stripe && !loading) ? 'pointer' : 'not-allowed',
+              transition: 'all 0.2s ease',
+              minWidth: '180px',
+              position: 'relative',
+              letterSpacing: '1px'
+            }}
+            onMouseEnter={(e) => {
+              if (selectedAmount >= 1 && stripe && !loading) {
+                e.target.style.background = '#333'
+                e.target.style.transform = 'translateY(-2px)'
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (selectedAmount >= 1 && stripe && !loading) {
+                e.target.style.background = '#000'
+                e.target.style.transform = 'translateY(0)'
+              }
+            }}
+          >
+            {getTipButtonText()}
+          </button>
+
+          <div style={{
+            fontSize: '12px',
+            color: '#666',
+            marginTop: '12px',
+            fontStyle: 'italic',
+            textAlign: 'center'
+          }}>
+            Secure payments powered by Stripe
+          </div>
+        </section>
       </main>
 
       {/* Navigation Overlay */}
@@ -496,7 +650,7 @@ function Vibes() {
         
         <button 
           onClick={() => {
-            navigation.goToDonate()
+            navigation.goToSupport()
             setNavOpen(false)
           }}
           style={{ 
@@ -509,10 +663,10 @@ function Vibes() {
           }}
         >
           <img 
-            src="/donate menu.png" 
-            alt="Donate" 
+            src="/Support Header.png" 
+            alt="Support" 
             style={{
-              height: '24px',
+              height: '25px',
               width: 'auto',
               maxWidth: '280px',
               cursor: 'pointer',
@@ -546,4 +700,4 @@ function Vibes() {
   )
 }
 
-export default Vibes
+export default Support

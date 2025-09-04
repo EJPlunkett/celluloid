@@ -6,6 +6,7 @@ function Words() {
   const [selectedTags, setSelectedTags] = useState([])
   const [inputValue, setInputValue] = useState('')
   const [notification, setNotification] = useState('')
+  const [isSearching, setIsSearching] = useState(false)
   const inputRef = useRef(null)
   const navigation = useNavigation()
 
@@ -68,14 +69,46 @@ function Words() {
     }
   }
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (selectedTags.length === 0) {
       alert('Please select at least one word!')
       return
     }
-    console.log('Selected words:', selectedTags)
-    // Navigate to cards page with the selected words
-    navigation.goToCards({ words: selectedTags })
+    
+    if (!isSearching) {
+      setIsSearching(true)
+      console.log('Selected words:', selectedTags)
+      
+      try {
+        // Call your word search API
+        const response = await fetch('/.netlify/functions/wordSearch', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            keywords: selectedTags,
+            timestamp: Date.now()
+          })
+        })
+        
+        const results = await response.json()
+        
+        if (results.success && results.results.length > 0) {
+          // Navigate to cards page with the results
+          navigation.goToCards({ 
+            words: selectedTags,
+            results: results.results
+          })
+        } else {
+          console.error('Word search failed:', results)
+          setIsSearching(false)
+          alert('Search failed. Please try again.')
+        }
+      } catch (error) {
+        console.error('Error calling word search:', error)
+        setIsSearching(false)
+        alert('Network error. Please try again.')
+      }
+    }
   }
 
   const handleNotificationClick = () => {
@@ -106,6 +139,53 @@ function Words() {
       flexDirection: 'column',
       minHeight: '100vh'
     }}>
+      <style>{`
+        @font-face {
+          font-family: 'Blanka';
+          src: url('/BLANKA.otf') format('opentype');
+          font-weight: normal;
+          font-style: normal;
+        }
+        
+        .search-button {
+          width: 150px;
+          height: 40px;
+          background: #000;
+          color: #fff;
+          border: none;
+          border-radius: 25px;
+          font-family: 'Blanka', sans-serif;
+          font-size: 16px;
+          font-weight: 400;
+          cursor: pointer;
+          transition: all 0.3s ease;
+          display: inline-block;
+          text-transform: uppercase;
+          letter-spacing: 1px;
+        }
+        
+        .search-button:hover:not(:disabled) {
+          background: #333;
+          transform: translateY(-1px);
+        }
+        
+        .search-button:disabled {
+          opacity: 0.7;
+          cursor: not-allowed;
+          transform: none;
+        }
+        
+        .search-button.searching {
+          background: #666;
+          animation: pulse 1.5s infinite;
+        }
+        
+        @keyframes pulse {
+          0%, 100% { opacity: 0.7; }
+          50% { opacity: 1; }
+        }
+      `}</style>
+
       <header style={{
         display: 'flex',
         alignItems: 'center',
@@ -386,29 +466,39 @@ function Words() {
 
         <button
           onClick={handleSubmit}
-          disabled={selectedTags.length === 0}
+          disabled={selectedTags.length === 0 || isSearching}
+          className={isSearching ? 'search-button searching' : ''}
           style={{
-            margin: '30px auto 0 auto',
+            marginBottom: '5px',
             width: '150px',
-            height: 'auto',
-            background: 'transparent',
+            height: isSearching ? '40px' : 'auto',
+            background: isSearching ? '#000' : 'transparent',
             border: 'none',
-            cursor: selectedTags.length === 0 ? 'not-allowed' : 'pointer',
+            cursor: isSearching ? 'not-allowed' : (selectedTags.length === 0 ? 'not-allowed' : 'pointer'),
             display: 'block',
-            opacity: selectedTags.length === 0 ? 0.5 : 1,
-            pointerEvents: selectedTags.length === 0 ? 'none' : 'auto'
+            marginLeft: 'auto',
+            marginRight: 'auto',
+            opacity: isSearching ? 0.6 : (selectedTags.length === 0 ? 0.5 : 1),
+            borderRadius: isSearching ? '25px' : '0',
+            color: isSearching ? '#fff' : 'transparent',
+            fontFamily: isSearching ? "'Blanka', sans-serif" : 'inherit',
+            fontSize: isSearching ? '16px' : 'inherit',
+            textTransform: isSearching ? 'uppercase' : 'none',
+            letterSpacing: isSearching ? '1px' : 'normal'
           }}
         >
-          <img 
-            src="/Submit Button.png" 
-            alt="Submit Button" 
-            style={{
-              width: '100%',
-              height: 'auto',
-              display: 'block',
-              objectFit: 'contain'
-            }}
-          />
+          {isSearching ? 'SEARCHING' : (
+            <img 
+              src="/Submit Button.png" 
+              alt="Submit"
+              style={{
+                width: '100%',
+                height: 'auto',
+                display: 'block',
+                objectFit: 'contain'
+              }}
+            />
+          )}
         </button>
       </main>
 
@@ -664,7 +754,7 @@ function Words() {
         
         <button 
           onClick={() => {
-            navigation.goToDonate()
+            navigation.goToSupport()
             setNavOpen(false)
           }}
           style={{ 
@@ -677,10 +767,10 @@ function Words() {
           }}
         >
           <img 
-            src="/donate menu.png" 
-            alt="Donate" 
+            src="/Support Header.png" 
+            alt="Support" 
             style={{
-              height: '24px',
+              height: '25px',
               width: 'auto',
               maxWidth: '280px',
               cursor: 'pointer',

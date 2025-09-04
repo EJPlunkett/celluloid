@@ -1,60 +1,54 @@
 import { useState } from 'react'
 import { useNavigation } from '../hooks/useNavigation'
+import { supabase } from '../lib/supabase'
 
-function Vibes() {
+function Login() {
   const [navOpen, setNavOpen] = useState(false)
-  const [vibeText, setVibeText] = useState('')
   const [isLoading, setIsLoading] = useState(false)
+  const [showSuccess, setShowSuccess] = useState(false)
+  const [formData, setFormData] = useState({
+    email: '',
+    password: ''
+  })
   const navigation = useNavigation()
 
   const toggleNav = () => {
     setNavOpen(!navOpen)
   }
 
-  const handleVibeChange = (e) => {
-    setVibeText(e.target.value)
+  const handleInputChange = (e) => {
+    const { name, value } = e.target
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }))
   }
 
-  const handleSubmit = async () => {
-    if (!vibeText.trim()) {
-      alert('Please describe a vibe first!')
-      return
-    }
-
+  const handleSubmit = async (e) => {
+    e.preventDefault()
     setIsLoading(true)
-
+    console.log('Login form submitted:', formData)
+    
     try {
-      const response = await fetch('/.netlify/functions/search', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          userInput: vibeText.trim(),
-          limit: 10 // Match your maxCards in Cards.jsx
-        }),
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: formData.email,
+        password: formData.password
       })
-
-      if (!response.ok) {
-        throw new Error(`Search failed: ${response.status}`)
-      }
-
-      const data = await response.json()
-
-      if (data.success && data.results.length > 0) {
-        // Navigate to cards with search results
-        navigation.goToCards({ 
-          type: 'vibe', 
-          value: vibeText.trim(),
-          results: data.results,
-          query_info: data.query_info
-        })
+      
+      if (error) {
+        console.error('Login error:', error.message)
+        alert(`Login failed: ${error.message}`)
       } else {
-        alert('No movies found for that vibe. Try a different description!')
+        console.log('Login successful:', data.user)
+        setShowSuccess(true)
+        // Wait a moment to show success message, then navigate
+        setTimeout(() => {
+          navigation.goToWatchlist()
+        }, 1500)
       }
     } catch (error) {
-      console.error('Search error:', error)
-      alert('Search failed. Please check your connection and try again.')
+      console.error('Unexpected error:', error)
+      alert('An unexpected error occurred. Please try again.')
     } finally {
       setIsLoading(false)
     }
@@ -86,7 +80,7 @@ function Vibes() {
         <button 
           onClick={toggleNav}
           style={{
-            position: 'fixed',
+            position: 'absolute',
             top: '13px',
             left: '13px',
             width: '36px',
@@ -140,66 +134,113 @@ function Vibes() {
         textAlign: 'center'
       }}>
         <img 
-          src="/Vibes Header.png" 
+          src="/Login Header.png" 
           alt="Header" 
           style={{
             display: 'block',
             maxWidth: '480px',
             width: '100%',
             height: 'auto',
-            margin: '25px auto 10px auto'
+            margin: '35px auto 10px auto'
           }}
         />
 
-        <p style={{
-          fontWeight: 300,
-          fontSize: '16px',
-          lineHeight: 1.5,
-          margin: '0 0 15px 0',
-          color: '#000',
-          whiteSpace: 'pre-wrap',
-          textAlign: 'center'
-        }}>
-          Describe the aesthetic vibe you're looking for and we'll find NYC films that match your description.
-        </p>
-
-        <textarea 
-          value={vibeText}
-          onChange={handleVibeChange}
-          placeholder="Ex: NY nightclubs, underground art parties, and warehouse loft gatherings in the '80s."
-          disabled={isLoading}
+        <form 
+          onSubmit={handleSubmit}
           style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '20px',
+            marginBottom: '30px',
+            marginTop: '30px',
+            textAlign: 'left',
             width: '100%',
-            maxWidth: '480px',
-            height: '120px',
-            padding: '12px 16px',
-            fontSize: '16px',
-            fontFamily: 'Arial, sans-serif',
-            fontStyle: vibeText ? 'normal' : 'italic',
-            color: vibeText ? '#000' : '#666',
-            border: '2px solid #000',
-            borderRadius: '15px',
-            resize: 'vertical',
-            boxSizing: 'border-box',
-            marginBottom: '20px',
-            outline: 'none',
-            opacity: isLoading ? 0.6 : 1
+            maxWidth: '480px'
           }}
-          onFocus={(e) => {
-            e.target.style.color = '#000'
-            e.target.style.fontStyle = 'normal'
-          }}
-          onBlur={(e) => {
-            if (!e.target.value) {
-              e.target.style.color = '#666'
-              e.target.style.fontStyle = 'italic'
-            }
-          }}
-        />
+        >
+          <div style={{
+            display: 'flex',
+            flexDirection: 'column'
+          }}>
+            <label 
+              htmlFor="email"
+              style={{
+                fontWeight: 500,
+                fontSize: '16px',
+                marginBottom: '8px',
+                color: '#000'
+              }}
+            >
+              Email Address
+            </label>
+            <input 
+              type="email"
+              id="email"
+              name="email"
+              value={formData.email}
+              onChange={handleInputChange}
+              required
+              disabled={isLoading}
+              placeholder="Enter your email address"
+              style={{
+                padding: '12px 16px',
+                border: '2px solid #000',
+                borderRadius: '8px',
+                backgroundColor: isLoading ? '#f0f0f0' : '#fff',
+                fontSize: '16px',
+                fontFamily: 'Arial, sans-serif',
+                color: '#000',
+                transition: 'border-color 0.2s ease',
+                width: '100%',
+                boxSizing: 'border-box'
+              }}
+            />
+          </div>
 
-        <button
+          <div style={{
+            display: 'flex',
+            flexDirection: 'column'
+          }}>
+            <label 
+              htmlFor="password"
+              style={{
+                fontWeight: 500,
+                fontSize: '16px',
+                marginBottom: '8px',
+                color: '#000'
+              }}
+            >
+              Password
+            </label>
+            <input 
+              type="password"
+              id="password"
+              name="password"
+              value={formData.password}
+              onChange={handleInputChange}
+              required
+              disabled={isLoading}
+              placeholder="Enter your password"
+              style={{
+                padding: '12px 16px',
+                border: '2px solid #000',
+                borderRadius: '8px',
+                backgroundColor: isLoading ? '#f0f0f0' : '#fff',
+                fontSize: '16px',
+                fontFamily: 'Arial, sans-serif',
+                color: '#000',
+                transition: 'border-color 0.2s ease',
+                width: '100%',
+                boxSizing: 'border-box'
+              }}
+            />
+          </div>
+        </form>
+
+        <button 
+          type="submit"
           onClick={handleSubmit}
-          disabled={isLoading || !vibeText.trim()}
+          disabled={isLoading}
           style={{
             marginTop: '20px',
             width: '150px',
@@ -208,40 +249,66 @@ function Vibes() {
             border: 'none',
             cursor: isLoading ? 'not-allowed' : 'pointer',
             display: 'block',
-            margin: '20px auto 0',
-            opacity: isLoading ? 0.6 : 1,
-            transform: isLoading ? 'scale(0.95)' : 'scale(1)',
-            transition: 'all 0.2s ease'
+            marginLeft: 'auto',
+            marginRight: 'auto',
+            opacity: isLoading ? 0.6 : 1
           }}
         >
-          {isLoading ? (
-            <div style={{
-              width: '150px',
-              height: '40px',
-              backgroundColor: '#000',
-              borderRadius: '20px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: '#f6f5f3',
-              fontSize: '14px',
-              fontWeight: 'bold'
-            }}>
-              Searching...
-            </div>
-          ) : (
-            <img 
-              src="/Submit Button.png" 
-              alt="Submit Button" 
-              style={{
-                width: '100%',
-                height: 'auto',
-                display: 'block',
-                objectFit: 'contain'
-              }}
-            />
-          )}
+          <img 
+            src="/Submit Button.png" 
+            alt={isLoading ? "Signing In..." : "Sign In"}
+            style={{
+              width: '100%',
+              height: 'auto',
+              display: 'block',
+              objectFit: 'contain'
+            }}
+          />
         </button>
+        
+        {isLoading && (
+          <p style={{
+            textAlign: 'center',
+            marginTop: '10px',
+            fontSize: '14px',
+            color: '#666'
+          }}>
+            Signing you in...
+          </p>
+        )}
+        
+        {showSuccess && (
+          <div style={{
+            position: 'fixed',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            backgroundColor: '#000',
+            border: '3px solid #000',
+            borderRadius: '12px',
+            padding: '30px 40px',
+            textAlign: 'center',
+            zIndex: 2000,
+            boxShadow: '0 8px 24px rgba(0,0,0,0.3)',
+            animation: 'fadeIn 0.3s ease'
+          }}>
+            <p style={{
+              margin: 0,
+              fontSize: '18px',
+              fontWeight: 'bold',
+              color: '#f6f5f3'
+            }}>
+              Login successful! 
+            </p>
+            <p style={{
+              margin: '8px 0 0 0',
+              fontSize: '14px',
+              color: '#f6f5f3'
+            }}>
+              Redirecting to your watchlist...
+            </p>
+          </div>
+        )}
       </main>
 
       {/* Navigation Overlay */}
@@ -496,7 +563,7 @@ function Vibes() {
         
         <button 
           onClick={() => {
-            navigation.goToDonate()
+            navigation.goToSupport()
             setNavOpen(false)
           }}
           style={{ 
@@ -509,10 +576,10 @@ function Vibes() {
           }}
         >
           <img 
-            src="/donate menu.png" 
-            alt="Donate" 
+            src="/Support Header.png" 
+            alt="Support" 
             style={{
-              height: '24px',
+              height: '25px',
               width: 'auto',
               maxWidth: '280px',
               cursor: 'pointer',
@@ -546,4 +613,4 @@ function Vibes() {
   )
 }
 
-export default Vibes
+export default Login

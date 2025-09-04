@@ -57,24 +57,41 @@ export const AuthProvider = ({ children }) => {
 
     // Get initial session
     const getSession = async () => {
-      console.log('Getting session...') // Add this
-      const { data: { session } } = await supabase.auth.getSession()
-      console.log('Session result:', session) // Add this
-      setUser(session?.user ?? null)
+      console.log('Getting session...')
       
-      // Fetch profile if user exists
-      if (session?.user) {
-        console.log('Fetching profile for user:', session.user.id) // Add this
-        const profileData = await fetchProfile(session.user.id)
-        console.log('Profile result:', profileData) // Add this
-        setProfile(profileData)
+      // Force loading to false after 8 seconds as backup
+      const timeoutId = setTimeout(() => {
+        console.log('Timeout: forcing loading to false - auth call hung')
+        setLoading(false)
+      }, 8000)
+      
+      try {
+        const { data: { session } } = await supabase.auth.getSession()
+        clearTimeout(timeoutId) // Clear timeout if we succeed
+        console.log('Session result:', session)
+        setUser(session?.user ?? null)
+        
+        // Fetch profile if user exists
+        if (session?.user) {
+          console.log('Fetching profile for user:', session.user.id)
+          const profileData = await fetchProfile(session.user.id)
+          console.log('Profile result:', profileData)
+          setProfile(profileData)
+        }
+        
+        // Always initialize session ID (needed for anonymous users)
+        initializeSession()
+        
+        console.log('Setting loading to false')
+        setLoading(false)
+      } catch (error) {
+        clearTimeout(timeoutId)
+        console.error('Error in getSession:', error)
+        setUser(null)
+        setProfile(null)
+        initializeSession()
+        setLoading(false)
       }
-      
-      // Always initialize session ID (needed for anonymous users)
-      initializeSession()
-      
-      console.log('Setting loading to false') // Add this
-      setLoading(false)
     }
 
     getSession()
@@ -82,22 +99,37 @@ export const AuthProvider = ({ children }) => {
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        setUser(session?.user ?? null)
+        console.log('Auth state change:', event, session?.user?.id)
         
-        // Fetch profile for new user, clear profile on logout
-        if (session?.user) {
-          const profileData = await fetchProfile(session.user.id)
-          setProfile(profileData)
-        } else {
-          setProfile(null)
+        // Set timeout for auth state changes too
+        const timeoutId = setTimeout(() => {
+          console.log('Auth state change timeout - forcing loading false')
+          setLoading(false)
+        }, 8000)
+        
+        try {
+          setUser(session?.user ?? null)
+          
+          // Fetch profile for new user, clear profile on logout
+          if (session?.user) {
+            const profileData = await fetchProfile(session.user.id)
+            setProfile(profileData)
+          } else {
+            setProfile(null)
+          }
+          
+          // If user logs out, ensure we still have a session ID for anonymous usage
+          if (event === 'SIGNED_OUT') {
+            initializeSession()
+          }
+          
+          clearTimeout(timeoutId)
+          setLoading(false)
+        } catch (error) {
+          console.error('Error in auth state change:', error)
+          clearTimeout(timeoutId)
+          setLoading(false)
         }
-        
-        // If user logs out, ensure we still have a session ID for anonymous usage
-        if (event === 'SIGNED_OUT') {
-          initializeSession()
-        }
-        
-        setLoading(false)
       }
     )
 

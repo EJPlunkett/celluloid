@@ -1,57 +1,26 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigation } from '../hooks/useNavigation'
-import { supabase } from '../lib/supabase'
+import { useLocation } from 'react-router-dom'
 
-function Login() {
+function Welcome() {
   const [navOpen, setNavOpen] = useState(false)
-  const [isLoading, setIsLoading] = useState(false)
-  const [showSuccess, setShowSuccess] = useState(false)
-  const [formData, setFormData] = useState({
-    email: '',
-    password: ''
-  })
   const navigation = useNavigation()
+  const location = useLocation()
+  
+  // Get user's first name from navigation state (passed from Create component)
+  const firstName = location.state?.firstName || 'there'
+
+  useEffect(() => {
+    // Start the popcorn animation when component mounts
+    const timer = setTimeout(() => {
+      // Animation runs automatically via CSS
+    }, 500)
+
+    return () => clearTimeout(timer)
+  }, [])
 
   const toggleNav = () => {
     setNavOpen(!navOpen)
-  }
-
-  const handleInputChange = (e) => {
-    const { name, value } = e.target
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }))
-  }
-
-  const handleSubmit = async (e) => {
-    e.preventDefault()
-    setIsLoading(true)
-    console.log('Login form submitted:', formData)
-    
-    try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email: formData.email,
-        password: formData.password
-      })
-      
-      if (error) {
-        console.error('Login error:', error.message)
-        alert(`Login failed: ${error.message}`)
-      } else {
-        console.log('Login successful:', data.user)
-        setShowSuccess(true)
-        // Wait a moment to show success message, then navigate
-        setTimeout(() => {
-          navigation.goToWatchlist()
-        }, 1500)
-      }
-    } catch (error) {
-      console.error('Unexpected error:', error)
-      alert('An unexpected error occurred. Please try again.')
-    } finally {
-      setIsLoading(false)
-    }
   }
 
   return (
@@ -69,6 +38,29 @@ function Login() {
       minHeight: '100vh',
       position: 'relative'
     }}>
+      <style>
+        {`
+          @font-face {
+            font-family: 'BLANKA';
+            src: url('/BLANKA.otf') format('opentype');
+            font-weight: normal;
+            font-style: normal;
+          }
+          
+          @keyframes jiggle {
+            0%, 100% { transform: rotate(0deg) scale(1); }
+            25% { transform: rotate(-2deg) scale(1.05); }
+            50% { transform: rotate(2deg) scale(1.1); }
+            75% { transform: rotate(-1deg) scale(1.05); }
+          }
+          
+          .popcorn-jiggle {
+            animation: jiggle 0.6s ease-in-out 0s 8;
+            transform-origin: center;
+          }
+        `}
+      </style>
+
       <header style={{
         display: 'flex',
         alignItems: 'center',
@@ -131,184 +123,111 @@ function Login() {
         margin: '0 auto 40px',
         padding: '0 20px',
         flexGrow: 1,
-        textAlign: 'center'
+        textAlign: 'center',
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'center',
+        alignItems: 'center'
       }}>
-        <img 
-          src="/Login Header.png" 
-          alt="Header" 
-          style={{
-            display: 'block',
-            maxWidth: '480px',
-            width: '100%',
-            height: 'auto',
-            margin: '35px auto 10px auto'
-          }}
-        />
-
-        <form 
-          onSubmit={handleSubmit}
-          style={{
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '20px',
-            marginBottom: '30px',
-            marginTop: '30px',
-            textAlign: 'left',
-            width: '100%',
-            maxWidth: '480px'
-          }}
-        >
-          <div style={{
-            display: 'flex',
-            flexDirection: 'column'
-          }}>
-            <label 
-              htmlFor="email"
-              style={{
-                fontWeight: 500,
-                fontSize: '16px',
-                marginBottom: '8px',
-                color: '#000'
-              }}
-            >
-              Email Address
-            </label>
-            <input 
-              type="email"
-              id="email"
-              name="email"
-              value={formData.email}
-              onChange={handleInputChange}
-              required
-              disabled={isLoading}
-              placeholder="Enter your email address"
-              style={{
-                padding: '12px 16px',
-                border: '2px solid #000',
-                borderRadius: '8px',
-                backgroundColor: isLoading ? '#f0f0f0' : '#fff',
-                fontSize: '16px',
-                fontFamily: 'Arial, sans-serif',
-                color: '#000',
-                transition: 'border-color 0.2s ease',
-                width: '100%',
-                boxSizing: 'border-box'
-              }}
-            />
-          </div>
-
-          <div style={{
-            display: 'flex',
-            flexDirection: 'column'
-          }}>
-            <label 
-              htmlFor="password"
-              style={{
-                fontWeight: 500,
-                fontSize: '16px',
-                marginBottom: '8px',
-                color: '#000'
-              }}
-            >
-              Password
-            </label>
-            <input 
-              type="password"
-              id="password"
-              name="password"
-              value={formData.password}
-              onChange={handleInputChange}
-              required
-              disabled={isLoading}
-              placeholder="Enter your password"
-              style={{
-                padding: '12px 16px',
-                border: '2px solid #000',
-                borderRadius: '8px',
-                backgroundColor: isLoading ? '#f0f0f0' : '#fff',
-                fontSize: '16px',
-                fontFamily: 'Arial, sans-serif',
-                color: '#000',
-                transition: 'border-color 0.2s ease',
-                width: '100%',
-                boxSizing: 'border-box'
-              }}
-            />
-          </div>
-        </form>
-
-        <button 
-          type="submit"
-          onClick={handleSubmit}
-          disabled={isLoading}
-          style={{
-            marginTop: '20px',
-            width: '150px',
-            height: 'auto',
-            background: 'transparent',
-            border: 'none',
-            cursor: isLoading ? 'not-allowed' : 'pointer',
-            display: 'block',
-            marginLeft: 'auto',
-            marginRight: 'auto',
-            opacity: isLoading ? 0.6 : 1
-          }}
-        >
+        {/* Jiggling Popcorn */}
+        <div style={{
+          marginBottom: '30px',
+          display: 'flex',
+          justifyContent: 'center'
+        }}>
           <img 
-            src="/Submit Button.png" 
-            alt={isLoading ? "Signing In..." : "Sign In"}
+            src="/popcorn.png" 
+            alt="Popcorn" 
+            className="popcorn-jiggle"
             style={{
-              width: '100%',
+              width: '120px',
               height: 'auto',
-              display: 'block',
-              objectFit: 'contain'
+              display: 'block'
             }}
           />
-        </button>
-        
-        {isLoading && (
+        </div>
+
+        {/* Welcome Message */}
+        <div style={{
+          marginBottom: '40px',
+          textAlign: 'center'
+        }}>
+          <h1 style={{
+            fontSize: '32px',
+            fontWeight: 600,
+            margin: '0 0 20px 0',
+            color: '#000',
+            lineHeight: 1.2,
+            textAlign: 'center'
+          }}>
+            Welcome to Celluloid by Design, {firstName}!
+          </h1>
+          
           <p style={{
-            textAlign: 'center',
-            marginTop: '10px',
-            fontSize: '14px',
-            color: '#666'
+            fontWeight: 300,
+            fontSize: '18px',
+            lineHeight: 1.6,
+            margin: '0 auto',
+            color: '#000',
+            textAlign: 'center'
           }}>
-            Signing you in...
+            Your account is all set!
           </p>
-        )}
-        
-        {showSuccess && (
-          <div style={{
-            position: 'fixed',
-            top: '50%',
-            left: '50%',
-            transform: 'translate(-50%, -50%)',
-            backgroundColor: '#000',
-            border: '3px solid #000',
-            borderRadius: '12px',
-            padding: '30px 40px',
-            textAlign: 'center',
-            zIndex: 2000,
-            boxShadow: '0 8px 24px rgba(0,0,0,0.3)',
-            animation: 'fadeIn 0.3s ease'
-          }}>
-            <p style={{
-              margin: 0,
+        </div>
+
+        {/* Action Buttons */}
+        <div style={{
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '20px',
+          alignItems: 'center'
+        }}>
+          <button
+            onClick={() => navigation.goToMatch()}
+            style={{
+              padding: '8px 12px',
+              backgroundColor: '#000',
+              color: '#f6f5f3',
+              border: 'none',
+              borderRadius: '50px',
               fontSize: '18px',
-              fontWeight: 'bold',
-              color: '#f6f5f3'
-            }}>
-              Login successful! 
-            </p>
-            <p style={{
-              margin: '8px 0 0 0',
-              fontSize: '14px',
-              color: '#f6f5f3'
-            }}>
-              Redirecting to your watchlist...
-            </p>
-          </div>
-        )}
+              fontWeight: 'normal',
+              cursor: 'pointer',
+              transition: 'background-color 0.2s ease',
+              fontFamily: "'BLANKA', Arial, sans-serif",
+              letterSpacing: '0.5px',
+              width: 'auto',
+              whiteSpace: 'nowrap'
+            }}
+            onMouseEnter={(e) => e.target.style.backgroundColor = '#333'}
+            onMouseLeave={(e) => e.target.style.backgroundColor = '#000'}
+          >
+            EXPLORE FILM VIBES
+          </button>
+
+          <button
+            onClick={() => navigation.goToWatchlist()}
+            style={{
+              padding: '8px 12px',
+              backgroundColor: '#000',
+              color: '#f6f5f3',
+              border: 'none',
+              borderRadius: '50px',
+              fontSize: '18px',
+              fontWeight: 'normal',
+              cursor: 'pointer',
+              transition: 'all 0.2s ease',
+              fontFamily: "'BLANKA', Arial, sans-serif",
+              letterSpacing: '0.5px',
+              width: 'auto',
+              whiteSpace: 'nowrap'
+            }}
+            onMouseEnter={(e) => e.target.style.backgroundColor = '#333'}
+            onMouseLeave={(e) => e.target.style.backgroundColor = '#000'}
+          >
+            GO TO WATCHLIST
+          </button>
+        </div>
       </main>
 
       {/* Navigation Overlay */}
@@ -563,7 +482,7 @@ function Login() {
         
         <button 
           onClick={() => {
-            navigation.goToDonate()
+            navigation.goToSupport()
             setNavOpen(false)
           }}
           style={{ 
@@ -576,10 +495,10 @@ function Login() {
           }}
         >
           <img 
-            src="/donate menu.png" 
-            alt="Donate" 
+            src="/Support Header.png" 
+            alt="Support" 
             style={{
-              height: '24px',
+              height: '25px',
               width: 'auto',
               maxWidth: '280px',
               cursor: 'pointer',
@@ -613,4 +532,4 @@ function Login() {
   )
 }
 
-export default Login
+export default Welcome
