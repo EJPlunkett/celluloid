@@ -3,7 +3,7 @@ import { useNavigation } from '../hooks/useNavigation'
 import { supabase } from '../lib/supabase'
 import Navigation from '../components/Navigation'
 
-function ResetPassword() {
+function Reset() {
   const [navOpen, setNavOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [showSuccess, setShowSuccess] = useState(false)
@@ -16,7 +16,6 @@ function ResetPassword() {
   const navigation = useNavigation()
 
   useEffect(() => {
-    // Handle the auth state change from the email link
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       console.log('Auth event:', event, session)
       
@@ -27,18 +26,15 @@ function ResetPassword() {
         setIsValidSession(true)
         setIsCheckingSession(false)
       } else {
-        // Check URL for error parameters
         const urlParams = new URLSearchParams(window.location.search)
         const hashParams = new URLSearchParams(window.location.hash.slice(1))
         
         const error = urlParams.get('error') || hashParams.get('error')
-        const errorDescription = urlParams.get('error_description') || hashParams.get('error_description')
         
         if (error) {
-          console.error('Reset link error:', error, errorDescription)
+          console.error('Reset link error:', error)
           setIsValidSession(false)
         } else {
-          // Try to get current session
           const { data: { session }, error: sessionError } = await supabase.auth.getSession()
           if (sessionError) {
             console.error('Session check error:', sessionError)
@@ -93,7 +89,6 @@ function ResetPassword() {
         alert(`Failed to update password: ${error.message}`)
       } else {
         setShowSuccess(true)
-        // Wait a moment to show success message, then navigate
         setTimeout(() => {
           navigation.goToWatchlist()
         }, 2000)
