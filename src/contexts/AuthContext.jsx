@@ -56,18 +56,23 @@ export const AuthProvider = ({ children }) => {
 
     // Get initial session
     const getSession = async () => {
+      console.log('Getting session...') // Add this
       const { data: { session } } = await supabase.auth.getSession()
+      console.log('Session result:', session) // Add this
       setUser(session?.user ?? null)
       
       // Fetch profile if user exists
       if (session?.user) {
+        console.log('Fetching profile for user:', session.user.id) // Add this
         const profileData = await fetchProfile(session.user.id)
+        console.log('Profile result:', profileData) // Add this
         setProfile(profileData)
       }
       
       // Always initialize session ID (needed for anonymous users)
       initializeSession()
       
+      console.log('Setting loading to false') // Add this
       setLoading(false)
     }
 
