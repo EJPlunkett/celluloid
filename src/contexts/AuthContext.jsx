@@ -63,7 +63,7 @@ export const AuthProvider = ({ children }) => {
       const timeoutId = setTimeout(() => {
         console.log('Timeout: forcing loading to false - auth call hung')
         setLoading(false)
-      }, 20000)
+      }, 8000)
       
       try {
         const { data: { session } } = await supabase.auth.getSession()
@@ -99,37 +99,22 @@ export const AuthProvider = ({ children }) => {
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        console.log('Auth state change:', event, session?.user?.id)
+        setUser(session?.user ?? null)
         
-        // Set timeout for auth state changes too
-        const timeoutId = setTimeout(() => {
-          console.log('Auth state change timeout - forcing loading false')
-          setLoading(false)
-        }, 20000)
-        
-        try {
-          setUser(session?.user ?? null)
-          
-          // Fetch profile for new user, clear profile on logout
-          if (session?.user) {
-            const profileData = await fetchProfile(session.user.id)
-            setProfile(profileData)
-          } else {
-            setProfile(null)
-          }
-          
-          // If user logs out, ensure we still have a session ID for anonymous usage
-          if (event === 'SIGNED_OUT') {
-            initializeSession()
-          }
-          
-          clearTimeout(timeoutId)
-          setLoading(false)
-        } catch (error) {
-          console.error('Error in auth state change:', error)
-          clearTimeout(timeoutId)
-          setLoading(false)
+        // Fetch profile for new user, clear profile on logout
+        if (session?.user) {
+          const profileData = await fetchProfile(session.user.id)
+          setProfile(profileData)
+        } else {
+          setProfile(null)
         }
+        
+        // If user logs out, ensure we still have a session ID for anonymous usage
+        if (event === 'SIGNED_OUT') {
+          initializeSession()
+        }
+        
+        setLoading(false)
       }
     )
 
