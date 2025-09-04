@@ -146,7 +146,8 @@ function Color() {
           // Navigate to cards page with the results
           navigation.goToCards({ 
             type: 'palette',
-            results: results.results
+            results: results.results,
+            hexCodes: selectedMovie.hex_codes
           })
         } else {
           console.error('Palette search failed:', results)
