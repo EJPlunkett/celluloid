@@ -16,27 +16,44 @@ function ResetPassword() {
   const navigation = useNavigation()
 
   useEffect(() => {
-    // Check if user has a valid password reset session
-    const checkSession = async () => {
-      try {
-        const { data: { session }, error } = await supabase.auth.getSession()
+    // Handle the auth state change from the email link
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log('Auth event:', event, session)
+      
+      if (event === 'PASSWORD_RECOVERY') {
+        setIsValidSession(true)
+        setIsCheckingSession(false)
+      } else if (event === 'SIGNED_IN' && session) {
+        setIsValidSession(true)
+        setIsCheckingSession(false)
+      } else {
+        // Check URL for error parameters
+        const urlParams = new URLSearchParams(window.location.search)
+        const hashParams = new URLSearchParams(window.location.hash.slice(1))
+        
+        const error = urlParams.get('error') || hashParams.get('error')
+        const errorDescription = urlParams.get('error_description') || hashParams.get('error_description')
+        
         if (error) {
-          console.error('Session check error:', error)
+          console.error('Reset link error:', error, errorDescription)
           setIsValidSession(false)
-        } else if (session) {
-          setIsValidSession(true)
         } else {
-          setIsValidSession(false)
+          // Try to get current session
+          const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+          if (sessionError) {
+            console.error('Session check error:', sessionError)
+            setIsValidSession(false)
+          } else if (session) {
+            setIsValidSession(true)
+          } else {
+            setIsValidSession(false)
+          }
         }
-      } catch (error) {
-        console.error('Unexpected error checking session:', error)
-        setIsValidSession(false)
-      } finally {
         setIsCheckingSession(false)
       }
-    }
+    })
 
-    checkSession()
+    return () => subscription.unsubscribe()
   }, [])
 
   const toggleNav = () => {
