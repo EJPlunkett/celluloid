@@ -89,38 +89,73 @@ function Reset() {
     setIsLoading(true)
     
     try {
-      // If we have a stored access token from password recovery, try setting session first
-      if (window.resetAccessToken) {
-        console.log('Using stored access token for password update')
-        const hash = window.location.hash.slice(1)
-        const hashParams = new URLSearchParams(hash)
-        const refreshToken = hashParams.get('refresh_token')
-        
-        if (refreshToken) {
-          await supabase.auth.setSession({
-            access_token: window.resetAccessToken,
-            refresh_token: refreshToken
-          })
-        }
-      }
-
-      const { error } = await supabase.auth.updateUser({
+      console.log('Attempting password update...')
+      
+      // Create a timeout promise to prevent infinite hanging
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error('Request timed out')), 10000) // 10 second timeout
+      })
+      
+      // Try to update password directly first with timeout
+      const updatePromise = supabase.auth.updateUser({
         password: formData.password
       })
       
-      if (error) {
-        console.error('Password update error:', error.message)
-        alert(`Failed to update password: ${error.message}`)
-      } else {
+      let updateResult
+      try {
+        updateResult = await Promise.race([updatePromise, timeoutPromise])
+        console.log('Direct update result:', updateResult)
+      } catch (timeoutError) {
+        console.log('Direct update timed out, trying with session setup...')
+        
+        // If direct update times out and we have stored tokens, try setting session first
+        if (window.resetAccessToken) {
+          const hash = window.location.hash.slice(1)
+          const hashParams = new URLSearchParams(hash)
+          const refreshToken = hashParams.get('refresh_token')
+          
+          if (refreshToken) {
+            console.log('Setting session before retry...')
+            try {
+              await Promise.race([
+                supabase.auth.setSession({
+                  access_token: window.resetAccessToken,
+                  refresh_token: refreshToken
+                }),
+                new Promise((_, reject) => setTimeout(() => reject(new Error('Session timeout')), 5000))
+              ])
+              
+              // Retry the password update with timeout
+              updateResult = await Promise.race([
+                supabase.auth.updateUser({ password: formData.password }),
+                new Promise((_, reject) => setTimeout(() => reject(new Error('Update timeout')), 5000))
+              ])
+              console.log('Retry update result:', updateResult)
+            } catch (sessionError) {
+              console.error('Session setup failed:', sessionError)
+              throw new Error('Unable to authenticate for password reset. Please try requesting a new reset link.')
+            }
+          }
+        } else {
+          throw new Error('Password update timed out and no recovery tokens available.')
+        }
+      }
+      
+      if (updateResult?.error) {
+        console.error('Password update error:', updateResult.error.message)
+        alert(`Failed to update password: ${updateResult.error.message}`)
+      } else if (updateResult) {
         console.log('Password updated successfully')
         setShowSuccess(true)
         setTimeout(() => {
           navigation.goToWatchlist()
         }, 2000)
+      } else {
+        throw new Error('No response received from password update')
       }
     } catch (error) {
-      console.error('Unexpected error:', error)
-      alert('An unexpected error occurred. Please try again.')
+      console.error('Password update failed:', error)
+      alert(`Password update failed: ${error.message}. Please try requesting a new reset link.`)
     } finally {
       setIsLoading(false)
     }
