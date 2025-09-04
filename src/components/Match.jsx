@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useNavigation } from '../hooks/useNavigation'
+import Navigation from '../components/Navigation'
 
 function Match() {
   const [navOpen, setNavOpen] = useState(false)
@@ -236,135 +237,7 @@ function Match() {
         </p>
       </main>
 
-      {/* Navigation Overlay */}
-      <nav 
-        style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          width: '320px',
-          height: '100vh',
-          backgroundColor: '#f6f5f3',
-          border: '10px solid #000',
-          borderRadius: '0 20px 20px 0',
-          boxSizing: 'border-box',
-          boxShadow: 'none',
-          transform: navOpen ? 'translateX(0)' : 'translateX(calc(-100% - 20px))',
-          transition: 'transform 0.3s ease',
-          zIndex: 1050,
-          padding: '20px 20px 40px 40px',
-          overflowY: 'auto'
-        }}
-        aria-hidden={!navOpen}
-      >
-        <a href="#" onClick={(e) => { e.preventDefault(); navigation.goToMatch() }} style={{ display: 'block', marginTop: '20px', marginBottom: '16px' }}>
-          <img 
-            src="/Match By.png" 
-            alt="Match By" 
-            style={{
-              height: '30px',
-              width: 'auto',
-              maxWidth: '280px',
-              cursor: 'pointer',
-              display: 'block',
-              objectFit: 'contain'
-            }}
-          />
-        </a>
-        <ul style={{
-          listStyle: 'disc inside',
-          paddingLeft: 0,
-          marginTop: 0,
-          marginBottom: '30px',
-          fontWeight: 400,
-          fontSize: '18px'
-        }}>
-          <li style={{ marginBottom: '12px' }}>
-            <a href="#" onClick={(e) => { e.preventDefault(); navigation.goToVibes() }} style={{ color: '#000', textDecoration: 'none', cursor: 'pointer' }}>
-              Describe a Vibe
-            </a>
-          </li>
-          <li style={{ marginBottom: '12px' }}>
-            <a href="#" onClick={(e) => { e.preventDefault(); navigation.goToColor() }} style={{ color: '#000', textDecoration: 'none', cursor: 'pointer' }}>
-              Pick a Color
-            </a>
-          </li>
-          <li style={{ marginBottom: '12px' }}>
-            <a href="#" onClick={(e) => { e.preventDefault(); navigation.goToWords() }} style={{ color: '#000', textDecoration: 'none', cursor: 'pointer' }}>
-              Choose Keywords
-            </a>
-          </li>
-          <li style={{ marginBottom: '12px' }}>
-            <a href="#" onClick={(e) => { e.preventDefault(); navigation.goToSurprise() }} style={{ color: '#000', textDecoration: 'none', cursor: 'pointer' }}>
-              Surprise Me
-            </a>
-          </li>
-        </ul>
-
-        <a href="#" onClick={(e) => { e.preventDefault(); navigation.goToWatchlist() }} style={{ display: 'block', marginBottom: '16px' }}>
-          <img 
-            src="/Watchlist.png" 
-            alt="Watchlist" 
-            style={{
-              height: '30px',
-              width: 'auto',
-              maxWidth: '280px',
-              cursor: 'pointer',
-              display: 'block',
-              objectFit: 'contain'
-            }}
-          />
-        </a>
-        <ul style={{
-          listStyle: 'disc inside',
-          paddingLeft: 0,
-          marginTop: 0,
-          marginBottom: '30px',
-          fontWeight: 400,
-          fontSize: '18px'
-        }}>
-          <li style={{ marginBottom: '12px' }}>
-            <a href="#" onClick={(e) => { e.preventDefault(); navigation.goToCreate() }} style={{ color: '#000', textDecoration: 'none', cursor: 'pointer' }}>
-              Create Account
-            </a>
-          </li>
-          <li style={{ marginBottom: '12px' }}>
-            <a href="#" onClick={(e) => { e.preventDefault(); navigation.goToLogin() }} style={{ color: '#000', textDecoration: 'none', cursor: 'pointer' }}>
-              Sign In
-            </a>
-          </li>
-        </ul>
-
-        <a href="#" onClick={(e) => { e.preventDefault(); navigation.goToAbout() }} style={{ display: 'block', marginBottom: '16px' }}>
-          <img 
-            src="/About.png" 
-            alt="About" 
-            style={{
-              height: '30px',
-              width: 'auto',
-              maxWidth: '280px',
-              cursor: 'pointer',
-              display: 'block',
-              objectFit: 'contain'
-            }}
-          />
-        </a>
-        
-        <a href="#" onClick={(e) => { e.preventDefault(); navigation.goToSupport() }} style={{ display: 'block', marginBottom: '16px' }}>
-          <img 
-            src="/Support Header.png" 
-            alt="Support" 
-            style={{
-              height: '25px',
-              width: 'auto',
-              maxWidth: '280px',
-              cursor: 'pointer',
-              display: 'block',
-              objectFit: 'contain'
-            }}
-          />
-        </a>
-      </nav>
+      <Navigation navOpen={navOpen} setNavOpen={setNavOpen} />
 
       <footer style={{
         fontSize: '14px',
