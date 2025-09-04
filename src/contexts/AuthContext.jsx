@@ -63,7 +63,7 @@ export const AuthProvider = ({ children }) => {
       const timeoutId = setTimeout(() => {
         console.log('Timeout: forcing loading to false - auth call hung')
         setLoading(false)
-      }, 8000)
+      }, 20000)
       
       try {
         const { data: { session } } = await supabase.auth.getSession()
@@ -105,7 +105,7 @@ export const AuthProvider = ({ children }) => {
         const timeoutId = setTimeout(() => {
           console.log('Auth state change timeout - forcing loading false')
           setLoading(false)
-        }, 8000)
+        }, 20000)
         
         try {
           setUser(session?.user ?? null)
