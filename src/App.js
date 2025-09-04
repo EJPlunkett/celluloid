@@ -16,6 +16,7 @@ import Watchlist from './components/Watchlist'
 import Words from './components/Words'
 import Welcome from './components/Welcome'
 import SearchTestPage from './components/SearchTestPage'
+import Reset from './components/Reset'
 
 function App() {
   return (
@@ -38,6 +39,7 @@ function App() {
           <Route path="/words" element={<Words />} />
           <Route path="/welcome" element={<Welcome />} />
           <Route path="/test" element={<SearchTestPage />} />
+          <Route path="/reset" element={<Reset />} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>

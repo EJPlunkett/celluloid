@@ -492,7 +492,7 @@ function Login() {
                     fontWeight: 'bold',
                     color: '#000'
                   }}>
-                    Reset Link Sent! 📧
+                    Reset Link Sent! 
                   </h2>
                   <p style={{
                     margin: '0 0 10px 0',
