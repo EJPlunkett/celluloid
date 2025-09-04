@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigation } from '../hooks/useNavigation'
-import { supabase } from '../supabaseOLD'
+import { supabase } from '../lib/supabase'
 
 function Create() {
   const [navOpen, setNavOpen] = useState(false)
