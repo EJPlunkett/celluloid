@@ -18,8 +18,30 @@ const generateSessionId = () => {
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null)
+  const [profile, setProfile] = useState(null) // Add profile state
   const [loading, setLoading] = useState(true)
   const [sessionId, setSessionId] = useState(null)
+
+  // Fetch user profile data
+  const fetchProfile = async (userId) => {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('user_id', userId)
+        .single()
+      
+      if (error) {
+        console.error('Error fetching profile:', error)
+        return null
+      }
+      
+      return data
+    } catch (error) {
+      console.error('Error fetching profile:', error)
+      return null
+    }
+  }
 
   useEffect(() => {
     // Initialize session ID for anonymous users
@@ -37,6 +59,12 @@ export const AuthProvider = ({ children }) => {
       const { data: { session } } = await supabase.auth.getSession()
       setUser(session?.user ?? null)
       
+      // Fetch profile if user exists
+      if (session?.user) {
+        const profileData = await fetchProfile(session.user.id)
+        setProfile(profileData)
+      }
+      
       // Always initialize session ID (needed for anonymous users)
       initializeSession()
       
@@ -49,6 +77,14 @@ export const AuthProvider = ({ children }) => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         setUser(session?.user ?? null)
+        
+        // Fetch profile for new user, clear profile on logout
+        if (session?.user) {
+          const profileData = await fetchProfile(session.user.id)
+          setProfile(profileData)
+        } else {
+          setProfile(null)
+        }
         
         // If user logs out, ensure we still have a session ID for anonymous usage
         if (event === 'SIGNED_OUT') {
@@ -92,13 +128,35 @@ export const AuthProvider = ({ children }) => {
       }
     })
     
-    // If signup successful, trigger watchlist merge
-    if (data.user && sessionId) {
+    // If signup successful, create profile and trigger watchlist merge
+    if (data.user && !error) {
+      // Create profile record
       try {
-        await mergeAnonymousWatchlist(data.user.id, sessionId)
-      } catch (mergeError) {
-        console.error('Error merging anonymous watchlist:', mergeError)
-        // Don't fail the signup, just log the error
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .insert({
+            user_id: data.user.id,
+            email: email,
+            first_name: userData.firstName,
+            last_name: userData.lastName,
+            watching_region: userData.watchingRegion
+          })
+        
+        if (profileError) {
+          console.error('Error creating profile:', profileError)
+        }
+      } catch (profileError) {
+        console.error('Error creating profile:', profileError)
+      }
+
+      // Trigger watchlist merge if we have a session
+      if (sessionId) {
+        try {
+          await mergeAnonymousWatchlist(data.user.id, sessionId)
+        } catch (mergeError) {
+          console.error('Error merging anonymous watchlist:', mergeError)
+          // Don't fail the signup, just log the error
+        }
       }
     }
     
@@ -329,6 +387,7 @@ export const AuthProvider = ({ children }) => {
 
   const value = {
     user,
+    profile, // Add profile to context value
     loading,
     sessionId,
     signIn,
