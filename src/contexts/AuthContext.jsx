@@ -18,11 +18,11 @@ const generateSessionId = () => {
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null)
-  const [profile, setProfile] = useState(null) // Add profile state
+  const [profile, setProfile] = useState(null)
   const [loading, setLoading] = useState(true)
   const [sessionId, setSessionId] = useState(null)
 
-  // Initialize session ID for anonymous users - moved outside useEffect
+  // Initialize session ID for anonymous users
   const initializeSession = () => {
     let storedSessionId = localStorage.getItem('celluloid_session_id')
     if (!storedSessionId) {
@@ -54,38 +54,23 @@ export const AuthProvider = ({ children }) => {
   }
 
   useEffect(() => {
-
     // Get initial session
     const getSession = async () => {
-      console.log('Getting session...')
-      
-      // Force loading to false after 8 seconds as backup
-      const timeoutId = setTimeout(() => {
-        console.log('Timeout: forcing loading to false - auth call hung')
-        setLoading(false)
-      }, 8000)
-      
       try {
         const { data: { session } } = await supabase.auth.getSession()
-        clearTimeout(timeoutId) // Clear timeout if we succeed
-        console.log('Session result:', session)
         setUser(session?.user ?? null)
         
         // Fetch profile if user exists
         if (session?.user) {
-          console.log('Fetching profile for user:', session.user.id)
           const profileData = await fetchProfile(session.user.id)
-          console.log('Profile result:', profileData)
           setProfile(profileData)
         }
         
         // Always initialize session ID (needed for anonymous users)
         initializeSession()
         
-        console.log('Setting loading to false')
         setLoading(false)
       } catch (error) {
-        clearTimeout(timeoutId)
         console.error('Error in getSession:', error)
         setUser(null)
         setProfile(null)
@@ -99,22 +84,27 @@ export const AuthProvider = ({ children }) => {
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        setUser(session?.user ?? null)
-        
-        // Fetch profile for new user, clear profile on logout
-        if (session?.user) {
-          const profileData = await fetchProfile(session.user.id)
-          setProfile(profileData)
-        } else {
-          setProfile(null)
+        try {
+          setUser(session?.user ?? null)
+          
+          // Fetch profile for new user, clear profile on logout
+          if (session?.user) {
+            const profileData = await fetchProfile(session.user.id)
+            setProfile(profileData)
+          } else {
+            setProfile(null)
+          }
+          
+          // If user logs out, ensure we still have a session ID for anonymous usage
+          if (event === 'SIGNED_OUT') {
+            initializeSession()
+          }
+          
+          setLoading(false)
+        } catch (error) {
+          console.error('Error in auth state change:', error)
+          setLoading(false)
         }
-        
-        // If user logs out, ensure we still have a session ID for anonymous usage
-        if (event === 'SIGNED_OUT') {
-          initializeSession()
-        }
-        
-        setLoading(false)
       }
     )
 
@@ -410,7 +400,7 @@ export const AuthProvider = ({ children }) => {
 
   const value = {
     user,
-    profile, // Add profile to context value
+    profile,
     loading,
     sessionId,
     signIn,
