@@ -22,6 +22,16 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true)
   const [sessionId, setSessionId] = useState(null)
 
+  // Initialize session ID for anonymous users - moved outside useEffect
+  const initializeSession = () => {
+    let storedSessionId = localStorage.getItem('celluloid_session_id')
+    if (!storedSessionId) {
+      storedSessionId = generateSessionId()
+      localStorage.setItem('celluloid_session_id', storedSessionId)
+    }
+    setSessionId(storedSessionId)
+  }
+
   // Fetch user profile data
   const fetchProfile = async (userId) => {
     try {
@@ -44,15 +54,6 @@ export const AuthProvider = ({ children }) => {
   }
 
   useEffect(() => {
-    // Initialize session ID for anonymous users
-    const initializeSession = () => {
-      let storedSessionId = localStorage.getItem('celluloid_session_id')
-      if (!storedSessionId) {
-        storedSessionId = generateSessionId()
-        localStorage.setItem('celluloid_session_id', storedSessionId)
-      }
-      setSessionId(storedSessionId)
-    }
 
     // Get initial session
     const getSession = async () => {
