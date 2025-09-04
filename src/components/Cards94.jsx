@@ -57,7 +57,7 @@ function Cards() {
       movie_title: "After Hours", 
       year: "1985", 
       depicted_decade: "1980s", 
-      aesthetic_summary: "Surreal nocturnal nightmare with harsh fluorescent whites, deep shadow contrasts, and claustrophobic urban maze aesthetics",
+      aesthetic_summary: "Surreal nocturtal nightmare with harsh fluorescent whites, deep shadow contrasts, and claustrophobic urban maze aesthetics",
       synopsis: "A computer programmer's night out in SoHo turns into a surreal nightmare of missed connections and escalating paranoia."
     },
     { 
@@ -82,7 +82,28 @@ function Cards() {
           console.log('Using pre-fetched search results:', inputData.results.length, 'movies')
           setMovies(inputData.results)
         }
-        // PRIORITY 2: Handle legacy single color searches (if no results passed)
+        // PRIORITY 2: Handle words/keywords searches
+        else if (inputData.words && Array.isArray(inputData.words) && inputData.words.length > 0) {
+          console.log('Making API call for words search:', inputData.words)
+          const response = await fetch('/.netlify/functions/wordSearch', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              keywords: inputData.words,
+              timestamp: Date.now()
+            })
+          })
+          const wordsResults = await response.json()
+          
+          if (wordsResults.success && wordsResults.results.length > 0) {
+            console.log('Words search successful:', wordsResults.results)
+            setMovies(wordsResults.results)
+          } else {
+            console.error('Words search failed:', wordsResults)
+            setMovies(sampleMovies)
+          }
+        }
+        // PRIORITY 3: Handle legacy single color searches (if no results passed)
         else if (inputData.color) {
           console.log('Making API call for single color search:', inputData.color)
           const response = await fetch('/.netlify/functions/colorSearch', {
@@ -104,7 +125,7 @@ function Cards() {
             setMovies([])
           }
         }
-        // PRIORITY 3: Handle legacy palette searches (if no results passed)
+        // PRIORITY 4: Handle legacy palette searches (if no results passed)
         else if (inputData.type === 'palette' && inputData.movieId) {
           console.log('Making API call for palette search for movie:', inputData.movieId)
           const response = await fetch('/.netlify/functions/colorSearch', {
@@ -127,7 +148,7 @@ function Cards() {
             setMovies([])
           }
         }
-        // PRIORITY 4: Fallback to sample movies for other cases
+        // PRIORITY 5: Fallback to sample movies for other cases
         else {
           console.log('Using sample movies fallback for type:', inputData.type)
           setMovies(sampleMovies)
@@ -466,12 +487,12 @@ function Cards() {
           />
         </button>
         
-        <button onClick={() => { navigation.goToDonate(); setNavOpen(false) }} style={{ display: 'block', marginBottom: '16px', background: 'transparent', border: 'none', padding: 0, cursor: 'pointer' }}>
+        <button onClick={() => { navigation.goToSupport(); setNavOpen(false) }} style={{ display: 'block', marginBottom: '16px', background: 'transparent', border: 'none', padding: 0, cursor: 'pointer' }}>
           <img 
-            src="/donate menu.png" 
-            alt="Donate" 
+            src="/Support Header.png" 
+            alt="Support" 
             style={{
-              height: '24px',
+              height: '25px',
               width: 'auto',
               maxWidth: '280px',
               cursor: 'pointer',
@@ -707,7 +728,7 @@ function Cards() {
               lineHeight: 1.5,
               whiteSpace: 'pre-wrap'
             }}>
-              Watchlist complete, curated by your {inputData.type === 'palette' ? 'movie palette' : inputData.color ? 'color choice' : inputData.type}.{'\n'}Tap the popcorn to view your movies, or click below to explore more vibes.
+              Watchlist complete, curated by your {inputData.type === 'palette' ? 'movie palette' : inputData.color ? 'color choice' : inputData.words ? 'keyword selection' : inputData.type}.{'\n'}Tap the popcorn to view your movies, or click below to explore more vibes.
             </p>
             <button
               onClick={handleGoExplore}

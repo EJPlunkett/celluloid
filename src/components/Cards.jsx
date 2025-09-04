@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useLocation } from 'react-router-dom'
 import { useNavigation } from '../hooks/useNavigation'
+import { useAuth } from '../contexts/AuthContext'
 
 function Cards() {
   const [navOpen, setNavOpen] = useState(false)
@@ -14,9 +15,11 @@ function Cards() {
   const [currentMovie, setCurrentMovie] = useState(null)
   const [showSynopsis, setShowSynopsis] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [addingToWatchlist, setAddingToWatchlist] = useState(false)
   const cardStackRef = useRef(null)
   const location = useLocation()
   const navigation = useNavigation()
+  const { addToWatchlist } = useAuth()
 
   // Get the passed data from navigation
   const inputData = location.state || { type: 'surprise', value: 'random selection' }
@@ -189,6 +192,43 @@ function Cards() {
     setNavOpen(!navOpen)
   }
 
+  // Helper function to determine source type and value from inputData
+  const getSourceData = () => {
+    if (inputData.color) {
+      return { source: 'color', sourceValue: inputData.color }
+    } else if (inputData.type === 'palette') {
+      return { source: 'color', sourceValue: inputData.hexCodes || 'palette' }
+    } else if (inputData.words && Array.isArray(inputData.words)) {
+      return { source: 'words', sourceValue: inputData.words.join(', ') }
+    } else if (inputData.vibes) {
+      return { source: 'vibes', sourceValue: inputData.vibes }
+    } else {
+      return { source: 'words', sourceValue: inputData.type || 'surprise' }
+    }
+  }
+
+  const handleAddToWatchlist = async (movie) => {
+    if (addingToWatchlist) return
+    
+    setAddingToWatchlist(true)
+    try {
+      const { source, sourceValue } = getSourceData()
+      console.log('Adding to watchlist:', movie.movie_title, 'Source:', source, 'Value:', sourceValue)
+      
+      await addToWatchlist(movie, source, sourceValue)
+      console.log('Successfully added to watchlist')
+      
+      // Proceed to next card
+      setCurrentIndex(prev => prev + 1)
+    } catch (error) {
+      console.error('Failed to add to watchlist:', error)
+      // Still proceed to next card even if save failed
+      setCurrentIndex(prev => prev + 1)
+    } finally {
+      setAddingToWatchlist(false)
+    }
+  }
+
   const swipeLeft = () => {
     if (currentIndex < maxCards) {
       console.log('Swiping left - incrementing index from', currentIndex)
@@ -197,9 +237,9 @@ function Cards() {
   }
 
   const swipeRight = () => {
-    if (currentIndex < maxCards) {
-      console.log('Swiping right - incrementing index from', currentIndex)
-      setCurrentIndex(prev => prev + 1)
+    if (currentIndex < maxCards && !addingToWatchlist) {
+      console.log('Swiping right - adding to watchlist and incrementing index from', currentIndex)
+      handleAddToWatchlist(currentMovie)
     }
   }
 
@@ -667,16 +707,18 @@ function Cards() {
                       width: '60px',
                       height: '60px',
                       borderRadius: '50%',
-                      backgroundColor: '#f6f5f3',
+                      backgroundColor: addingToWatchlist ? '#ccc' : '#f6f5f3',
                       display: 'flex',
                       justifyContent: 'center',
                       alignItems: 'center',
-                      cursor: 'pointer'
+                      cursor: addingToWatchlist ? 'not-allowed' : 'pointer',
+                      opacity: addingToWatchlist ? 0.6 : 1,
+                      transition: 'all 0.2s ease'
                     }}
                   >
                     <img 
                       src="/heart.png" 
-                      alt="Like" 
+                      alt="Like & Add to Watchlist" 
                       style={{
                         width: '28px',
                         height: '28px'
