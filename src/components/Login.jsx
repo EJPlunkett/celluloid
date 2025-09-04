@@ -7,6 +7,10 @@ function Login() {
   const [navOpen, setNavOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [showSuccess, setShowSuccess] = useState(false)
+  const [showForgotPassword, setShowForgotPassword] = useState(false)
+  const [forgotPasswordEmail, setForgotPasswordEmail] = useState('')
+  const [isSendingReset, setIsSendingReset] = useState(false)
+  const [resetEmailSent, setResetEmailSent] = useState(false)
   const [formData, setFormData] = useState({
     email: '',
     password: ''
@@ -23,6 +27,40 @@ function Login() {
       ...prev,
       [name]: value
     }))
+  }
+
+  const handleForgotPasswordClick = () => {
+    setForgotPasswordEmail(formData.email) // Pre-fill with current email if available
+    setShowForgotPassword(true)
+  }
+
+  const handleForgotPasswordSubmit = async (e) => {
+    e.preventDefault()
+    setIsSendingReset(true)
+    
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(forgotPasswordEmail, {
+        redirectTo: `${window.location.origin}/reset`
+      })
+      
+      if (error) {
+        console.error('Password reset error:', error.message)
+        alert(`Failed to send reset email: ${error.message}`)
+      } else {
+        setResetEmailSent(true)
+        // Auto-close the modal after showing success message
+        setTimeout(() => {
+          setShowForgotPassword(false)
+          setResetEmailSent(false)
+          setForgotPasswordEmail('')
+        }, 3000)
+      }
+    } catch (error) {
+      console.error('Unexpected error:', error)
+      alert('An unexpected error occurred. Please try again.')
+    } finally {
+      setIsSendingReset(false)
+    }
   }
 
   const handleSubmit = async (e) => {
@@ -152,7 +190,7 @@ function Login() {
             display: 'flex',
             flexDirection: 'column',
             gap: '20px',
-            marginBottom: '30px',
+            marginBottom: '20px',
             marginTop: '30px',
             textAlign: 'left',
             width: '100%',
@@ -238,6 +276,31 @@ function Login() {
           </div>
         </form>
 
+        {/* Forgot Password Link */}
+        <div style={{
+          textAlign: 'right',
+          marginBottom: '20px'
+        }}>
+          <button
+            type="button"
+            onClick={handleForgotPasswordClick}
+            disabled={isLoading}
+            style={{
+              background: 'none',
+              border: 'none',
+              color: '#000',
+              fontSize: '14px',
+              textDecoration: 'underline',
+              cursor: 'pointer',
+              fontFamily: 'Arial, sans-serif',
+              padding: 0,
+              opacity: isLoading ? 0.6 : 1
+            }}
+          >
+            Forgot Password?
+          </button>
+        </div>
+
         <button 
           type="submit"
           onClick={handleSubmit}
@@ -308,6 +371,148 @@ function Login() {
             }}>
               Redirecting to your watchlist...
             </p>
+          </div>
+        )}
+
+        {/* Forgot Password Modal */}
+        {showForgotPassword && (
+          <div style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: '100%',
+            backgroundColor: 'rgba(0,0,0,0.5)',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            zIndex: 3000,
+            padding: '20px',
+            boxSizing: 'border-box'
+          }}>
+            <div style={{
+              backgroundColor: '#f6f5f3',
+              border: '3px solid #000',
+              borderRadius: '12px',
+              padding: '30px',
+              width: '100%',
+              maxWidth: '400px',
+              textAlign: 'center'
+            }}>
+              {!resetEmailSent ? (
+                <>
+                  <h2 style={{
+                    margin: '0 0 20px 0',
+                    fontSize: '20px',
+                    fontWeight: 'bold',
+                    color: '#000'
+                  }}>
+                    Reset Your Password
+                  </h2>
+                  <p style={{
+                    margin: '0 0 20px 0',
+                    fontSize: '14px',
+                    color: '#666',
+                    lineHeight: '1.4'
+                  }}>
+                    Enter your email address and we'll send you a link to reset your password.
+                  </p>
+                  <form onSubmit={handleForgotPasswordSubmit}>
+                    <input
+                      type="email"
+                      value={forgotPasswordEmail}
+                      onChange={(e) => setForgotPasswordEmail(e.target.value)}
+                      placeholder="Enter your email address"
+                      required
+                      disabled={isSendingReset}
+                      style={{
+                        width: '100%',
+                        padding: '12px 16px',
+                        border: '2px solid #000',
+                        borderRadius: '8px',
+                        backgroundColor: isSendingReset ? '#f0f0f0' : '#fff',
+                        fontSize: '16px',
+                        fontFamily: 'Arial, sans-serif',
+                        color: '#000',
+                        marginBottom: '20px',
+                        boxSizing: 'border-box'
+                      }}
+                    />
+                    <div style={{
+                      display: 'flex',
+                      gap: '10px',
+                      justifyContent: 'center'
+                    }}>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setShowForgotPassword(false)
+                          setForgotPasswordEmail('')
+                        }}
+                        disabled={isSendingReset}
+                        style={{
+                          padding: '10px 20px',
+                          border: '2px solid #000',
+                          borderRadius: '8px',
+                          backgroundColor: '#f6f5f3',
+                          color: '#000',
+                          fontSize: '14px',
+                          fontFamily: 'Arial, sans-serif',
+                          cursor: isSendingReset ? 'not-allowed' : 'pointer',
+                          opacity: isSendingReset ? 0.6 : 1
+                        }}
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        type="submit"
+                        disabled={isSendingReset}
+                        style={{
+                          padding: '10px 20px',
+                          border: '2px solid #000',
+                          borderRadius: '8px',
+                          backgroundColor: '#000',
+                          color: '#f6f5f3',
+                          fontSize: '14px',
+                          fontFamily: 'Arial, sans-serif',
+                          cursor: isSendingReset ? 'not-allowed' : 'pointer',
+                          opacity: isSendingReset ? 0.6 : 1
+                        }}
+                      >
+                        {isSendingReset ? 'Sending...' : 'Send Reset Link'}
+                      </button>
+                    </div>
+                  </form>
+                </>
+              ) : (
+                <div>
+                  <h2 style={{
+                    margin: '0 0 15px 0',
+                    fontSize: '20px',
+                    fontWeight: 'bold',
+                    color: '#000'
+                  }}>
+                    Reset Link Sent! 📧
+                  </h2>
+                  <p style={{
+                    margin: '0 0 10px 0',
+                    fontSize: '14px',
+                    color: '#666',
+                    lineHeight: '1.4'
+                  }}>
+                    Check your email for a password reset link.
+                  </p>
+                  <p style={{
+                    margin: '0',
+                    fontSize: '12px',
+                    color: '#999',
+                    fontStyle: 'italic'
+                  }}>
+                    This window will close automatically...
+                  </p>
+                </div>
+              )}
+            </div>
           </div>
         )}
       </main>

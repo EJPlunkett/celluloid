@@ -1,17 +1,43 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigation } from '../hooks/useNavigation'
 import { supabase } from '../lib/supabase'
 import Navigation from '../components/Navigation'
 
-function Login() {
+function ResetPassword() {
   const [navOpen, setNavOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [showSuccess, setShowSuccess] = useState(false)
   const [formData, setFormData] = useState({
-    email: '',
-    password: ''
+    password: '',
+    confirmPassword: ''
   })
+  const [isValidSession, setIsValidSession] = useState(false)
+  const [isCheckingSession, setIsCheckingSession] = useState(true)
   const navigation = useNavigation()
+
+  useEffect(() => {
+    // Check if user has a valid password reset session
+    const checkSession = async () => {
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession()
+        if (error) {
+          console.error('Session check error:', error)
+          setIsValidSession(false)
+        } else if (session) {
+          setIsValidSession(true)
+        } else {
+          setIsValidSession(false)
+        }
+      } catch (error) {
+        console.error('Unexpected error checking session:', error)
+        setIsValidSession(false)
+      } finally {
+        setIsCheckingSession(false)
+      }
+    }
+
+    checkSession()
+  }, [])
 
   const toggleNav = () => {
     setNavOpen(!navOpen)
@@ -27,25 +53,33 @@ function Login() {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+    
+    if (formData.password !== formData.confirmPassword) {
+      alert('Passwords do not match. Please try again.')
+      return
+    }
+
+    if (formData.password.length < 6) {
+      alert('Password must be at least 6 characters long.')
+      return
+    }
+
     setIsLoading(true)
-    console.log('Login form submitted:', formData)
     
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email: formData.email,
+      const { error } = await supabase.auth.updateUser({
         password: formData.password
       })
       
       if (error) {
-        console.error('Login error:', error.message)
-        alert(`Login failed: ${error.message}`)
+        console.error('Password update error:', error.message)
+        alert(`Failed to update password: ${error.message}`)
       } else {
-        console.log('Login successful:', data.user)
         setShowSuccess(true)
         // Wait a moment to show success message, then navigate
         setTimeout(() => {
           navigation.goToWatchlist()
-        }, 1500)
+        }, 2000)
       }
     } catch (error) {
       console.error('Unexpected error:', error)
@@ -53,6 +87,66 @@ function Login() {
     } finally {
       setIsLoading(false)
     }
+  }
+
+  if (isCheckingSession) {
+    return (
+      <div style={{
+        margin: 0,
+        padding: 0,
+        height: '100vh',
+        backgroundColor: '#f6f5f3',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        fontFamily: 'Arial, sans-serif'
+      }}>
+        <p style={{ fontSize: '16px', color: '#666' }}>Verifying reset link...</p>
+      </div>
+    )
+  }
+
+  if (!isValidSession) {
+    return (
+      <div style={{
+        margin: 0,
+        padding: 0,
+        height: '100vh',
+        backgroundColor: '#f6f5f3',
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'center',
+        alignItems: 'center',
+        fontFamily: 'Arial, sans-serif',
+        padding: '20px',
+        textAlign: 'center'
+      }}>
+        <h1 style={{ fontSize: '24px', color: '#000', marginBottom: '20px' }}>
+          Invalid or Expired Link
+        </h1>
+        <p style={{ fontSize: '16px', color: '#666', marginBottom: '30px', lineHeight: '1.5' }}>
+          This password reset link is either invalid or has expired. 
+          Please request a new password reset from the login page.
+        </p>
+        <button
+          onClick={() => navigation.goToLogin()}
+          style={{
+            padding: '12px 24px',
+            border: '2px solid #000',
+            borderRadius: '8px',
+            backgroundColor: '#000',
+            color: '#f6f5f3',
+            fontSize: '16px',
+            fontFamily: 'Arial, sans-serif',
+            cursor: 'pointer',
+            textDecoration: 'none',
+            display: 'inline-block'
+          }}
+        >
+          Back to Login
+        </button>
+      </div>
+    )
   }
 
   return (
@@ -146,6 +240,26 @@ function Login() {
           }}
         />
 
+        <h1 style={{
+          fontSize: '24px',
+          fontWeight: 'bold',
+          color: '#000',
+          margin: '30px 0 10px 0',
+          textAlign: 'center'
+        }}>
+          Create New Password
+        </h1>
+
+        <p style={{
+          fontSize: '16px',
+          color: '#666',
+          margin: '0 0 30px 0',
+          textAlign: 'center',
+          lineHeight: '1.4'
+        }}>
+          Enter your new password below
+        </p>
+
         <form 
           onSubmit={handleSubmit}
           style={{
@@ -153,51 +267,11 @@ function Login() {
             flexDirection: 'column',
             gap: '20px',
             marginBottom: '30px',
-            marginTop: '30px',
             textAlign: 'left',
             width: '100%',
             maxWidth: '480px'
           }}
         >
-          <div style={{
-            display: 'flex',
-            flexDirection: 'column'
-          }}>
-            <label 
-              htmlFor="email"
-              style={{
-                fontWeight: 500,
-                fontSize: '16px',
-                marginBottom: '8px',
-                color: '#000'
-              }}
-            >
-              Email Address
-            </label>
-            <input 
-              type="email"
-              id="email"
-              name="email"
-              value={formData.email}
-              onChange={handleInputChange}
-              required
-              disabled={isLoading}
-              placeholder="Enter your email address"
-              style={{
-                padding: '12px 16px',
-                border: '2px solid #000',
-                borderRadius: '8px',
-                backgroundColor: isLoading ? '#f0f0f0' : '#fff',
-                fontSize: '16px',
-                fontFamily: 'Arial, sans-serif',
-                color: '#000',
-                transition: 'border-color 0.2s ease',
-                width: '100%',
-                boxSizing: 'border-box'
-              }}
-            />
-          </div>
-
           <div style={{
             display: 'flex',
             flexDirection: 'column'
@@ -211,7 +285,7 @@ function Login() {
                 color: '#000'
               }}
             >
-              Password
+              New Password
             </label>
             <input 
               type="password"
@@ -221,7 +295,8 @@ function Login() {
               onChange={handleInputChange}
               required
               disabled={isLoading}
-              placeholder="Enter your password"
+              placeholder="Enter your new password"
+              minLength="6"
               style={{
                 padding: '12px 16px',
                 border: '2px solid #000',
@@ -236,36 +311,75 @@ function Login() {
               }}
             />
           </div>
-        </form>
 
-        <button 
-          type="submit"
-          onClick={handleSubmit}
-          disabled={isLoading}
-          style={{
-            marginTop: '20px',
-            width: '150px',
-            height: 'auto',
-            background: 'transparent',
-            border: 'none',
-            cursor: isLoading ? 'not-allowed' : 'pointer',
-            display: 'block',
-            marginLeft: 'auto',
-            marginRight: 'auto',
-            opacity: isLoading ? 0.6 : 1
-          }}
-        >
-          <img 
-            src="/Submit Button.png" 
-            alt={isLoading ? "Signing In..." : "Sign In"}
+          <div style={{
+            display: 'flex',
+            flexDirection: 'column'
+          }}>
+            <label 
+              htmlFor="confirmPassword"
+              style={{
+                fontWeight: 500,
+                fontSize: '16px',
+                marginBottom: '8px',
+                color: '#000'
+              }}
+            >
+              Confirm New Password
+            </label>
+            <input 
+              type="password"
+              id="confirmPassword"
+              name="confirmPassword"
+              value={formData.confirmPassword}
+              onChange={handleInputChange}
+              required
+              disabled={isLoading}
+              placeholder="Confirm your new password"
+              minLength="6"
+              style={{
+                padding: '12px 16px',
+                border: '2px solid #000',
+                borderRadius: '8px',
+                backgroundColor: isLoading ? '#f0f0f0' : '#fff',
+                fontSize: '16px',
+                fontFamily: 'Arial, sans-serif',
+                color: '#000',
+                transition: 'border-color 0.2s ease',
+                width: '100%',
+                boxSizing: 'border-box'
+              }}
+            />
+          </div>
+
+          <button 
+            type="submit"
+            disabled={isLoading}
             style={{
-              width: '100%',
+              marginTop: '20px',
+              width: '150px',
               height: 'auto',
+              background: 'transparent',
+              border: 'none',
+              cursor: isLoading ? 'not-allowed' : 'pointer',
               display: 'block',
-              objectFit: 'contain'
+              marginLeft: 'auto',
+              marginRight: 'auto',
+              opacity: isLoading ? 0.6 : 1
             }}
-          />
-        </button>
+          >
+            <img 
+              src="/Submit Button.png" 
+              alt={isLoading ? "Updating..." : "Update Password"}
+              style={{
+                width: '100%',
+                height: 'auto',
+                display: 'block',
+                objectFit: 'contain'
+              }}
+            />
+          </button>
+        </form>
         
         {isLoading && (
           <p style={{
@@ -274,7 +388,7 @@ function Login() {
             fontSize: '14px',
             color: '#666'
           }}>
-            Signing you in...
+            Updating your password...
           </p>
         )}
         
@@ -299,7 +413,7 @@ function Login() {
               fontWeight: 'bold',
               color: '#f6f5f3'
             }}>
-              Login successful! 
+              Password updated successfully! 
             </p>
             <p style={{
               margin: '8px 0 0 0',
@@ -337,4 +451,4 @@ function Login() {
   )
 }
 
-export default Login
+export default Reset
