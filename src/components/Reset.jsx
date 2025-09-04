@@ -16,35 +16,52 @@ function Reset() {
   const navigation = useNavigation()
 
   useEffect(() => {
+    // Check for tokens in URL hash immediately
+    const hash = window.location.hash.slice(1)
+    const hashParams = new URLSearchParams(hash)
+    const accessToken = hashParams.get('access_token')
+    const refreshToken = hashParams.get('refresh_token')
+    const type = hashParams.get('type')
+    
+    console.log('URL hash params:', { accessToken: !!accessToken, refreshToken: !!refreshToken, type })
+
+    if (accessToken && refreshToken && type === 'recovery') {
+      // Set the session using the tokens from the URL
+      supabase.auth.setSession({
+        access_token: accessToken,
+        refresh_token: refreshToken
+      }).then(({ data, error }) => {
+        if (error) {
+          console.error('Error setting session:', error)
+          setIsValidSession(false)
+          setIsCheckingSession(false)
+        } else {
+          console.log('Session set successfully:', data)
+          setIsValidSession(true)
+          setIsCheckingSession(false)
+        }
+      })
+    } else {
+      // Check for existing session
+      supabase.auth.getSession().then(({ data: { session }, error }) => {
+        if (error) {
+          console.error('Session check error:', error)
+          setIsValidSession(false)
+        } else if (session) {
+          setIsValidSession(true)
+        } else {
+          setIsValidSession(false)
+        }
+        setIsCheckingSession(false)
+      })
+    }
+
+    // Also listen for auth state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       console.log('Auth event:', event, session)
       
-      if (event === 'PASSWORD_RECOVERY') {
+      if (event === 'PASSWORD_RECOVERY' || (event === 'SIGNED_IN' && session)) {
         setIsValidSession(true)
-        setIsCheckingSession(false)
-      } else if (event === 'SIGNED_IN' && session) {
-        setIsValidSession(true)
-        setIsCheckingSession(false)
-      } else {
-        const urlParams = new URLSearchParams(window.location.search)
-        const hashParams = new URLSearchParams(window.location.hash.slice(1))
-        
-        const error = urlParams.get('error') || hashParams.get('error')
-        
-        if (error) {
-          console.error('Reset link error:', error)
-          setIsValidSession(false)
-        } else {
-          const { data: { session }, error: sessionError } = await supabase.auth.getSession()
-          if (sessionError) {
-            console.error('Session check error:', sessionError)
-            setIsValidSession(false)
-          } else if (session) {
-            setIsValidSession(true)
-          } else {
-            setIsValidSession(false)
-          }
-        }
         setIsCheckingSession(false)
       }
     })
