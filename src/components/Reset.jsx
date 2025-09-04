@@ -147,18 +147,11 @@ function Reset() {
         height: '100vh',
         backgroundColor: '#f6f5f3',
         display: 'flex',
-        flexDirection: 'column',
         justifyContent: 'center',
         alignItems: 'center',
         fontFamily: 'Arial, sans-serif'
       }}>
         <p style={{ fontSize: '16px', color: '#666' }}>Verifying reset link...</p>
-        <div style={{ marginTop: '20px', fontSize: '12px', color: '#999', textAlign: 'center', maxWidth: '80%', wordBreak: 'break-all' }}>
-          <p>Debug info:</p>
-          <p>Hash: {window.location.hash}</p>
-          <p>Has access_token: {window.location.hash.includes('access_token') ? 'Yes' : 'No'}</p>
-          <p>Has type=recovery: {window.location.hash.includes('type=recovery') ? 'Yes' : 'No'}</p>
-        </div>
       </div>
     )
   }
