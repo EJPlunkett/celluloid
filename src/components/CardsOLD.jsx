@@ -196,8 +196,8 @@ function Cards() {
   const getSourceData = () => {
     if (inputData.color) {
       return { source: 'color', sourceValue: inputData.color }
-    } else if (inputData.type === 'palette' && inputData.hexCodes) {
-      return { source: 'color', sourceValue: inputData.hexCodes }
+    } else if (inputData.type === 'palette') {
+      return { source: 'color', sourceValue: inputData.hexCodes || 'palette' }
     } else if (inputData.words && Array.isArray(inputData.words)) {
       return { source: 'words', sourceValue: inputData.words.join(', ') }
     } else if (inputData.vibes) {
