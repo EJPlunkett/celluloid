@@ -26,30 +26,50 @@ function Reset() {
     console.log('URL hash params:', { accessToken: !!accessToken, refreshToken: !!refreshToken, type })
 
     if (accessToken && refreshToken && type === 'recovery') {
+      console.log('Setting session with tokens...')
       // Set the session using the tokens from the URL
       supabase.auth.setSession({
         access_token: accessToken,
         refresh_token: refreshToken
       }).then(({ data, error }) => {
+        console.log('setSession result:', { data, error })
         if (error) {
           console.error('Error setting session:', error)
           setIsValidSession(false)
           setIsCheckingSession(false)
         } else {
-          console.log('Session set successfully:', data)
-          setIsValidSession(true)
-          setIsCheckingSession(false)
+          console.log('Session set successfully, checking session...')
+          // Double-check the session was set
+          supabase.auth.getSession().then(({ data: sessionData, error: sessionError }) => {
+            console.log('getSession after setSession:', { sessionData, sessionError })
+            if (sessionData?.session) {
+              console.log('Valid session confirmed!')
+              setIsValidSession(true)
+            } else {
+              console.log('No session found after setting')
+              setIsValidSession(false)
+            }
+            setIsCheckingSession(false)
+          })
         }
+      }).catch(err => {
+        console.error('setSession threw error:', err)
+        setIsValidSession(false)
+        setIsCheckingSession(false)
       })
     } else {
+      console.log('No recovery tokens found, checking existing session...')
       // Check for existing session
       supabase.auth.getSession().then(({ data: { session }, error }) => {
+        console.log('Existing session check:', { session, error })
         if (error) {
           console.error('Session check error:', error)
           setIsValidSession(false)
         } else if (session) {
+          console.log('Found existing session')
           setIsValidSession(true)
         } else {
+          console.log('No existing session')
           setIsValidSession(false)
         }
         setIsCheckingSession(false)
@@ -58,9 +78,10 @@ function Reset() {
 
     // Also listen for auth state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log('Auth event:', event, session)
+      console.log('Auth state change event:', event, !!session)
       
       if (event === 'PASSWORD_RECOVERY' || (event === 'SIGNED_IN' && session)) {
+        console.log('Auth state indicates valid session')
         setIsValidSession(true)
         setIsCheckingSession(false)
       }
