@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useState } from 'react'
-import { supabase } from '../supabase'
+import { supabase, supabaseUrl, supabaseKey } from '../supabase'
 
 const AuthContext = createContext({})
 
@@ -168,40 +168,65 @@ export const AuthProvider = ({ children }) => {
 
   // Add to anonymous watchlist
   const addToAnonymousWatchlist = async (sessionId, movie, source, sourceValue) => {
-    // First, upsert the anon_watchlist_items entry
-    const { data: anonItem, error: anonError } = await supabase
-      .from('anon_watchlist_items')
-      .upsert({
-        session_id: sessionId,
-        movie_id: movie.movie_id,
-        like_count: 1,
-        first_liked_at: new Date().toISOString(),
-        last_liked_at: new Date().toISOString(),
-        status: 'liked'
-      }, {
-        onConflict: 'session_id,movie_id',
-        ignoreDuplicates: false
+    try {
+      // First, upsert the anon_watchlist_items entry
+      const itemResponse = await fetch(`${supabaseUrl}/rest/v1/anon_watchlist_items`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': supabaseKey,
+          'Authorization': `Bearer ${supabaseKey}`,
+          'x-cbd-session-id': sessionId,
+          'Prefer': 'resolution=merge-duplicates,return=representation'
+        },
+        body: JSON.stringify({
+          session_id: sessionId,
+          movie_id: movie.movie_id,
+          like_count: 1,
+          first_liked_at: new Date().toISOString(),
+          last_liked_at: new Date().toISOString(),
+          status: 'liked'
+        })
       })
 
-    if (anonError) throw anonError
+      if (!itemResponse.ok) {
+        const error = await itemResponse.text()
+        throw new Error(`Failed to save watchlist item: ${error}`)
+      }
 
-    // Then, add the source entry
-    const { data: sourceData, error: sourceError } = await supabase
-      .from('anon_watchlist_sources')
-      .upsert({
-        session_id: sessionId,
-        movie_id: movie.movie_id,
-        source: source,
-        source_value: sourceValue,
-        created_at: new Date().toISOString()
-      }, {
-        onConflict: 'session_id,movie_id,source,source_value',
-        ignoreDuplicates: true
+      const anonItem = await itemResponse.json()
+
+      // Then, add the source entry
+      const sourceResponse = await fetch(`${supabaseUrl}/rest/v1/anon_watchlist_sources`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': supabaseKey,
+          'Authorization': `Bearer ${supabaseKey}`,
+          'x-cbd-session-id': sessionId,
+          'Prefer': 'resolution=merge-duplicates,return=representation'
+        },
+        body: JSON.stringify({
+          session_id: sessionId,
+          movie_id: movie.movie_id,
+          source: source,
+          source_value: sourceValue,
+          created_at: new Date().toISOString()
+        })
       })
 
-    if (sourceError) throw sourceError
+      if (!sourceResponse.ok) {
+        const error = await sourceResponse.text()
+        throw new Error(`Failed to save watchlist source: ${error}`)
+      }
 
-    return { success: true, anonItem, sourceData }
+      const sourceData = await sourceResponse.json()
+
+      return { success: true, anonItem, sourceData }
+    } catch (error) {
+      console.error('Error in addToAnonymousWatchlist:', error)
+      throw error
+    }
   }
 
   // Merge anonymous watchlist into user account
