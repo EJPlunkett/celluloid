@@ -11,17 +11,17 @@ function Surprise() {
 
   // Array of surprise vibes
   const vibes = [
-    "NY nightclubs, underground art parties, and warehouse loft gatherings in the '80s.",
-    "Moody jazz bars with smoky light and intimate conversations.",
-    "Sun-dappled Brooklyn stoops in late summer evenings.",
-    "Grimy subway rides amidst graffiti and punk energy.",
-    "High-end SoHo galleries showcasing avant-garde street art.",
-    "Corner deli mornings filled with the scent of fresh coffee and bagels.",
-    "Rain-soaked streets reflecting neon lights and taxi cabs.",
-    "Bohemian loft apartments cluttered with vintage vinyl and typewriters.",
-    "Hip hop block parties with vibrant crowd energy.",
-    "Quiet walks in Central Park under autumn leaves.",
-    "Rooftop gardens overlooking a sprawling city skyline."
+  "Over-the-top holiday décor, department store displays, and snow-dusted streets lined with Christmas trees.",
+  "Lonely late-night diners, chrome counters and fluorescent hum lingering over empty booths.",
+  "Central Park in autumn, golden leaves, cashmere scarves and city streets glowing under late-day warmth.",
+  "Peep-show signage, shadowed doorways and sidewalks layered with crumpled posters and urban grit.",
+  "Peeling wallpaper and buzzing neon, seedy hotel rooms heavy with claustrophobic urban decay.",
+  "2000s editorial fashion energy, sleek offices and sparkling apartments set against the Manhattan skyline.",
+  "Gritty 1970s graffiti-covered facades, steam rising from cracked streets and an atmosphere of urban menace.",
+  "Urban adolescence in 1990s New York, thrifted clothes, graffiti and basketball echoing off brick walls.",
+  "1980s midtown skyscrapers, pastel power suits and mirrored offices glowing under fluorescent ambition.",
+  "1980s New York grit, trash-strewn streets, shadowed alleys and police sirens cutting through tense city blocks.",
+  "Colorful mid-century apartments with patterned décor and playful style, glowing with 1960s charm."
   ]
 
   const toggleNav = () => {
