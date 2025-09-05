@@ -54,35 +54,45 @@ export const AuthProvider = ({ children }) => {
   }
 
   useEffect(() => {
-    // Get initial session with timeout protection
+    // Get initial session
     const getSession = async () => {
-      try {
-        console.log('Starting getSession...')
-        
-        // Race between getSession and timeout
-        const sessionPromise = supabase.auth.getSession()
-        const timeoutPromise = new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('Session check timeout')), 10000)
-        )
-        
-        const { data: { session } } = await Promise.race([sessionPromise, timeoutPromise])
-        console.log('getSession completed:', { session: !!session })
-        
-        setUser(session?.user ?? null)
-        
-        if (session?.user) {
-          const profileData = await fetchProfile(session.user.id)
-          setProfile(profileData)
+      let completed = false
+      
+      // Set a backup that assumes logged-out state after 5 seconds
+      setTimeout(() => {
+        if (!completed) {
+          console.log('Auth call taking too long, assuming logged out')
+          setUser(null)
+          setProfile(null)
+          initializeSession()
+          setLoading(false)
+          completed = true
         }
-        
-        initializeSession()
-        setLoading(false)
+      }, 5000)
+      
+      try {
+        const { data: { session } } = await supabase.auth.getSession()
+        if (!completed) {
+          setUser(session?.user ?? null)
+          
+          if (session?.user) {
+            const profileData = await fetchProfile(session.user.id)
+            setProfile(profileData)
+          }
+          
+          initializeSession()
+          setLoading(false)
+          completed = true
+        }
       } catch (error) {
-        console.error('Error in getSession:', error.message)
-        setUser(null)
-        setProfile(null)
-        initializeSession()
-        setLoading(false) // CRITICAL: This will unblock your navigation
+        if (!completed) {
+          console.error('Error in getSession:', error)
+          setUser(null)
+          setProfile(null)
+          initializeSession()
+          setLoading(false)
+          completed = true
+        }
       }
     }
 
@@ -92,7 +102,6 @@ export const AuthProvider = ({ children }) => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         try {
-          console.log('Auth state change:', event, { session: !!session })
           setUser(session?.user ?? null)
           
           // Fetch profile for new user, clear profile on logout
@@ -119,31 +128,24 @@ export const AuthProvider = ({ children }) => {
     return () => subscription.unsubscribe()
   }, [])
 
-  // Login function - simplified for debugging
+  // Login function - will need to merge watchlist after successful login
   const signIn = async (email, password) => {
-    try {
-      console.log('signIn called with:', { email })
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password
-      })
-      
-      console.log('signIn result:', { user: !!data?.user, error: error?.message })
-      
-      // COMMENTED OUT WATCHLIST MERGE FOR DEBUGGING
-      // if (data.user && sessionId) {
-      //   try {
-      //     await mergeAnonymousWatchlist(data.user.id, sessionId)
-      //   } catch (mergeError) {
-      //     console.error('Error merging anonymous watchlist:', mergeError)
-      //   }
-      // }
-      
-      return { data, error }
-    } catch (err) {
-      console.error('signIn error:', err)
-      return { data: null, error: err }
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password
+    })
+    
+    // If login successful, trigger watchlist merge
+    if (data.user && sessionId) {
+      try {
+        await mergeAnonymousWatchlist(data.user.id, sessionId)
+      } catch (mergeError) {
+        console.error('Error merging anonymous watchlist:', mergeError)
+        // Don't fail the login, just log the error
+      }
     }
+    
+    return { data, error }
   }
 
   // Signup function - will need to merge watchlist after successful signup
