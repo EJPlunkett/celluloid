@@ -46,7 +46,7 @@ function Vibes() {
         // Navigate to cards with search results
         navigation.goToCards({ 
           type: 'vibe', 
-          value: vibeText.trim(),
+          vibes: vibeText.trim(),
           results: data.results,
           query_info: data.query_info
         })
