@@ -203,8 +203,6 @@ function Cards() {
       return { source_type: 'words', source_value: JSON.stringify(inputData.words) }
     } else if (inputData.vibes) {
       return { source_type: 'vibes', source_value: inputData.vibes }
-    } else if (inputData.surprise) {
-      return { source_type: 'surprise', source_value: inputData.surprise }
     } else {
       return { source_type: 'surprise', source_value: inputData.type || 'surprise' }
     }

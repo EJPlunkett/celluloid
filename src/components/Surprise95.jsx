@@ -6,7 +6,6 @@ function Surprise() {
   const [navOpen, setNavOpen] = useState(false)
   const [currentVibe, setCurrentVibe] = useState("Rooftop gardens overlooking a sprawling city skyline.")
   const [isRolling, setIsRolling] = useState(false)
-  const [isLoading, setIsLoading] = useState(false)
   const navigation = useNavigation()
 
   // Array of surprise vibes
@@ -45,45 +44,10 @@ function Surprise() {
     }, 400)
   }
 
-  const handleSubmit = async () => {
+  const handleSubmit = () => {
     console.log('Surprise vibe:', currentVibe)
-    setIsLoading(true)
-
-    try {
-      const response = await fetch('/.netlify/functions/search', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          userInput: currentVibe.trim(),
-          limit: 10 // Match your maxCards in Cards.jsx
-        }),
-      })
-
-      if (!response.ok) {
-        throw new Error(`Search failed: ${response.status}`)
-      }
-
-      const data = await response.json()
-
-      if (data.success && data.results.length > 0) {
-        // Navigate to cards with search results
-        navigation.goToCards({ 
-          type: 'surprise',
-          surprise: currentVibe.trim(),  // Changed from 'vibe' to 'surprise'
-          results: data.results,
-          query_info: data.query_info
-        })
-      } else {
-        alert('No movies found for that vibe. Try rolling for a different one!')
-      }
-    } catch (error) {
-      console.error('Search error:', error)
-      alert('Search failed. Please check your connection and try again.')
-    } finally {
-      setIsLoading(false)
-    }
+    // Navigate to cards page with the surprise vibe
+    navigation.goToCards({ vibe: currentVibe })
   }
 
   // Shake animation keyframes
@@ -230,17 +194,15 @@ function Surprise() {
         
         <button 
           onClick={rollDice}
-          disabled={isLoading}
           style={{
-            cursor: isLoading ? 'not-allowed' : 'pointer',
+            cursor: 'pointer',
             background: 'transparent',
             border: 'none',
             padding: 0,
             margin: '20px auto 0 auto',
             display: 'block',
             width: '80px',
-            height: 'auto',
-            opacity: isLoading ? 0.6 : 1
+            height: 'auto'
           }}
           aria-label="Roll the dice to generate a new vibe"
         >
@@ -263,46 +225,25 @@ function Surprise() {
         }}>
           <button
             onClick={handleSubmit}
-            disabled={isLoading}
             style={{
               width: '150px',
               height: 'auto',
               background: 'transparent',
               border: 'none',
-              cursor: isLoading ? 'not-allowed' : 'pointer',
-              display: 'inline-block',
-              opacity: isLoading ? 0.6 : 1,
-              transform: isLoading ? 'scale(0.95)' : 'scale(1)',
-              transition: 'all 0.2s ease'
+              cursor: 'pointer',
+              display: 'inline-block'
             }}
           >
-            {isLoading ? (
-              <div style={{
-                width: '150px',
-                height: '40px',
-                backgroundColor: '#000',
-                borderRadius: '20px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: '#f6f5f3',
-                fontSize: '14px',
-                fontWeight: 'bold'
-              }}>
-                Searching...
-              </div>
-            ) : (
-              <img 
-                src="/Submit Button.png" 
-                alt="Submit Button" 
-                style={{
-                  width: '100%',
-                  height: 'auto',
-                  display: 'block',
-                  objectFit: 'contain'
-                }}
-              />
-            )}
+            <img 
+              src="/Submit Button.png" 
+              alt="Submit Button" 
+              style={{
+                width: '100%',
+                height: 'auto',
+                display: 'block',
+                objectFit: 'contain'
+              }}
+            />
           </button>
         </div>
       </main>
