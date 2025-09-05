@@ -2,7 +2,7 @@ import { createClient } from '@supabase/supabase-js'
 import OpenAI from 'openai'
 
 // Function version tracker to ensure deployment
-console.log('Function version: 2024-synopsis-update')
+console.log('Function version: 2024-parser-update')
 
 // Initialize clients
 const supabase = createClient(
@@ -14,104 +14,234 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY
 })
 
-// Updated GPT preprocessing prompt
-const preprocessingPrompt = `
-You are a movie expert helping users find NYC films from a database of ~1,500 films.
+// System prompt for the parser
+const systemPrompt = `
+You are a parser for a film discovery engine called *Celluloid by Design*.
+Users provide free-text descriptions of the kind of movie they want.
+Convert their input into strict JSON aligned with the database schema.
 
-Analyze the user's input and determine the best search approach:
-
-**Search Types:**
-- "aesthetic": Visual descriptions → vector search
-- "thematic": Subjects/topics/actors/directors → database filtering  
-- "hybrid": Both visual + thematic → combine approaches
-
-**When to use THEMATIC:**
-- Single words about subjects/topics: "cocaine", "mafia", "drugs", "finance"
-- Actor/director names: "Robert De Niro", "Scorsese"
-- Film genres: "crime films", "romantic comedies"
-- Cultural topics: "wall street", "nightlife", "punk"
-
-**When to use AESTHETIC:**
-- Visual descriptions: "neon lighting", "rainy streets", "golden hour"
-- Cinematography terms: "gritty", "atmospheric", "moody"
-- Color/texture descriptions: "dark shadows", "bright colors"
-
-**Examples:**
-- "cocaine" → thematic (find cocaine-related movies)
-- "mafia" → thematic (find mafia movies)
-- "Robert De Niro" → thematic (find his movies)
-- "neon lighting" → aesthetic (find movies with that visual style)
-- "rainy 1970s grit" → aesthetic (visual description + time filter)
-
-User input: "{USER_INPUT}"
-
-**For thematic searches:** Recommend 8-12 iconic NYC films with exact titles/years
-**For aesthetic searches:** Extract specific visual keywords + time periods
-**For hybrid:** Do both
-
-Respond in JSON:
+Schema:
 {
-  "search_type": "aesthetic" | "thematic" | "hybrid",
-  "search_criteria": {
-    "recommended_movies": [{"title": "Movie Title", "year": 1985}]
-  },
-  "aesthetic_keywords": "visual description when needed",
-  "time_filters": {
-    "mentioned_decades": ["1970s", "1980s"]
-  },
-  "confidence": 0.95
+  "depicted_decade": [],
+  "context_embedding": [],
+  "aesthetic_embedding": [],
+  "people_tags": [
+    {
+      "raw": "",
+      "canonical": "",
+      "confidence": 0.0
+    }
+  ],
+  "reference_titles": [],
+  "overlap_notes": [
+    {
+      "token": "",
+      "mapped_to": ["context", "aesthetic"],
+      "reason": ""
+    }
+  ]
 }
-`
 
+Field Rules:
+- depicted_decade: always a clean decade string ("1970s", "1980s", "1990s"). 
+  Normalize "early/late" or a single year (e.g. 1995) into its decade.
+- context_embedding: locations, neighborhoods, boroughs, landmarks, venues, themes, genres, story elements, plot fragments.
+- aesthetic_embedding: cinematic style, lighting, colors, textures, wardrobe, weather, atmosphere, camera feel.
+- people_tags: fuzzy match actor/director references. Include raw, canonical, confidence (0–1).
+- reference_titles: if a movie is explicitly named, capture "Title (Year)".
+- overlap_notes: if a token belongs in both context and aesthetic, include in both arrays and record an entry explaining why.
+- Use lowercase-hyphenated slugs for all tags.
+- Do not hallucinate. If unclear, leave arrays empty or assign low confidence.
+- Always return valid JSON only.
+
+Examples:
+USER: "Graffiti-smeared subway cars, flickering fluorescents, shadows stretching across tiled stations"
+OUTPUT:
+{
+  "depicted_decade": [],
+  "context_embedding": ["subway", "underground-transit"],
+  "aesthetic_embedding": ["graffiti-covered", "flickering-fluorescent-lighting", "dramatic-shadows", "tiled-surfaces"],
+  "people_tags": [],
+  "reference_titles": [],
+  "overlap_notes": [
+    {
+      "token": "subway",
+      "mapped_to": ["context", "aesthetic"],
+      "reason": "subway is both a NYC location and creates specific underground visual atmosphere"
+    }
+  ]
+}
+
+USER: "scorsese energy, grimy blocks near times square, sodium lights, late 70s"
+OUTPUT:
+{
+  "depicted_decade": ["1970s"],
+  "context_embedding": ["times-square", "midtown-nyc", "street-level"],
+  "aesthetic_embedding": ["grimy", "sodium-vapor-lighting"],
+  "people_tags": [
+    {
+      "raw": "scorsese",
+      "canonical": "Martin Scorsese",
+      "confidence": 0.95
+    }
+  ],
+  "reference_titles": [],
+  "overlap_notes": []
+}
+
+USER: "films that look like Party Girl, I want to feel like I'm in a 90s house party"
+OUTPUT:
+{
+  "depicted_decade": ["1990s"],
+  "context_embedding": ["house-party", "downtown-nyc"],
+  "aesthetic_embedding": ["chaotic-wardrobe", "club-lighting", "crowded-dancefloor"],
+  "people_tags": [],
+  "reference_titles": ["Party Girl (1995)"],
+  "overlap_notes": []
+}
+`;
+
+// Parser function
+async function parseQuery(userInput) {
+  const completion = await openai.chat.completions.create({
+    model: "gpt-4o-mini",
+    temperature: 0,
+    messages: [
+      { role: "system", content: systemPrompt },
+      { role: "user", content: userInput }
+    ],
+    response_format: { type: "json_object" }
+  });
+  return JSON.parse(completion.choices[0].message.content);
+}
+
+// Helper function to build embedding queries from parsed data
+function buildEmbeddingQueries(parsed) {
+  // Build context query
+  let contextTerms = [...parsed.context_embedding];
+  
+  // Add people to context
+  if (parsed.people_tags.length > 0) {
+    const peopleNames = parsed.people_tags
+      .filter(p => p.confidence > 0.7)
+      .map(p => p.canonical.toLowerCase().replace(/\s+/g, '-'));
+    contextTerms.push(...peopleNames);
+  }
+  
+  // Build aesthetic query  
+  let aestheticTerms = [...parsed.aesthetic_embedding];
+  
+  // Enhance overlapping terms based on context
+  parsed.overlap_notes.forEach(note => {
+    if (note.mapped_to.includes('context')) {
+      contextTerms.push(`${note.token}-setting`);  // "loft-setting"
+    }
+    if (note.mapped_to.includes('aesthetic')) {
+      aestheticTerms.push(`${note.token}-visual`);  // "loft-visual"
+    }
+  });
+  
+  return {
+    contextQuery: contextTerms.join(' '),
+    aestheticQuery: aestheticTerms.join(' ')
+  };
+}
+
+// Dual vector search function
+async function performDualVectorSearch(aestheticQuery, contextQuery, peopleTags, decades, limit) {
+  try {
+    console.log('Performing dual vector search with:');
+    console.log('- Aesthetic query:', aestheticQuery);
+    console.log('- Context query:', contextQuery);
+    console.log('- People tags:', peopleTags);
+    console.log('- Decades:', decades);
+    
+    // Generate embeddings for both queries (if they exist)
+    let aestheticEmbedding = null;
+    let contextEmbedding = null;
+    
+    if (aestheticQuery && aestheticQuery.trim()) {
+      const aestheticResponse = await openai.embeddings.create({
+        model: 'text-embedding-3-large',
+        input: aestheticQuery,
+        encoding_format: 'float'
+      });
+      aestheticEmbedding = aestheticResponse.data[0].embedding;
+    }
+    
+    if (contextQuery && contextQuery.trim()) {
+      const contextResponse = await openai.embeddings.create({
+        model: 'text-embedding-3-large',
+        input: contextQuery,
+        encoding_format: 'float'
+      });
+      contextEmbedding = contextResponse.data[0].embedding;
+    }
+    
+    // Prepare people slugs
+    const peopleSlugArray = peopleTags
+      .filter(p => p.confidence > 0.7)
+      .map(p => p.canonical.toLowerCase().replace(/\s+/g, '-'));
+    
+    // Call Supabase function
+    const { data: movies, error } = await supabase.rpc('dual_vector_search_movies', {
+      decade_filters: decades.length > 0 ? decades : null,
+      people_slugs: peopleSlugArray.length > 0 ? peopleSlugArray : null,
+      context_query_embedding: contextEmbedding,
+      aesthetic_query_embedding: aestheticEmbedding,
+      context_weight: contextQuery && aestheticQuery ? 0.5 : 1.0,
+      aesthetic_weight: contextQuery && aestheticQuery ? 0.5 : 1.0,
+      similarity_threshold: 0.1,
+      result_limit: limit * 2 // Get extra results for filtering
+    });
+    
+    if (error) {
+      throw new Error(`Supabase error: ${error.message}`);
+    }
+    
+    console.log(`Found ${movies?.length || 0} movies`);
+    return movies?.slice(0, limit) || [];
+    
+  } catch (error) {
+    console.error('Dual vector search error:', error);
+    throw error;
+  }
+}
+
+// Main search function using parsed query
 async function searchMovies(userInput, limit = 10) {
   try {
     console.log('Processing user input:', userInput)
     
-    // Step 1: GPT preprocessing
-    const preprocessResponse = await openai.chat.completions.create({
-      model: 'gpt-4o-mini',
-      messages: [{
-        role: 'user',
-        content: preprocessingPrompt.replace('{USER_INPUT}', userInput)
-      }],
-      response_format: { type: 'json_object' }
-    })
+    // 1. Parse user input
+    const parsed = await parseQuery(userInput);
+    console.log('Parsed query:', parsed);
     
-    const preprocessed = JSON.parse(preprocessResponse.choices[0].message.content)
-    console.log('GPT preprocessed result:', preprocessed)
+    // 2. Build embedding queries
+    const { contextQuery, aestheticQuery } = buildEmbeddingQueries(parsed);
+    console.log('Context query:', contextQuery);
+    console.log('Aesthetic query:', aestheticQuery);
     
-    let results = []
+    // 3. Perform dual vector search
+    const results = await performDualVectorSearch(
+      aestheticQuery,
+      contextQuery, 
+      parsed.people_tags,
+      parsed.depicted_decade,
+      limit
+    );
     
-    // Step 2: Execute search based on type
-    if (preprocessed.search_type === 'aesthetic') {
-      // Pure aesthetic vector search
-      results = await performAestheticSearch(
-        preprocessed.aesthetic_keywords, 
-        limit, 
-        preprocessed.time_filters
-      )
-      
-    } else if (preprocessed.search_type === 'thematic') {
-      // Pure thematic search by title + year
-      results = await performThematicSearch(preprocessed.search_criteria.recommended_movies, limit)
-      
-    } else if (preprocessed.search_type === 'hybrid') {
-      // Hybrid: aesthetic search filtered by thematic criteria
-      results = await performHybridSearch(
-        preprocessed.aesthetic_keywords, 
-        preprocessed.search_criteria.recommended_movies, 
-        limit,
-        preprocessed.time_filters
-      )
-    }
+    // 4. Format results
+    const formattedResults = formatResults(results);
     
-    console.log('Final results count:', results.length)
+    console.log('Final results count:', formattedResults.length)
     
     return {
       success: true,
-      results,
-      query_info: preprocessed
-    }
+      results: formattedResults,
+      parsed_query: parsed,
+      search_queries: { contextQuery, aestheticQuery }
+    };
     
   } catch (error) {
     console.error('Search error:', error)
@@ -121,168 +251,6 @@ async function searchMovies(userInput, limit = 10) {
       results: []
     }
   }
-}
-
-async function performAestheticSearch(aestheticKeywords, limit, timeFilters = null) {
-  console.log('Performing aesthetic search for:', aestheticKeywords)
-  console.log('Time filters:', timeFilters)
-  
-  // Generate embedding for aesthetic keywords
-  const embeddingResponse = await openai.embeddings.create({
-    model: 'text-embedding-3-large',
-    input: aestheticKeywords,
-    encoding_format: 'float'
-  })
-  
-  const queryEmbedding = embeddingResponse.data[0].embedding
-  
-  // Vector similarity search
-  const { data: movies, error } = await supabase.rpc('match_movies', {
-    query_embedding: queryEmbedding,
-    match_threshold: 0.001,
-    match_count: limit * 5
-  })
-  
-  if (error) {
-    throw new Error(`Database error: ${error.message}`)
-  }
-  
-  console.log('Aesthetic search found:', movies ? movies.length : 0, 'movies')
-  
-  // Apply decade filtering if specified
-  let filteredMovies = movies || []
-  
-  if (timeFilters && timeFilters.mentioned_decades && timeFilters.mentioned_decades.length > 0) {
-    console.log('Applying decade filtering for:', timeFilters.mentioned_decades)
-    filteredMovies = movies.filter(movie => {
-      const decades = timeFilters.mentioned_decades
-      
-      // Check if any mentioned decade appears in the movie's depicted_decade field
-      // Handle comma-separated values like "1960s, 1970s"
-      const movieDecades = movie.depicted_decade ? movie.depicted_decade.split(',').map(d => d.trim()) : []
-      
-      const depictedMatch = decades.some(searchDecade => 
-        movieDecades.includes(searchDecade)
-      )
-      
-      return depictedMatch
-    })
-    console.log('After decade filtering - movies remaining:', filteredMovies.length)
-  }
-  
-  return formatResults(filteredMovies.slice(0, limit))
-}
-
-async function performThematicSearch(recommendedMovies, limit) {
-  console.log('Performing thematic search for movies:', recommendedMovies)
-  
-  if (!recommendedMovies || recommendedMovies.length === 0) {
-    console.log('No recommended movies provided')
-    return []
-  }
-  
-  // Build query to find movies by title + year
-  let query = supabase
-    .from('celluloid_film_data')
-    .select('*')
-  
-  // Create OR conditions for each recommended movie
-  const conditions = recommendedMovies.map(movie => 
-    `and(movie_title.ilike.%${movie.title}%,year.eq.${movie.year})`
-  ).join(',')
-  
-  if (conditions) {
-    query = query.or(conditions)
-  }
-  
-  const { data: movies, error } = await query.limit(limit * 2)
-  
-  if (error) {
-    throw new Error(`Database error: ${error.message}`)
-  }
-  
-  console.log('Thematic search found:', movies ? movies.length : 0, 'movies')
-  
-  // FALLBACK: If we don't have enough results, try aesthetic search
-  if (!movies || movies.length < Math.max(3, limit * 0.3)) {
-    console.log('Thematic search returned too few results, falling back to aesthetic search')
-    
-    // Create aesthetic keywords based on the thematic query
-    const fallbackKeywords = await createFallbackAestheticKeywords(recommendedMovies)
-    console.log('Generated fallback aesthetic keywords:', fallbackKeywords)
-    
-    return await performAestheticSearch(fallbackKeywords, limit)
-  }
-  
-  return formatResults(movies.slice(0, limit))
-}
-
-async function createFallbackAestheticKeywords(recommendedMovies) {
-  // Extract the original user query concept for better aesthetic translation
-  const movieTitles = recommendedMovies.map(m => m.title).join(', ')
-  
-  try {
-    const fallbackResponse = await openai.chat.completions.create({
-      model: 'gpt-4o-mini',
-      messages: [{
-        role: 'user',
-        content: `I searched for movies related to a specific theme, but the exact titles weren't found in the database. The recommended movies were: ${movieTitles}
-        
-        Based on this theme, generate specific aesthetic/visual keywords that capture the distinctive cinematic style of this genre. Think about:
-        - Unique lighting styles (neon, harsh, warm, etc.)
-        - Color palettes (gold, mirrors, shadows, etc.) 
-        - Settings and environments (clubs, offices, streets, etc.)
-        - Textures and materials (leather, glass, marble, etc.)
-        - Mood and atmosphere (glamorous, gritty, sleek, etc.)
-        
-        Be SPECIFIC to this theme - avoid generic crime/drama aesthetics.
-        
-        Examples:
-        - Cocaine/drugs → "neon nightclub lighting, mirror surfaces, champagne bubbles, sleek wealth, strobe lights, luxury excess"
-        - Wall Street → "glass towers, marble lobbies, power suits, champagne culture, corporate gleam"
-        - Punk → "harsh fluorescent lighting, torn textures, urban decay, graffiti walls"
-        
-        Respond with only the specific aesthetic keywords for this theme:`
-      }]
-    })
-    
-    return fallbackResponse.choices[0].message.content.trim()
-  } catch (error) {
-    console.error('Error generating fallback keywords:', error)
-    // More specific default fallbacks
-    const titles = movieTitles.toLowerCase()
-    if (titles.includes('cocaine') || titles.includes('drug')) {
-      return 'neon nightclub lighting, mirror surfaces, champagne bubbles, sleek wealth, strobe lights, luxury excess, glass surfaces'
-    }
-    if (titles.includes('wall street') || titles.includes('finance')) {
-      return 'glass towers, marble lobbies, power suits, champagne culture, corporate gleam, expensive restaurants'
-    }
-    if (titles.includes('crime') || titles.includes('gangster') || titles.includes('mafia')) {
-      return 'dark wood paneling, leather interiors, dimly lit restaurants, expensive suits, dramatic shadows'
-    }
-    return 'urban environments, dramatic cinematography, rich textures, atmospheric lighting'
-  }
-}
-
-async function performHybridSearch(aestheticKeywords, recommendedMovies, limit, timeFilters = null) {
-  console.log('Performing hybrid search')
-  console.log('Aesthetic keywords:', aestheticKeywords)
-  console.log('Recommended movies:', recommendedMovies)
-  
-  // If we have specific movie recommendations, start with those
-  if (recommendedMovies && recommendedMovies.length > 0) {
-    const thematicResults = await performThematicSearch(recommendedMovies, limit)
-    
-    // If we got enough results from thematic search, return those
-    if (thematicResults.length >= limit * 0.7) {
-      console.log('Using thematic results for hybrid search')
-      return thematicResults.slice(0, limit)
-    }
-  }
-  
-  // Otherwise, fall back to aesthetic search
-  console.log('Falling back to aesthetic search for hybrid')
-  return await performAestheticSearch(aestheticKeywords, limit, timeFilters)
 }
 
 function formatResults(movies) {
@@ -297,7 +265,9 @@ function formatResults(movies) {
     depicted_decade: movie.depicted_decade,
     hex_codes: movie.hex_codes,
     letterboxd_link: movie.letterboxd_link,
-    similarity_score: movie.similarity || null
+    context_similarity: movie.context_similarity || null,
+    aesthetic_similarity: movie.aesthetic_similarity || null,
+    combined_score: movie.combined_score || null
   }))
 }
 
