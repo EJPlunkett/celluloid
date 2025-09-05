@@ -196,15 +196,15 @@ function Cards() {
   // Helper function to determine source type and value from inputData
   const getSourceData = () => {
     if (inputData.color) {
-      return { source_type: 'color', source_value: inputData.color }
+      return { source: 'color', sourceValue: inputData.color }
     } else if (inputData.type === 'palette' && inputData.hexCodes) {
-      return { source_type: 'color', source_value: inputData.hexCodes }
+      return { source: 'color', sourceValue: inputData.hexCodes }
     } else if (inputData.words && Array.isArray(inputData.words)) {
-      return { source_type: 'words', source_value: JSON.stringify(inputData.words) }
+      return { source: 'words', sourceValue: inputData.words.join(', ') }
     } else if (inputData.vibes) {
-      return { source_type: 'vibes', source_value: inputData.vibes }
+      return { source: 'vibes', sourceValue: inputData.vibes }
     } else {
-      return { source_type: 'surprise', source_value: inputData.type || 'surprise' }
+      return { source: 'words', sourceValue: inputData.type || 'surprise' }
     }
   }
 
@@ -213,10 +213,10 @@ function Cards() {
     
     setAddingToWatchlist(true)
     try {
-      const { source_type, source_value } = getSourceData()
-      console.log('Adding to watchlist:', movie.movie_title, 'Source type:', source_type, 'Value:', source_value)
+      const { source, sourceValue } = getSourceData()
+      console.log('Adding to watchlist:', movie.movie_title, 'Source:', source, 'Value:', sourceValue)
       
-      await addToWatchlist(movie, source_type, source_value)
+      await addToWatchlist(movie, source, sourceValue)
       console.log('Successfully added to watchlist')
       
       // Proceed to next card
