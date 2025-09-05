@@ -56,43 +56,26 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     // Get initial session
     const getSession = async () => {
-      let completed = false
-      
-      // Set a backup that assumes logged-out state after 5 seconds
-      setTimeout(() => {
-        if (!completed) {
-          console.log('Auth call taking too long, assuming logged out')
-          setUser(null)
-          setProfile(null)
-          initializeSession()
-          setLoading(false)
-          completed = true
-        }
-      }, 5000)
-      
       try {
         const { data: { session } } = await supabase.auth.getSession()
-        if (!completed) {
-          setUser(session?.user ?? null)
-          
-          if (session?.user) {
-            const profileData = await fetchProfile(session.user.id)
-            setProfile(profileData)
-          }
-          
-          initializeSession()
-          setLoading(false)
-          completed = true
+        setUser(session?.user ?? null)
+        
+        // Fetch profile if user exists
+        if (session?.user) {
+          const profileData = await fetchProfile(session.user.id)
+          setProfile(profileData)
         }
+        
+        // Always initialize session ID (needed for anonymous users)
+        initializeSession()
+        
+        setLoading(false)
       } catch (error) {
-        if (!completed) {
-          console.error('Error in getSession:', error)
-          setUser(null)
-          setProfile(null)
-          initializeSession()
-          setLoading(false)
-          completed = true
-        }
+        console.error('Error in getSession:', error)
+        setUser(null)
+        setProfile(null)
+        initializeSession()
+        setLoading(false)
       }
     }
 
