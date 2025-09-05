@@ -21,7 +21,7 @@ function Surprise() {
   "Urban adolescence in 1990s New York, thrifted clothes, graffiti and basketball echoing off brick walls",
   "1980s midtown skyscrapers, pastel power suits and mirrored offices glowing under fluorescent ambition",
   "1980s New York grit, trash-strewn streets, shadowed alleys and police sirens cutting through tense city blocks",
-  "Colorful mid-century apartments with patterned décor and playful style, glowing with 1960s charm"
+  "Colorful mid-century apartments with patterned décor and playful style, glowing with 1950s charm"
   ]
 
   const toggleNav = () => {
