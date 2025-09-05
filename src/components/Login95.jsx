@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import { useNavigation } from '../hooks/useNavigation'
-import { useAuth } from '../contexts/AuthContext' // Added AuthContext import
 import { supabase } from '../lib/supabase'
 import Navigation from '../components/Navigation'
 
@@ -17,7 +16,6 @@ function Login() {
     password: ''
   })
   const navigation = useNavigation()
-  const { signIn } = useAuth() // Added AuthContext hook
 
   const toggleNav = () => {
     setNavOpen(!navOpen)
@@ -71,8 +69,10 @@ function Login() {
     console.log('Login form submitted:', formData)
     
     try {
-      // Changed to use AuthContext signIn function instead of direct Supabase call
-      const { data, error } = await signIn(formData.email, formData.password)
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: formData.email,
+        password: formData.password
+      })
       
       if (error) {
         console.error('Login error:', error.message)
