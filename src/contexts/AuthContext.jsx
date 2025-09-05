@@ -54,11 +54,18 @@ export const AuthProvider = ({ children }) => {
   }
 
   useEffect(() => {
-    // Get initial session - REMOVED TIMEOUT FOR DEBUGGING
+    // Get initial session with timeout protection
     const getSession = async () => {
       try {
         console.log('Starting getSession...')
-        const { data: { session } } = await supabase.auth.getSession()
+        
+        // Race between getSession and timeout
+        const sessionPromise = supabase.auth.getSession()
+        const timeoutPromise = new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Session check timeout')), 10000)
+        )
+        
+        const { data: { session } } = await Promise.race([sessionPromise, timeoutPromise])
         console.log('getSession completed:', { session: !!session })
         
         setUser(session?.user ?? null)
@@ -71,11 +78,11 @@ export const AuthProvider = ({ children }) => {
         initializeSession()
         setLoading(false)
       } catch (error) {
-        console.error('Error in getSession:', error)
+        console.error('Error in getSession:', error.message)
         setUser(null)
         setProfile(null)
         initializeSession()
-        setLoading(false)
+        setLoading(false) // CRITICAL: This will unblock your navigation
       }
     }
 
