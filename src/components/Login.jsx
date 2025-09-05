@@ -71,8 +71,14 @@ function Login() {
     console.log('Login form submitted:', formData)
     
     try {
-      // Changed to use AuthContext signIn function instead of direct Supabase call
-      const { data, error } = await signIn(formData.email, formData.password)
+      // Add timeout protection for signIn call
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Login timeout')), 15000)
+      )
+      
+      const authPromise = signIn(formData.email, formData.password)
+      
+      const { data, error } = await Promise.race([authPromise, timeoutPromise])
       
       if (error) {
         console.error('Login error:', error.message)
@@ -87,7 +93,11 @@ function Login() {
       }
     } catch (error) {
       console.error('Unexpected error:', error)
-      alert('An unexpected error occurred. Please try again.')
+      if (error.message === 'Login timeout') {
+        alert('Login is taking too long. Please check your connection and try again.')
+      } else {
+        alert('An unexpected error occurred. Please try again.')
+      }
     } finally {
       setIsLoading(false)
     }
