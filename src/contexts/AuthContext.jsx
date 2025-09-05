@@ -190,7 +190,11 @@ export const AuthProvider = ({ children }) => {
         return await addToUserWatchlist(user.id, movie, source, sourceValue)
       } else {
         // User is anonymous - save to anonymous tables
-        return await addToAnonymousWatchlist(sessionId, movie, source, sourceValue)
+        // Fallback to localStorage if sessionId state is null
+        const currentSessionId = sessionId || localStorage.getItem('celluloid_session_id')
+        console.log('Using sessionId:', currentSessionId, '(from state:', sessionId, ', from localStorage:', localStorage.getItem('celluloid_session_id'), ')')
+        
+        return await addToAnonymousWatchlist(currentSessionId, movie, source, sourceValue)
       }
     } catch (error) {
       console.error('Error adding to watchlist:', error)
