@@ -240,6 +240,9 @@ export const AuthProvider = ({ children }) => {
   // Add to anonymous watchlist
   const addToAnonymousWatchlist = async (sessionId, movie, source, sourceValue) => {
     try {
+      console.log('Adding to anonymous watchlist with sessionId:', sessionId)
+      console.log('Movie:', movie.movie_title, 'Source:', source, 'Value:', sourceValue)
+      
       // First, upsert the anon_watchlist_items entry
       const itemResponse = await fetch(`${supabaseUrl}/rest/v1/anon_watchlist_items`, {
         method: 'POST',
