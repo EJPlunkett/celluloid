@@ -351,24 +351,27 @@ function Watchlist() {
             )}
 
             {user && (
-              <button
-                onClick={(e) => {
-                  e.stopPropagation()
-                  handleWatchedToggle(movieId, movie.watched)
-                }}
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  cursor: 'pointer',
-                  color: movie.watched ? '#22c55e' : '#666',
-                  fontSize: '14px',
-                  textAlign: 'left',
-                  padding: 0,
-                  fontWeight: 'bold'
-                }}
-              >
-                ✔ Watched
-              </button>
+              <label style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                cursor: 'pointer',
+                fontSize: '14px',
+                fontWeight: 'bold'
+              }}>
+                <input
+                  type="checkbox"
+                  checked={movie.watched || false}
+                  onChange={(e) => {
+                    e.stopPropagation()
+                    handleWatchedToggle(movieId, movie.watched)
+                  }}
+                  style={{
+                    cursor: 'pointer'
+                  }}
+                />
+                Watched
+              </label>
             )}
             
             <button
