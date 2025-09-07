@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import { useNavigation } from '../hooks/useNavigation'
-import Navigation from '../components/Navigation'
 
 // Define the custom font for signature only
 const fontFace = `
@@ -122,20 +121,7 @@ function About() {
             color: '#000',
             textAlign: 'center'
           }}>
-            <em>Celluloid by Design</em> is a platform for discovering film through its aesthetics. Instead of relying on genre or storyline, movies here are catalogued by the qualities that define how they look: their colors, their settings, and their atmosphere. By organizing film through these elements, the site creates a different way of exploring cinema, one that makes aesthetic connections visible and usable.
-          </p>
-
-          <p style={{
-            fontWeight: 300,
-            fontSize: '16px',
-            lineHeight: 1.6,
-            margin: '0 0 20px 0',
-            padding: 0,
-            whiteSpace: 'pre-wrap',
-            color: '#000',
-            textAlign: 'center'
-          }}>
-            For now, the journey begins only with New York City films, a landscape that has shaped cinematic style for decades.
+            <em>Celluloid by Design</em> is a platform for discovering film through its aesthetics. Instead of relying on genre or storyline, movies here are catalogued by the qualities that define how they look: their colors, their settings, and their atmosphere. For now, the archive focuses only on New York City films, a landscape that has shaped cinematic style for decades, and by organizing them through these elements, the site creates a different way of exploring cinema, one that makes aesthetic connections visible and usable.
           </p>
 
           <img 
@@ -344,7 +330,284 @@ function About() {
           </div>
         </main>
 
-        <Navigation navOpen={navOpen} setNavOpen={setNavOpen} />
+        {/* Navigation Overlay */}
+        <nav 
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            width: '320px',
+            height: '100vh',
+            backgroundColor: '#f6f5f3',
+            border: '10px solid #000',
+            borderRadius: '0 20px 20px 0',
+            boxSizing: 'border-box',
+            boxShadow: 'none',
+            transform: navOpen ? 'translateX(0)' : 'translateX(calc(-100% - 20px))',
+            transition: 'transform 0.3s ease',
+            zIndex: 1050,
+            padding: '20px 20px 40px 40px',
+            overflowY: 'auto'
+          }}
+          aria-hidden={!navOpen}
+        >
+          <button 
+            onClick={() => {
+              navigation.goToMatch()
+              setNavOpen(false)
+            }}
+            style={{ 
+              display: 'block', 
+              marginTop: '20px', 
+              marginBottom: '16px',
+              background: 'transparent',
+              border: 'none',
+              padding: 0,
+              cursor: 'pointer'
+            }}
+          >
+            <img 
+              src="/Match By.png" 
+              alt="Match By" 
+              style={{
+                height: '30px',
+                width: 'auto',
+                maxWidth: '280px',
+                cursor: 'pointer',
+                display: 'block',
+                objectFit: 'contain'
+              }}
+            />
+          </button>
+          <ul style={{
+            listStyle: 'disc inside',
+            paddingLeft: 0,
+            marginTop: 0,
+            marginBottom: '30px',
+            fontWeight: 400,
+            fontSize: '18px'
+          }}>
+            <li style={{ marginBottom: '12px' }}>
+              <button 
+                onClick={() => {
+                  navigation.goToVibes()
+                  setNavOpen(false)
+                }}
+                style={{ 
+                  color: '#000', 
+                  textDecoration: 'none', 
+                  cursor: 'pointer',
+                  background: 'transparent',
+                  border: 'none',
+                  fontSize: '18px',
+                  fontWeight: 400,
+                  padding: 0,
+                  textAlign: 'left'
+                }}
+              >
+                Describe a Vibe
+              </button>
+            </li>
+            <li style={{ marginBottom: '12px' }}>
+              <button 
+                onClick={() => {
+                  navigation.goToColor()
+                  setNavOpen(false)
+                }}
+                style={{ 
+                  color: '#000', 
+                  textDecoration: 'none', 
+                  cursor: 'pointer',
+                  background: 'transparent',
+                  border: 'none',
+                  fontSize: '18px',
+                  fontWeight: 400,
+                  padding: 0,
+                  textAlign: 'left'
+                }}
+              >
+                Pick a Color
+              </button>
+            </li>
+            <li style={{ marginBottom: '12px' }}>
+              <button 
+                onClick={() => {
+                  navigation.goToWords()
+                  setNavOpen(false)
+                }}
+                style={{ 
+                  color: '#000', 
+                  textDecoration: 'none', 
+                  cursor: 'pointer',
+                  background: 'transparent',
+                  border: 'none',
+                  fontSize: '18px',
+                  fontWeight: 400,
+                  padding: 0,
+                  textAlign: 'left'
+                }}
+              >
+                Choose Keywords
+              </button>
+            </li>
+            <li style={{ marginBottom: '12px' }}>
+              <button 
+                onClick={() => {
+                  navigation.goToSurprise()
+                  setNavOpen(false)
+                }}
+                style={{ 
+                  color: '#000', 
+                  textDecoration: 'none', 
+                  cursor: 'pointer',
+                  background: 'transparent',
+                  border: 'none',
+                  fontSize: '18px',
+                  fontWeight: 400,
+                  padding: 0,
+                  textAlign: 'left'
+                }}
+              >
+                Surprise Me
+              </button>
+            </li>
+          </ul>
+
+          <button 
+            onClick={() => {
+              navigation.goToWatchlist()
+              setNavOpen(false)
+            }}
+            style={{ 
+              display: 'block', 
+              marginBottom: '16px',
+              background: 'transparent',
+              border: 'none',
+              padding: 0,
+              cursor: 'pointer'
+            }}
+          >
+            <img 
+              src="/Watchlist.png" 
+              alt="Watchlist" 
+              style={{
+                height: '30px',
+                width: 'auto',
+                maxWidth: '280px',
+                cursor: 'pointer',
+                display: 'block',
+                objectFit: 'contain'
+              }}
+            />
+          </button>
+          <ul style={{
+            listStyle: 'disc inside',
+            paddingLeft: 0,
+            marginTop: 0,
+            marginBottom: '30px',
+            fontWeight: 400,
+            fontSize: '18px'
+          }}>
+            <li style={{ marginBottom: '12px' }}>
+              <button 
+                onClick={() => {
+                  navigation.goToCreate()
+                  setNavOpen(false)
+                }}
+                style={{ 
+                  color: '#000', 
+                  textDecoration: 'none', 
+                  cursor: 'pointer',
+                  background: 'transparent',
+                  border: 'none',
+                  fontSize: '18px',
+                  fontWeight: 400,
+                  padding: 0,
+                  textAlign: 'left'
+                }}
+              >
+                Create Account
+              </button>
+            </li>
+            <li style={{ marginBottom: '12px' }}>
+              <button 
+                onClick={() => {
+                  navigation.goToLogin()
+                  setNavOpen(false)
+                }}
+                style={{ 
+                  color: '#000', 
+                  textDecoration: 'none', 
+                  cursor: 'pointer',
+                  background: 'transparent',
+                  border: 'none',
+                  fontSize: '18px',
+                  fontWeight: 400,
+                  padding: 0,
+                  textAlign: 'left'
+                }}
+              >
+                Sign In
+              </button>
+            </li>
+          </ul>
+
+          <button 
+            onClick={() => {
+              navigation.goToAbout()
+              setNavOpen(false)
+            }}
+            style={{ 
+              display: 'block', 
+              marginBottom: '16px',
+              background: 'transparent',
+              border: 'none',
+              padding: 0,
+              cursor: 'pointer'
+            }}
+          >
+            <img 
+              src="/About.png" 
+              alt="About" 
+              style={{
+                height: '30px',
+                width: 'auto',
+                maxWidth: '280px',
+                cursor: 'pointer',
+                display: 'block',
+                objectFit: 'contain'
+              }}
+            />
+          </button>
+          
+          <button 
+            onClick={() => {
+              navigation.goToSupport()
+              setNavOpen(false)
+            }}
+            style={{ 
+              display: 'block', 
+              marginBottom: '16px',
+              background: 'transparent',
+              border: 'none',
+              padding: 0,
+              cursor: 'pointer'
+            }}
+          >
+            <img 
+              src="/Support Header.png" 
+              alt="Support" 
+              style={{
+                height: '25px',
+                width: 'auto',
+                maxWidth: '280px',
+                cursor: 'pointer',
+                display: 'block',
+                objectFit: 'contain'
+              }}
+            />
+          </button>
+        </nav>
 
         <footer style={{
           fontSize: '14px',
