@@ -355,7 +355,7 @@ function Surprise() {
         background: '#f6f5f3',
         fontStyle: 'italic'
       }}>
-        <span>© 2025 Celluloid by Design</span>
+        <span>© 2025 Celluloid by Design <span style={{ opacity: 0.5, fontStyle: 'normal' }}>(BETA)</span></span>
       </footer>
     </div>
   )
