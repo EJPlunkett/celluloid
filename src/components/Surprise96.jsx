@@ -1,37 +1,28 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useNavigation } from '../hooks/useNavigation'
 import Navigation from '../components/Navigation'
 
 function Surprise() {
   const [navOpen, setNavOpen] = useState(false)
-  const [currentVibe, setCurrentVibe] = useState("")
+  const [currentVibe, setCurrentVibe] = useState("Rooftop gardens overlooking a sprawling city skyline.")
   const [isRolling, setIsRolling] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
-  const [usedVibes, setUsedVibes] = useState([])
   const navigation = useNavigation()
 
   // Array of surprise vibes
   const vibes = [
-    "Over-the-top holiday décor, department store displays, and snow-dusted streets lined with Christmas trees",
-    "Lonely late-night diners, chrome counters and fluorescent hum lingering over empty booths",
-    "Central Park in autumn, golden leaves, cashmere scarves and city streets glowing under late-day warmth",
-    "Peep-show signage, shadowed doorways and sidewalks layered with crumpled posters and urban grit",
-    "Peeling wallpaper and buzzing neon, seedy hotel rooms heavy with claustrophobic urban decay",
-    "2000s editorial fashion energy, sleek offices and sparkling apartments set against the Manhattan skyline",
-    "Gritty 1970s graffiti-covered facades, steam rising from cracked streets and an atmosphere of urban menace",
-    "Urban adolescence in 1990s New York, thrifted clothes, graffiti and basketball echoing off brick walls",
-    "1980s midtown skyscrapers, pastel power suits and mirrored offices glowing under fluorescent ambition",
-    "1980s New York grit, trash-strewn streets, shadowed alleys and police sirens cutting through tense city blocks",
-    "Colorful mid-century apartments with patterned décor and playful style, glowing with 1950s charm"
+  "Over-the-top holiday décor, department store displays, and snow-dusted streets lined with Christmas trees",
+  "Lonely late-night diners, chrome counters and fluorescent hum lingering over empty booths",
+  "Central Park in autumn, golden leaves, cashmere scarves and city streets glowing under late-day warmth",
+  "Peep-show signage, shadowed doorways and sidewalks layered with crumpled posters and urban grit",
+  "Peeling wallpaper and buzzing neon, seedy hotel rooms heavy with claustrophobic urban decay",
+  "2000s editorial fashion energy, sleek offices and sparkling apartments set against the Manhattan skyline",
+  "Gritty 1970s graffiti-covered facades, steam rising from cracked streets and an atmosphere of urban menace",
+  "Urban adolescence in 1990s New York, thrifted clothes, graffiti and basketball echoing off brick walls",
+  "1980s midtown skyscrapers, pastel power suits and mirrored offices glowing under fluorescent ambition",
+  "1980s New York grit, trash-strewn streets, shadowed alleys and police sirens cutting through tense city blocks",
+  "Colorful mid-century apartments with patterned décor and playful style, glowing with 1950s charm"
   ]
-
-  // Initialize with a random vibe on component mount
-  useEffect(() => {
-    const randomIndex = Math.floor(Math.random() * vibes.length)
-    const initialVibe = vibes[randomIndex]
-    setCurrentVibe(initialVibe)
-    setUsedVibes([initialVibe])
-  }, [])
 
   const toggleNav = () => {
     setNavOpen(!navOpen)
@@ -40,29 +31,13 @@ function Surprise() {
   const rollDice = () => {
     setIsRolling(true)
     
-    // Check if all vibes have been used
-    let availableVibes
-    if (usedVibes.length >= vibes.length) {
-      // Reset if all vibes have been used
-      availableVibes = vibes.filter(vibe => vibe !== currentVibe)
-      setUsedVibes([])
-    } else {
-      // Get vibes that haven't been used yet
-      availableVibes = vibes.filter(vibe => !usedVibes.includes(vibe))
-    }
+    // Get a random vibe that's different from the current one
+    let randomIndex
+    do {
+      randomIndex = Math.floor(Math.random() * vibes.length)
+    } while (vibes[randomIndex] === currentVibe)
     
-    // Pick a random vibe from available ones
-    const randomIndex = Math.floor(Math.random() * availableVibes.length)
-    const newVibe = availableVibes[randomIndex]
-    
-    setCurrentVibe(newVibe)
-    
-    // Add the new vibe to used vibes (or reset and add if we just reset)
-    if (usedVibes.length >= vibes.length) {
-      setUsedVibes([newVibe])
-    } else {
-      setUsedVibes(prev => [...prev, newVibe])
-    }
+    setCurrentVibe(vibes[randomIndex])
     
     // Reset dice animation after 400ms to match the CSS animation duration
     setTimeout(() => {
@@ -142,19 +117,8 @@ function Surprise() {
       minHeight: '100vh',
       position: 'relative'
     }}>
-      {/* Inject CSS animation and font */}
-      <style>
-        {`
-          @font-face {
-            font-family: 'Blanka';
-            src: url('/BLANKA.otf') format('opentype');
-            font-weight: normal;
-            font-style: normal;
-          }
-          
-          ${shakeKeyframes}
-        `}
-      </style>
+      {/* Inject CSS animation */}
+      <style>{shakeKeyframes}</style>
       
       <header style={{
         display: 'flex',
@@ -305,7 +269,7 @@ function Surprise() {
               height: 'auto',
               background: 'transparent',
               border: 'none',
-              cursor: isLoading ? 'not-allowed' : 'cursor',
+              cursor: isLoading ? 'not-allowed' : 'pointer',
               display: 'inline-block',
               opacity: isLoading ? 0.6 : 1,
               transform: isLoading ? 'scale(0.95)' : 'scale(1)',
