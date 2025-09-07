@@ -443,6 +443,22 @@ function Watchlist() {
     const entries = Object.entries(groupedMovies)
     
     switch (groupingType) {
+      case 'Input Type':
+        return entries.sort(([a], [b]) => {
+          const order = ['Color', 'Vibe', 'Keywords', 'Surprise']
+          const indexA = order.indexOf(a)
+          const indexB = order.indexOf(b)
+          // If both are in the order array, sort by position
+          if (indexA !== -1 && indexB !== -1) {
+            return indexA - indexB
+          }
+          // If only one is in the order array, it comes first
+          if (indexA !== -1) return -1
+          if (indexB !== -1) return 1
+          // If neither is in the order array, sort alphabetically
+          return a.localeCompare(b)
+        })
+      
       case 'Depicted Decade':
       case 'Release Decade':
         return entries.sort(([a], [b]) => {
