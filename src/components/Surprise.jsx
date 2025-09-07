@@ -150,6 +150,13 @@ function Surprise() {
             src: url('/BLANKA.otf') format('opentype');
             font-weight: normal;
             font-style: normal;
+            font-display: swap;
+          }
+          
+          .blanka-font {
+            font-family: 'Blanka', Arial, sans-serif !important;
+            font-weight: normal !important;
+            font-style: normal !important;
           }
           
           ${shakeKeyframes}
@@ -300,34 +307,28 @@ function Surprise() {
           <button
             onClick={handleSubmit}
             disabled={isLoading}
+            className={isLoading ? 'blanka-font' : ''}
             style={{
+              marginBottom: '5px',
               width: '150px',
-              height: 'auto',
-              background: 'transparent',
+              height: isLoading ? '40px' : 'auto',
+              background: isLoading ? '#000' : 'transparent',
               border: 'none',
-              cursor: isLoading ? 'not-allowed' : 'cursor',
-              display: 'inline-block',
+              cursor: isLoading ? 'not-allowed' : 'pointer',
+              display: 'block',
+              marginLeft: 'auto',
+              marginRight: 'auto',
               opacity: isLoading ? 0.6 : 1,
-              transform: isLoading ? 'scale(0.95)' : 'scale(1)',
-              transition: 'all 0.2s ease'
+              borderRadius: isLoading ? '25px' : '0',
+              color: isLoading ? '#fff' : 'transparent',
+              fontFamily: isLoading ? "'Blanka', Arial, sans-serif" : 'inherit',
+              fontSize: isLoading ? '16px' : 'inherit',
+              textTransform: isLoading ? 'uppercase' : 'none',
+              letterSpacing: isLoading ? '1px' : 'normal',
+              fontWeight: isLoading ? 'normal' : 'inherit'
             }}
           >
-            {isLoading ? (
-              <div style={{
-                width: '150px',
-                height: '40px',
-                backgroundColor: '#000',
-                borderRadius: '20px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: '#f6f5f3',
-                fontSize: '14px',
-                fontWeight: 'bold'
-              }}>
-                Searching...
-              </div>
-            ) : (
+            {isLoading ? 'SEARCHING' : (
               <img 
                 src="/Submit Button.png" 
                 alt="Submit Button" 
