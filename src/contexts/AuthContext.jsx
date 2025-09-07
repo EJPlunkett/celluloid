@@ -309,24 +309,15 @@ export const AuthProvider = ({ children }) => {
     }
   }
 
-  // Fetch watchlist data - simplified version
+  // Fetch watchlist data - fixed version to avoid foreign key relationship issues
   const fetchWatchlist = async () => {
     try {
       if (user) {
-        // Fetch authenticated user's watchlist
-        const { data, error } = await supabase
+        // Fetch authenticated user's watchlist items first
+        const { data: likedMovies, error: likedError } = await supabase
           .from('liked_movies')
           .select(`
             *,
-            celluloid_film_data!inner(
-              movie_id,
-              movie_title,
-              year,
-              aesthetic_summary,
-              synopsis,
-              depicted_decade,
-              letterboxd_link
-            ),
             liked_movie_sources(
               source,
               source_value,
@@ -335,8 +326,34 @@ export const AuthProvider = ({ children }) => {
           `)
           .eq('user_id', user.id)
 
-        if (error) throw error
-        return data || []
+        if (likedError) throw likedError
+
+        if (!likedMovies || likedMovies.length === 0) {
+          return []
+        }
+
+        // Get movie IDs
+        const movieIds = likedMovies.map(item => item.movie_id)
+
+        // Fetch movie details separately
+        const { data: movieDetails, error: moviesError } = await supabase
+          .from('celluloid_film_data')
+          .select('movie_id, movie_title, year, aesthetic_summary, synopsis, depicted_decade, letterboxd_link')
+          .in('movie_id', movieIds)
+
+        if (moviesError) throw moviesError
+
+        // Merge the data together
+        const mergedData = likedMovies.map(item => {
+          const movieData = movieDetails?.find(movie => movie.movie_id === item.movie_id)
+          
+          return {
+            ...item,
+            celluloid_film_data: movieData
+          }
+        })
+
+        return mergedData
       } else {
         // Fetch anonymous user's watchlist
         const currentSessionId = sessionId || localStorage.getItem('celluloid_session_id')
