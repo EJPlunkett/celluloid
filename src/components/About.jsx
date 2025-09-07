@@ -617,7 +617,7 @@ function About() {
           userSelect: 'none',
           background: '#f6f5f3'
         }}>
-          <span>© 2025 Celluloid by Design <span style={{ opacity: 0.5, fontStyle: 'normal' }}>(BETA)</span></span>
+         <span>© 2025 Celluloid by Design <span style={{ opacity: 0.8 }}>(BETA)</span></span>
         </footer>
       </div>
     </>

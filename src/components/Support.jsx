@@ -244,7 +244,7 @@ function Support() {
           whiteSpace: 'normal',
           textAlign: 'center'
         }}>
-          <em>Celluloid by Design</em> is built on curiosity, structure, and a touch of AI behind the scenes. Each search draws on OpenAI's technology, which carries a small cost every time. This is an independent creative project, not a crowdfunding platform or nonprofit, and your support works like a tip that goes directly toward keeping the project alive and growing.
+          <em>Celluloid by Design</em> is built on curiosity, structure, and a touch of AI behind the scenes. Each search uses OpenAI’s technology, which carries a small cost. This is an independent creative project, not a crowdfunding platform or nonprofit, and your support works like a tip that goes directly toward keeping it alive and growing.
         </p>
 
         {/* Message display */}

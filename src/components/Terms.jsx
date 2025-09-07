@@ -455,6 +455,7 @@ function Terms() {
           <li style={{ marginBottom: '8px' }}>Maintain security and prevent misuse.</li>
           <li style={{ marginBottom: '8px' }}>Communicate with you about updates, features, or account matters.</li>
           <li style={{ marginBottom: '8px' }}>Develop and test new features, tools, and services.</li>
+          <li style={{ marginBottom: '8px' }}>Generate anonymized, aggregate insights about trends, such as popular vibes, colors, or aesthetic tags. These insights may be presented on the website but are never linked to your personal information.</li>
         </ul>
         <p style={{
           fontWeight: 300,
