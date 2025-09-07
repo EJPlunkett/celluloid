@@ -660,7 +660,7 @@ function Watchlist() {
               >
                 Create An Account
               </button><br />
-              to save your curated watchlist.
+              to save your curated watchlist and unlock filters and features.
             </>
           ) : (
             <em>Your aesthetic, your archive.</em>
