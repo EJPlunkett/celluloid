@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigation } from '../hooks/useNavigation'
 import Navigation from '../components/Navigation'
 
@@ -6,7 +6,29 @@ function Vibes() {
   const [navOpen, setNavOpen] = useState(false)
   const [vibeText, setVibeText] = useState('')
   const [isLoading, setIsLoading] = useState(false)
+  const [placeholderText, setPlaceholderText] = useState('')
   const navigation = useNavigation()
+
+  // Array of example vibes for placeholder
+  const vibes = [
+    "Over-the-top holiday décor, department store displays, and snow-dusted streets lined with Christmas trees",
+    "Lonely late-night diners, chrome counters and fluorescent hum lingering over empty booths",
+    "Central Park in autumn, golden leaves, cashmere scarves and city streets glowing under late-day warmth",
+    "Peep-show signage, shadowed doorways and sidewalks layered with crumpled posters and urban grit",
+    "Peeling wallpaper and buzzing neon, seedy hotel rooms heavy with claustrophobic urban decay",
+    "2000s editorial fashion energy, sleek offices and sparkling apartments set against the Manhattan skyline",
+    "Gritty 1970s graffiti-covered facades, steam rising from cracked streets and an atmosphere of urban menace",
+    "Urban adolescence in 1990s New York, thrifted clothes, graffiti and basketball echoing off brick walls",
+    "1980s midtown skyscrapers, pastel power suits and mirrored offices glowing under fluorescent ambition",
+    "1980s New York grit, trash-strewn streets, shadowed alleys and police sirens cutting through tense city blocks",
+    "Colorful mid-century apartments with patterned décor and playful style, glowing with 1950s charm"
+  ]
+
+  // Set random placeholder on component mount
+  useEffect(() => {
+    const randomIndex = Math.floor(Math.random() * vibes.length)
+    setPlaceholderText(`Example: ${vibes[randomIndex]}`)
+  }, [])
 
   const toggleNav = () => {
     setNavOpen(!navOpen)
@@ -185,7 +207,7 @@ function Vibes() {
         <textarea 
           value={vibeText}
           onChange={handleVibeChange}
-          placeholder="Ex: NY nightclubs, underground art parties, and warehouse loft gatherings in the '80s."
+          placeholder={placeholderText}
           disabled={isLoading}
           style={{
             width: '100%',
