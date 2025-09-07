@@ -367,31 +367,39 @@ function Watchlist() {
                     handleWatchedToggle(movieId, movie.watched)
                   }}
                   style={{
-                    cursor: 'pointer'
+                    cursor: 'pointer',
+                    accentColor: '#000'
                   }}
                 />
                 Watched
               </label>
             )}
             
-            <button
-              onClick={(e) => {
-                e.stopPropagation()
-                handleRemoveMovie(movieId)
-              }}
-              style={{
-                background: 'none',
-                border: 'none',
-                cursor: 'pointer',
-                color: '#000',
-                fontSize: '14px',
-                textAlign: 'left',
-                padding: 0,
-                fontWeight: 'bold'
-              }}
-            >
-              ✖ Remove
-            </button>
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px'
+            }}>
+              <div style={{ width: '16px' }}></div>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation()
+                  handleRemoveMovie(movieId)
+                }}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  color: '#000',
+                  fontSize: '14px',
+                  textAlign: 'left',
+                  padding: 0,
+                  fontWeight: 'bold'
+                }}
+              >
+                ✖ Remove
+              </button>
+            </div>
           </div>
         </div>
       </li>
