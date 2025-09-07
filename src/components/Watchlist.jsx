@@ -594,7 +594,7 @@ function Watchlist() {
             </div>
 
             {/* Movie Groups */}
-            {Object.entries(groupedMovies).map(([groupName, movies]) => (
+            {sortedGroupEntries.map(([groupName, movies]) => (
               <div key={groupName} style={{
                 marginBottom: '40px',
                 textAlign: 'left'
