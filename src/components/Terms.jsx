@@ -274,7 +274,7 @@ function Terms() {
           margin: '0 0 15px 0',
           color: '#000'
         }}>
-          Some recommendations and matches provided through the Service are generated with the assistance of artificial intelligence (“AI”). The AI is used to analyze aesthetics, colors, and patterns across films to suggest possible connections. Because AI processes can be imperfect, results may not always reflect intended matches. You acknowledge that recommendations are provided for discovery purposes and should not be relied on as definitive or factual information.
+          Some recommendations are generated with the assistance of AI models. These models process your input to create results but do not retain your personal information beyond what is needed to operate the feature.
         </p>
 
         <h2 style={{
