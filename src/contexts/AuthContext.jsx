@@ -340,24 +340,30 @@ export const AuthProvider = ({ children }) => {
         const currentSessionId = sessionId || localStorage.getItem('celluloid_session_id')
         console.log('Fetching watchlist for session:', currentSessionId)
         
-        const { data, error } = await supabase
+        // First get the watchlist items
+        const { data: watchlistItems, error: watchlistError } = await supabase
           .from('anon_watchlist_items')
-          .select(`
-            *,
-            movies!inner(
-              movie_id,
-              movie_title,
-              year,
-              aesthetic_summary,
-              synopsis,
-              depicted_decade,
-              letterboxd_link
-            )
-          `)
+          .select('*')
           .eq('session_id', currentSessionId)
 
-        console.log('Watchlist query result:', { data, error })
-        if (error) throw error
+        console.log('Watchlist items:', { watchlistItems, watchlistError })
+        if (watchlistError) throw watchlistError
+
+        if (!watchlistItems || watchlistItems.length === 0) {
+          return []
+        }
+
+        // Get the movie IDs
+        const movieIds = watchlistItems.map(item => item.movie_id)
+
+        // Fetch movie details separately
+        const { data: movieDetails, error: moviesError } = await supabase
+          .from('movies')
+          .select('movie_id, movie_title, year, aesthetic_summary, synopsis, depicted_decade, letterboxd_link')
+          .in('movie_id', movieIds)
+
+        console.log('Movie details:', { movieDetails, moviesError })
+        if (moviesError) throw moviesError
 
         // Fetch sources separately for anonymous users
         const { data: sources, error: sourcesError } = await supabase
@@ -368,15 +374,19 @@ export const AuthProvider = ({ children }) => {
         console.log('Sources query result:', { sources, sourcesError })
         if (sourcesError) throw sourcesError
 
-        // Merge sources into the main data
-        const mergedData = data.map(item => ({
-          ...item,
-          anon_watchlist_sources: sources.filter(source => 
-            source.movie_id === item.movie_id
-          )
-        }))
+        // Merge everything together
+        const mergedData = watchlistItems.map(item => {
+          const movieData = movieDetails.find(movie => movie.movie_id === item.movie_id)
+          const itemSources = sources.filter(source => source.movie_id === item.movie_id)
+          
+          return {
+            ...item,
+            movies: movieData,
+            anon_watchlist_sources: itemSources
+          }
+        })
 
-        console.log('Merged watchlist data:', mergedData)
+        console.log('Final merged data:', mergedData)
         return mergedData
       }
     } catch (error) {
