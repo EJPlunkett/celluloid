@@ -81,36 +81,22 @@ export const AuthProvider = ({ children }) => {
 
     getSession()
 
-    // Listen for auth changes
-    /*
+    // Listen for auth changes - simplified version
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        try {
-          setUser(session?.user ?? null)
-          
-          // Fetch profile for new user, clear profile on logout
-          if (session?.user) {
-            const profileData = await fetchProfile(session.user.id)
-            setProfile(profileData)
-          } else {
-            setProfile(null)
-          }
-          
-          // If user logs out, ensure we still have a session ID for anonymous usage
-          if (event === 'SIGNED_OUT') {
-            initializeSession()
-          }
-          
-          setLoading(false)
-        } catch (error) {
-          console.error('Error in auth state change:', error)
-          setLoading(false)
+      (event, session) => {
+        // Simple non-blocking auth state update
+        setUser(session?.user ?? null)
+        setLoading(false)
+        
+        // Handle logout
+        if (event === 'SIGNED_OUT') {
+          setProfile(null)
+          initializeSession()
         }
       }
     )
 
     return () => subscription.unsubscribe()
-    */
   }, [])
 
   // Login function - merge watchlist in background
