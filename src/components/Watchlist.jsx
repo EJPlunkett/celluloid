@@ -1,126 +1,66 @@
 import { useState, useEffect } from 'react'
+import { useAuth } from '../contexts/AuthContext'
 import { useNavigation } from '../hooks/useNavigation'
 import Navigation from '../components/Navigation'
 
 function Watchlist() {
   const [navOpen, setNavOpen] = useState(false)
   const [expandedMovies, setExpandedMovies] = useState(new Set())
-  const [isSignedIn, setIsSignedIn] = useState(false)
+  const [groupingType, setGroupingType] = useState('Input Type')
+  const [watchlistData, setWatchlistData] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+  
+  const { user, fetchWatchlist, updateWatchedStatus, removeFromWatchlist } = useAuth()
   const navigation = useNavigation()
 
-  // Mock watchlist data - later this will come from Supabase
-  const watchlistData = {
-    colorMatches: {
-      inputDetail: { type: 'color', value: '#4B0082' },
-      movies: [
-        {
-          id: 1,
-          title: "Requiem for a Dream",
-          year: 2000,
-          letterboxdUrl: "https://letterboxd.com/film/requiem-for-a-dream/",
-          summary: "A haunting exploration of addiction set against the decaying urban landscape of Brooklyn. Aronofsky's use of deep purples and stark contrasts creates a visual metaphor for descent into darkness, with the city itself becoming a character in this visceral psychological drama."
-        },
-        {
-          id: 2,
-          title: "The Royal Tenenbaums",
-          year: 2001,
-          letterboxdUrl: "https://letterboxd.com/film/the-royal-tenenbaums/",
-          summary: "Wes Anderson's whimsical masterpiece transforms NYC's Upper West Side into a storybook realm. Rich burgundies and royal purples dominate the carefully curated palette, creating a nostalgic aesthetic that makes the ordinary feel extraordinary through meticulous symmetry and vintage charm."
-        },
-        {
-          id: 3,
-          title: "Midnight Cowboy",
-          year: 1969,
-          letterboxdUrl: "https://letterboxd.com/film/midnight-cowboy/",
-          summary: "A gritty portrait of 1960s Manhattan that captures the city's seedy underbelly through muted purples and shadowy cinematography. The film's aesthetic reflects the loneliness and desperation of urban life, with Times Square's neon glow providing harsh contrast to intimate character moments."
-        }
-      ]
-    },
-    vibeMatches: [
-      {
-        inputDetail: { type: 'text', value: 'Gritty urban romance with neon lights' },
-        movies: [
-          {
-            id: 4,
-            title: "Her",
-            year: 2013,
-            letterboxdUrl: "https://letterboxd.com/film/her/",
-            summary: "Spike Jonze creates an intimate vision of near-future LA that feels remarkably like modern NYC. Warm amber glows and soft neon create a romantic urban dreamscape, where technology and human connection blur in beautifully lit apartment spaces and bustling city streets."
-          },
-          {
-            id: 5,
-            title: "Lost in Translation",
-            year: 2003,
-            letterboxdUrl: "https://letterboxd.com/film/lost-in-translation/",
-            summary: "Though set in Tokyo, Coppola's neon-soaked meditation on urban isolation perfectly captures the NYC experience. Pink and blue neon reflections create an ethereal atmosphere where two lonely souls connect against the backdrop of a sleepless city's electric energy."
-          },
-          {
-            id: 6,
-            title: "Taxi Driver",
-            year: 1976,
-            letterboxdUrl: "https://letterboxd.com/film/taxi-driver/",
-            summary: "Scorsese's iconic vision of 1970s Manhattan as a neon-lit hellscape. The film's aesthetic combines harsh street lighting with the warm glow of diners and porn theaters, creating a romantic yet dangerous urban atmosphere that defined NYC's cinematic identity."
-          }
-        ]
-      },
-      {
-        inputDetail: { type: 'surprise', value: 'Surprise Me random selection' },
-        movies: [
-          {
-            id: 7,
-            title: "Birdman",
-            year: 2014,
-            letterboxdUrl: "https://letterboxd.com/film/birdman/",
-            summary: "Iñárritu transforms Broadway's theater district into a surreal playground of mirrors and harsh fluorescents. The film's claustrophobic aesthetic traps viewers in the labyrinthine backstage world, where reality and performance blur under the unforgiving lights of Manhattan's cultural heart."
-          },
-          {
-            id: 8,
-            title: "Frances Ha",
-            year: 2012,
-            letterboxdUrl: "https://letterboxd.com/film/frances-ha/",
-            summary: "Baumbach's black-and-white love letter to Brooklyn captures the borough's creative energy through crisp monochrome cinematography. The aesthetic emphasizes the poetry in everyday moments, from subway rides to apartment parties, creating a timeless portrait of young adulthood in NYC."
-          },
-          {
-            id: 9,
-            title: "Do the Right Thing",
-            year: 1989,
-            letterboxdUrl: "https://letterboxd.com/film/do-the-right-thing/",
-            summary: "Spike Lee's Bedford-Stuyvesant becomes a pressure cooker of vibrant colors and sweltering heat. The film's aesthetic uses saturated reds and oranges to visualize racial tension, while the neighborhood's brick walls and fire hydrants become a stage for one of cinema's most powerful urban dramas."
-          }
-        ]
-      }
-    ],
-    keywordMatches: {
-      inputDetail: { type: 'keywords', value: 'minimalist, architectural, contemplative' },
-      movies: [
-        {
-          id: 10,
-          title: "The Apartment",
-          year: 1960,
-          letterboxdUrl: "https://letterboxd.com/film/the-apartment/",
-          summary: "Wilder's masterpiece transforms 1960s Manhattan office culture into geometric poetry. The film's aesthetic emphasizes clean lines and vast corporate spaces, where human stories unfold against the backdrop of modernist architecture and the impersonal beauty of mid-century design."
-        },
-        {
-          id: 11,
-          title: "Inside Llewyn Davis",
-          year: 2013,
-          letterboxdUrl: "https://letterboxd.com/film/inside-llewyn-davis/",
-          summary: "The Coen Brothers create a contemplative winter portrait of 1960s Greenwich Village. Muted browns and grays reflect the protagonist's melancholy, while the film's restrained aesthetic captures the intimate folk music scene in small clubs and snow-dusted Washington Square."
-        }
-      ]
+  const groupingOptions = [
+    'Input Type',
+    'Depicted Decade', 
+    'Release Decade',
+    'Match Month',
+    'Match Count'
+  ]
+
+  useEffect(() => {
+    loadWatchlist()
+  }, [user])
+
+  const loadWatchlist = async () => {
+    try {
+      setLoading(true)
+      const data = await fetchWatchlist()
+      setWatchlistData(data)
+      setError(null)
+    } catch (err) {
+      setError('Failed to load watchlist')
+      console.error(err)
+    } finally {
+      setLoading(false)
     }
   }
 
-  useEffect(() => {
-    // Check authentication status - later this will check Supabase auth
-    const checkAuth = () => {
-      // Mock check - replace with actual Supabase auth check
-      const userToken = localStorage.getItem('userToken')
-      setIsSignedIn(!!userToken)
-    }
+  const handleWatchedToggle = async (movieId, currentStatus) => {
+    if (!user) return // Only available for authenticated users
     
-    checkAuth()
-  }, [])
+    try {
+      await updateWatchedStatus(movieId, !currentStatus)
+      // Refresh the watchlist
+      await loadWatchlist()
+    } catch (err) {
+      console.error('Failed to update watched status:', err)
+    }
+  }
+
+  const handleRemoveMovie = async (movieId) => {
+    try {
+      await removeFromWatchlist(movieId)
+      // Refresh the watchlist
+      await loadWatchlist()
+    } catch (err) {
+      console.error('Failed to remove movie:', err)
+    }
+  }
 
   const toggleNav = () => {
     setNavOpen(!navOpen)
@@ -138,13 +78,143 @@ function Watchlist() {
     })
   }
 
+  // Group movies based on selected grouping type
+  const groupMovies = (movies, type) => {
+    const groups = {}
+
+    movies.forEach(movie => {
+      let groupKeys = []
+      
+      switch (type) {
+        case 'Input Type':
+          // For Input Type, movie can appear in multiple groups
+          const sources = user ? movie.liked_movie_sources : movie.anon_watchlist_sources
+          sources.forEach(source => {
+            const key = source.source.charAt(0).toUpperCase() + source.source.slice(1)
+            if (!groups[key]) groups[key] = []
+            groups[key].push({ ...movie, currentSource: source })
+          })
+          return
+
+        case 'Depicted Decade':
+          groupKeys = [movie.movies.depicted_decade || 'Unknown']
+          break
+
+        case 'Release Decade':
+          if (movie.movies.year) {
+            const decade = Math.floor(movie.movies.year / 10) * 10
+            groupKeys = [`${decade}s`]
+          } else {
+            groupKeys = ['Unknown']
+          }
+          break
+
+        case 'Match Month':
+          const date = new Date(movie.first_liked_at)
+          const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
+                             'July', 'August', 'September', 'October', 'November', 'December']
+          groupKeys = [monthNames[date.getMonth()]]
+          break
+
+        case 'Match Count':
+          const count = movie.like_count
+          const countWords = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten']
+          groupKeys = [count <= 10 ? countWords[count] : `${count} times`]
+          break
+
+        default:
+          groupKeys = ['All']
+      }
+
+      groupKeys.forEach(key => {
+        if (!groups[key]) groups[key] = []
+        // For non-Input Type groupings, include all sources
+        const sources = user ? movie.liked_movie_sources : movie.anon_watchlist_sources
+        groups[key].push({ ...movie, allSources: sources })
+      })
+    })
+
+    return groups
+  }
+
+  const renderColorSwatch = (hexCode) => {
+    // Handle multiple colors separated by commas
+    if (hexCode.includes(',')) {
+      const colors = hexCode.split(',').map(c => c.trim())
+      return (
+        <div style={{ display: 'flex', gap: '2px' }}>
+          {colors.map((color, index) => (
+            <div
+              key={index}
+              style={{
+                height: '1em',
+                width: '1em',
+                borderRadius: '2px',
+                backgroundColor: color,
+                border: '1px solid #ccc'
+              }}
+            />
+          ))}
+        </div>
+      )
+    } else {
+      return (
+        <div
+          style={{
+            height: '1em',
+            width: '1em',
+            borderRadius: '2px',
+            backgroundColor: hexCode,
+            border: '1px solid #ccc'
+          }}
+        />
+      )
+    }
+  }
+
+  const renderBasedOn = (movie, groupingType) => {
+    if (groupingType === 'Input Type' && movie.currentSource) {
+      // For Input Type grouping, show only the current source
+      const source = movie.currentSource
+      return (
+        <div style={{ marginBottom: '8px' }}>
+          <strong>Based on {source.source.charAt(0).toUpperCase() + source.source.slice(1)}: </strong>
+          {source.source === 'color' ? (
+            <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              {renderColorSwatch(source.source_value)}
+            </span>
+          ) : (
+            <span>"{source.source_value}"</span>
+          )}
+        </div>
+      )
+    } else if (movie.allSources) {
+      // For other groupings, show all sources
+      return movie.allSources.map((source, index) => (
+        <div key={index} style={{ marginBottom: '8px' }}>
+          <strong>Based on {source.source.charAt(0).toUpperCase() + source.source.slice(1)}: </strong>
+          {source.source === 'color' ? (
+            <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              {renderColorSwatch(source.source_value)}
+            </span>
+          ) : (
+            <span>"{source.source_value}"</span>
+          )}
+        </div>
+      ))
+    }
+    return null
+  }
+
   const renderMovieItem = (movie) => {
-    const isExpanded = expandedMovies.has(movie.id)
+    const isExpanded = expandedMovies.has(movie.movies.movie_id)
+    const movieData = movie.movies
     
     return (
-      <li key={movie.id} style={{ marginBottom: '15px', background: 'transparent', transition: 'all 0.3s ease' }}>
+      <li key={`${movie.movies.movie_id}-${movie.currentSource?.source || 'all'}`} 
+          style={{ marginBottom: '15px', background: 'transparent', transition: 'all 0.3s ease' }}>
         <div 
-          onClick={() => toggleMovie(movie.id)}
+          onClick={() => toggleMovie(movie.movies.movie_id)}
           style={{
             display: 'flex',
             alignItems: 'center',
@@ -165,26 +235,14 @@ function Watchlist() {
             transformOrigin: '25% 50%',
             transform: isExpanded ? 'rotate(90deg)' : 'rotate(0deg)'
           }}></div>
-          <a 
-            href={movie.letterboxdUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            onClick={(e) => e.stopPropagation()}
-            style={{
-              fontWeight: 500,
-              color: '#000',
-              textDecoration: 'none',
-              marginRight: '8px'
-            }}
-            onMouseEnter={(e) => e.target.style.textDecoration = 'underline'}
-            onMouseLeave={(e) => e.target.style.textDecoration = 'none'}
-          >
-            {movie.title}
-          </a>
-          <span style={{ color: '#666', fontWeight: 'normal' }}>({movie.year})</span>
+          <span style={{ fontWeight: 500, color: '#000', marginRight: '8px' }}>
+            {isExpanded ? '▼' : '▶'} {movieData.movie_title}
+          </span>
+          <span style={{ color: '#666', fontWeight: 'normal' }}>({movieData.year})</span>
         </div>
+
         <div style={{
-          maxHeight: isExpanded ? '200px' : '0',
+          maxHeight: isExpanded ? 'none' : '0',
           overflow: 'hidden',
           transition: 'max-height 0.4s ease, padding 0.4s ease, margin 0.4s ease',
           background: 'transparent',
@@ -192,17 +250,100 @@ function Watchlist() {
           padding: isExpanded ? '12px 0 8px 0' : '0',
           marginBottom: isExpanded ? '8px' : '0'
         }}>
-          <p style={{
-            fontSize: '14px',
-            lineHeight: 1.6,
-            color: '#555',
-            margin: 0,
-            fontStyle: 'italic'
+          {movieData.aesthetic_summary && (
+            <div style={{ marginBottom: '8px' }}>
+              <strong>Aesthetic: </strong>
+              <span style={{ fontStyle: 'italic' }}>{movieData.aesthetic_summary}</span>
+            </div>
+          )}
+          
+          {movieData.synopsis && (
+            <div style={{ marginBottom: '8px' }}>
+              <strong>Synopsis: </strong>
+              <span style={{ fontStyle: 'italic' }}>{movieData.synopsis}</span>
+            </div>
+          )}
+
+          {renderBasedOn(movie, groupingType)}
+
+          <div style={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            gap: '15px', 
+            marginTop: '12px',
+            fontSize: '14px'
           }}>
-            {movie.summary}
-          </p>
+            {user && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation()
+                  handleWatchedToggle(movie.movies.movie_id, movie.watched)
+                }}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  color: movie.watched ? '#22c55e' : '#666',
+                  fontSize: '14px'
+                }}
+              >
+                ✔ Watched
+              </button>
+            )}
+            
+            <button
+              onClick={(e) => {
+                e.stopPropagation()
+                handleRemoveMovie(movie.movies.movie_id)
+              }}
+              style={{
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                color: '#ef4444',
+                fontSize: '14px'
+              }}
+            >
+              ✖ Remove
+            </button>
+            
+            {movieData.letterboxd_link && (
+              <a
+                href={movieData.letterboxd_link}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={(e) => e.stopPropagation()}
+                style={{
+                  color: '#000',
+                  textDecoration: 'none',
+                  fontWeight: 'bold',
+                  fontSize: '14px'
+                }}
+                onMouseEnter={(e) => e.target.style.textDecoration = 'underline'}
+                onMouseLeave={(e) => e.target.style.textDecoration = 'none'}
+              >
+                Letterboxd
+              </a>
+            )}
+          </div>
         </div>
       </li>
+    )
+  }
+
+  const groupedMovies = groupMovies(watchlistData, groupingType)
+
+  if (loading) {
+    return (
+      <div style={{ 
+        display: 'flex', 
+        justifyContent: 'center', 
+        alignItems: 'center', 
+        height: '100vh',
+        backgroundColor: '#f6f5f3'
+      }}>
+        Loading watchlist...
+      </div>
     )
   }
 
@@ -318,7 +459,7 @@ function Watchlist() {
           whiteSpace: 'normal',
           textAlign: 'center'
         }}>
-          {!isSignedIn ? (
+          {!user ? (
             <>
               <em>Your aesthetic, your archive.</em><br /><br />
               <button 
@@ -362,124 +503,91 @@ function Watchlist() {
           )}
         </p>
 
-        {/* Color Matches Section */}
-        <div style={{
-          marginBottom: '40px',
-          textAlign: 'left',
-          marginTop: isSignedIn ? '30px' : '0'
-        }}>
-          <h2 style={{
-            fontFamily: "'BLANKA', Arial, sans-serif",
-            fontSize: '24px',
-            fontWeight: 'normal',
-            marginBottom: '8px',
-            color: '#000',
-            borderBottom: '2px solid #000',
-            paddingBottom: '5px',
-            letterSpacing: '0.5px'
+        {error && (
+          <div style={{ 
+            color: '#ef4444', 
+            textAlign: 'center', 
+            margin: '20px 0' 
           }}>
-            Color Matches
-          </h2>
-          <div style={{
-            fontSize: '16px',
-            fontStyle: 'italic',
+            {error}
+          </div>
+        )}
+
+        {watchlistData.length === 0 && !loading ? (
+          <div style={{ 
+            textAlign: 'center', 
+            margin: '40px 0',
             color: '#666',
-            marginBottom: '15px',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px'
+            fontStyle: 'italic'
           }}>
-            Based on:{' '}
+            Your watchlist is empty. Start exploring to add some movies!
+          </div>
+        ) : (
+          <>
+            {/* Grouping Selector */}
             <div style={{
-              height: '1em',
-              width: '1em',
-              borderRadius: '4px',
-              display: 'inline-block',
-              backgroundColor: watchlistData.colorMatches.inputDetail.value
-            }}></div>
-          </div>
-          <ul style={{
-            listStyle: 'none',
-            paddingLeft: 0,
-            margin: 0
-          }}>
-            {watchlistData.colorMatches.movies.map(renderMovieItem)}
-          </ul>
-        </div>
-
-        {/* Vibe Matches Section */}
-        <div style={{
-          marginBottom: '40px',
-          textAlign: 'left'
-        }}>
-          <h2 style={{
-            fontFamily: "'BLANKA', Arial, sans-serif",
-            fontSize: '24px',
-            fontWeight: 'normal',
-            marginBottom: '8px',
-            color: '#000',
-            borderBottom: '2px solid #000',
-            paddingBottom: '5px',
-            letterSpacing: '0.5px'
-          }}>
-            Vibe Matches
-          </h2>
-          
-          {watchlistData.vibeMatches.map((section, index) => (
-            <div key={index}>
-              <div style={{
-                fontSize: '16px',
-                fontStyle: 'italic',
-                color: '#666',
-                marginBottom: '15px',
-                marginTop: index > 0 ? '25px' : '0'
+              marginTop: user ? '30px' : '20px',
+              marginBottom: '20px',
+              textAlign: 'left'
+            }}>
+              <label style={{
+                display: 'block',
+                marginBottom: '8px',
+                fontWeight: 500,
+                color: '#000'
               }}>
-                Based on: "{section.inputDetail.value}"
-              </div>
-              <ul style={{
-                listStyle: 'none',
-                paddingLeft: 0,
-                margin: 0
-              }}>
-                {section.movies.map(renderMovieItem)}
-              </ul>
+                Group by:
+              </label>
+              <select
+                value={groupingType}
+                onChange={(e) => setGroupingType(e.target.value)}
+                style={{
+                  padding: '8px 12px',
+                  border: '2px solid #000',
+                  borderRadius: '4px',
+                  backgroundColor: '#f6f5f3',
+                  fontSize: '16px',
+                  fontFamily: 'Arial, sans-serif',
+                  cursor: 'pointer'
+                }}
+              >
+                {groupingOptions.map(option => (
+                  <option key={option} value={option}>
+                    {option}
+                  </option>
+                ))}
+              </select>
             </div>
-          ))}
-        </div>
 
-        {/* Keyword Matches Section */}
-        <div style={{
-          marginBottom: '40px',
-          textAlign: 'left'
-        }}>
-          <h2 style={{
-            fontFamily: "'BLANKA', Arial, sans-serif",
-            fontSize: '24px',
-            fontWeight: 'normal',
-            marginBottom: '8px',
-            color: '#000',
-            borderBottom: '2px solid #000',
-            paddingBottom: '5px',
-            letterSpacing: '0.5px'
-          }}>
-            Keyword Matches
-          </h2>
-          <div style={{
-            fontSize: '16px',
-            fontStyle: 'italic',
-            color: '#666',
-            marginBottom: '15px'
-          }}>
-            Based on: "{watchlistData.keywordMatches.inputDetail.value}"
-          </div>
-          <ul style={{
-            listStyle: 'none',
-            paddingLeft: 0,
-            margin: 0
-          }}>
-            {watchlistData.keywordMatches.movies.map(renderMovieItem)}
-          </ul>
-        </div>
+            {/* Movie Groups */}
+            {Object.entries(groupedMovies).map(([groupName, movies]) => (
+              <div key={groupName} style={{
+                marginBottom: '40px',
+                textAlign: 'left'
+              }}>
+                <h2 style={{
+                  fontFamily: "'BLANKA', Arial, sans-serif",
+                  fontSize: '24px',
+                  fontWeight: 'normal',
+                  marginBottom: '15px',
+                  color: '#000',
+                  borderBottom: '2px solid #000',
+                  paddingBottom: '5px',
+                  letterSpacing: '0.5px'
+                }}>
+                  {groupName}
+                </h2>
+                <ul style={{
+                  listStyle: 'none',
+                  paddingLeft: 0,
+                  margin: 0
+                }}>
+                  {movies.map(renderMovieItem)}
+                </ul>
+              </div>
+            ))}
+          </>
+        )}
       </main>
 
       <Navigation navOpen={navOpen} setNavOpen={setNavOpen} />
