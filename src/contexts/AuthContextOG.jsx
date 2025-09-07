@@ -82,7 +82,6 @@ export const AuthProvider = ({ children }) => {
     getSession()
 
     // Listen for auth changes
-    /*
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         try {
@@ -110,7 +109,6 @@ export const AuthProvider = ({ children }) => {
     )
 
     return () => subscription.unsubscribe()
-    */
   }, [])
 
   // Login function - merge watchlist in background
