@@ -106,7 +106,7 @@ function About() {
               maxWidth: '480px',
               height: 'auto',
               display: 'block',
-              marginTop: '20px',
+              marginTop: '35px',
               marginBottom: '5px'
             }}
           />
