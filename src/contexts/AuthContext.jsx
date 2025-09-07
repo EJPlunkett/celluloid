@@ -338,6 +338,7 @@ export const AuthProvider = ({ children }) => {
       } else {
         // Fetch anonymous user's watchlist
         const currentSessionId = sessionId || localStorage.getItem('celluloid_session_id')
+        console.log('Fetching watchlist for session:', currentSessionId)
         
         const { data, error } = await supabase
           .from('anon_watchlist_items')
@@ -355,6 +356,7 @@ export const AuthProvider = ({ children }) => {
           `)
           .eq('session_id', currentSessionId)
 
+        console.log('Watchlist query result:', { data, error })
         if (error) throw error
 
         // Fetch sources separately for anonymous users
@@ -363,6 +365,7 @@ export const AuthProvider = ({ children }) => {
           .select('*')
           .eq('session_id', currentSessionId)
 
+        console.log('Sources query result:', { sources, sourcesError })
         if (sourcesError) throw sourcesError
 
         // Merge sources into the main data
@@ -373,6 +376,7 @@ export const AuthProvider = ({ children }) => {
           )
         }))
 
+        console.log('Merged watchlist data:', mergedData)
         return mergedData
       }
     } catch (error) {
