@@ -80,11 +80,19 @@ function Watchlist() {
 
   // Helper functions to handle different data structures
   const getMovieId = (movie) => {
-    return user ? movie.movies.movie_id : movie.celluloid_film_data.movie_id
+    if (user) {
+      return movie.movies.movie_id
+    } else {
+      return movie.celluloid_film_data ? movie.celluloid_film_data.movie_id : movie.movie_id
+    }
   }
 
   const getMovieData = (movie) => {
-    return user ? movie.movies : movie.celluloid_film_data
+    if (user) {
+      return movie.movies
+    } else {
+      return movie.celluloid_film_data || {}
+    }
   }
 
   // Group movies based on selected grouping type
