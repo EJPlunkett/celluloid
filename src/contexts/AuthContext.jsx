@@ -81,7 +81,7 @@ export const AuthProvider = ({ children }) => {
 
     getSession()
 
-    // Listen for auth changes - simplified version
+    // Listen for auth changes - simplified version to avoid login timeout
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         // Simple non-blocking auth state update
@@ -118,7 +118,7 @@ export const AuthProvider = ({ children }) => {
     return { data, error }
   }
 
-  // Signup function - will need to merge watchlist after successful signup
+  // Signup function - merge watchlist in background
   const signUp = async (email, password, userData) => {
     const { data, error } = await supabase.auth.signUp({
       email,
@@ -302,7 +302,7 @@ export const AuthProvider = ({ children }) => {
           .from('liked_movies')
           .select(`
             *,
-            movies!inner(
+            celluloid_film_data!inner(
               movie_id,
               movie_title,
               year,
