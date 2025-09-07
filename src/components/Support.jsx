@@ -231,7 +231,7 @@ function Support() {
             maxWidth: '480px',
             width: '100%',
             height: 'auto',
-            margin: '40px auto 20px auto'
+            margin: '35px auto 20px auto'
           }}
         />
 
