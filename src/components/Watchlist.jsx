@@ -196,7 +196,7 @@ function Watchlist() {
         <div key={index} style={{ marginBottom: '8px' }}>
           <strong>Based on {source.source.charAt(0).toUpperCase() + source.source.slice(1)}: </strong>
           {source.source === 'color' ? (
-            <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
               {renderColorSwatch(source.source_value)}
             </span>
           ) : (
@@ -544,17 +544,26 @@ function Watchlist() {
                 value={groupingType}
                 onChange={(e) => setGroupingType(e.target.value)}
                 style={{
-                  padding: '8px 12px',
+                  padding: '8px 16px',
                   border: '2px solid #000',
-                  borderRadius: '4px',
+                  borderRadius: '50px',
                   backgroundColor: '#f6f5f3',
                   fontSize: '16px',
                   fontFamily: 'Arial, sans-serif',
-                  cursor: 'pointer'
+                  cursor: 'pointer',
+                  minWidth: '200px'
                 }}
               >
                 {groupingOptions.map(option => (
-                  <option key={option} value={option}>
+                  <option 
+                    key={option} 
+                    value={option}
+                    style={{
+                      backgroundColor: '#000',
+                      color: '#fff',
+                      padding: '8px'
+                    }}
+                  >
                     {option}
                   </option>
                 ))}
