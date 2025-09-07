@@ -169,6 +169,15 @@ function Watchlist() {
           groupKeys = [count <= 10 ? countWords[count] || `${count} times` : `${count} times`]
           break
 
+        case 'Watch Status':
+          // Only available for authenticated users
+          if (user) {
+            groupKeys = [movie.watched ? 'Watched' : 'Unwatched']
+          } else {
+            groupKeys = ['Unwatched'] // Anonymous users can't mark movies as watched
+          }
+          break
+
         default:
           groupKeys = ['All']
       }
