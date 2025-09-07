@@ -97,12 +97,14 @@ function Watchlist() {
           return
 
         case 'Depicted Decade':
-          groupKeys = [movie.movies.depicted_decade || 'Unknown']
+          const movieData = user ? movie.movies : movie.celluloid_film_data
+          groupKeys = [movieData.depicted_decade || 'Unknown']
           break
 
         case 'Release Decade':
-          if (movie.movies.year) {
-            const decade = Math.floor(movie.movies.year / 10) * 10
+          const movieData2 = user ? movie.movies : movie.celluloid_film_data
+          if (movieData2.year) {
+            const decade = Math.floor(movieData2.year / 10) * 10
             groupKeys = [`${decade}s`]
           } else {
             groupKeys = ['Unknown']

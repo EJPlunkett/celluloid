@@ -358,7 +358,7 @@ export const AuthProvider = ({ children }) => {
 
         // Fetch movie details separately
         const { data: movieDetails, error: moviesError } = await supabase
-          .from('movies')
+          .from('celluloid_film_data')
           .select('movie_id, movie_title, year, aesthetic_summary, synopsis, depicted_decade, letterboxd_link')
           .in('movie_id', movieIds)
 
