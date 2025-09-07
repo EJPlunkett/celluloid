@@ -256,7 +256,7 @@ function Terms() {
         }}>
           <li style={{ marginBottom: '8px' }}>You retain ownership of your watchlists and saved preferences.</li>
           <li style={{ marginBottom: '8px' }}>Access to certain features, including the size or number of watchlists you can store, may depend on your account type or subscription plan.</li>
-          <li style={{ marginBottom: '8px' }}>By saving content in the Service, you grant a limited license to store, display, and process that content solely to operate the Service.</li>
+          <li style={{ marginBottom: '8px' }}>You retain ownership of your content. By saving content in the Service, you grant us a limited license to store, display, and process it solely to operate and improve the Service.</li>
         </ul>
 
         <h2 style={{
@@ -274,7 +274,7 @@ function Terms() {
           margin: '0 0 15px 0',
           color: '#000'
         }}>
-          Some movie recommendations, descriptions, or aesthetic matches provided through the Service are generated in whole or in part by artificial intelligence ("AI") systems. AI outputs may contain inaccuracies, omissions, or subjective interpretations. You should not rely solely on these outputs for factual accuracy, and you acknowledge that use of AI-generated content is at your own risk.
+          Some recommendations and matches provided through the Service are generated with the assistance of artificial intelligence (“AI”). The AI is used to analyze aesthetics, colors, and patterns across films to suggest possible connections. Because AI processes can be imperfect, results may not always reflect intended matches. You acknowledge that recommendations are provided for discovery purposes and should not be relied on as definitive or factual information.
         </p>
 
         <h2 style={{
