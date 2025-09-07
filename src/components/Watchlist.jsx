@@ -341,7 +341,8 @@ function Watchlist() {
                   color: '#000',
                   textDecoration: 'none',
                   fontWeight: 'bold',
-                  fontSize: '14px'
+                  fontSize: '14px',
+                  marginBottom: '12px'
                 }}
                 onMouseEnter={(e) => e.target.style.textDecoration = 'underline'}
                 onMouseLeave={(e) => e.target.style.textDecoration = 'none'}
@@ -351,36 +352,55 @@ function Watchlist() {
             )}
 
             {user && (
-              <label style={{
+              <div style={{
                 display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
-                cursor: 'pointer',
-                fontSize: '14px',
-                fontWeight: 'bold'
+                justifyContent: 'space-between',
+                alignItems: 'center'
               }}>
-                <input
-                  type="checkbox"
-                  checked={movie.watched || false}
-                  onChange={(e) => {
+                <label style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  cursor: 'pointer',
+                  fontSize: '14px',
+                  fontWeight: 'bold'
+                }}>
+                  <input
+                    type="checkbox"
+                    checked={movie.watched || false}
+                    onChange={(e) => {
+                      e.stopPropagation()
+                      handleWatchedToggle(movieId, movie.watched)
+                    }}
+                    style={{
+                      cursor: 'pointer',
+                      accentColor: '#000'
+                    }}
+                  />
+                  Watched
+                </label>
+                
+                <button
+                  onClick={(e) => {
                     e.stopPropagation()
-                    handleWatchedToggle(movieId, movie.watched)
+                    handleRemoveMovie(movieId)
                   }}
                   style={{
+                    background: 'none',
+                    border: 'none',
                     cursor: 'pointer',
-                    accentColor: '#000'
+                    color: '#000',
+                    fontSize: '14px',
+                    padding: 0,
+                    fontWeight: 'bold'
                   }}
-                />
-                Watched
-              </label>
+                >
+                  ✖ Remove
+                </button>
+              </div>
             )}
-            
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px'
-            }}>
-              <div style={{ width: '16px' }}></div>
+
+            {!user && (
               <button
                 onClick={(e) => {
                   e.stopPropagation()
@@ -399,7 +419,7 @@ function Watchlist() {
               >
                 ✖ Remove
               </button>
-            </div>
+            )}
           </div>
         </div>
       </li>
