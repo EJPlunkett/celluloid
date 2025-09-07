@@ -111,21 +111,20 @@ export const AuthProvider = ({ children }) => {
     return () => subscription.unsubscribe()
   }, [])
 
-  // Login function - will need to merge watchlist after successful login
+  // Login function - merge watchlist in background
   const signIn = async (email, password) => {
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password
     })
     
-    // If login successful, trigger watchlist merge
+    // If login successful, trigger watchlist merge in background (don't await)
     if (data.user && sessionId) {
-      try {
-        await mergeAnonymousWatchlist(data.user.id, sessionId)
-      } catch (mergeError) {
-        console.error('Error merging anonymous watchlist:', mergeError)
-        // Don't fail the login, just log the error
-      }
+      // Run merge in background without blocking the login
+      mergeAnonymousWatchlist(data.user.id, sessionId).catch(mergeError => {
+        console.error('Error merging anonymous watchlist (non-blocking):', mergeError)
+        // Merge failed but login succeeded - user can still use the app
+      })
     }
     
     return { data, error }
@@ -162,14 +161,13 @@ export const AuthProvider = ({ children }) => {
         console.error('Error creating profile:', profileError)
       }
 
-      // Trigger watchlist merge if we have a session
+      // Trigger watchlist merge in background if we have a session
       if (sessionId) {
-        try {
-          await mergeAnonymousWatchlist(data.user.id, sessionId)
-        } catch (mergeError) {
-          console.error('Error merging anonymous watchlist:', mergeError)
-          // Don't fail the signup, just log the error
-        }
+        // Run merge in background without blocking the signup
+        mergeAnonymousWatchlist(data.user.id, sessionId).catch(mergeError => {
+          console.error('Error merging anonymous watchlist (non-blocking):', mergeError)
+          // Merge failed but signup succeeded
+        })
       }
     }
     
