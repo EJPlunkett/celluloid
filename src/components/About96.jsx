@@ -125,19 +125,6 @@ function About() {
             <em>Celluloid by Design</em> is a platform for discovering film through its aesthetics. Instead of relying on genre or storyline, movies here are catalogued by the qualities that define how they look: their colors, their settings, and their atmosphere. By organizing film through these elements, the site creates a different way of exploring cinema, one that makes aesthetic connections visible and usable.
           </p>
 
-          <p style={{
-            fontWeight: 300,
-            fontSize: '16px',
-            lineHeight: 1.6,
-            margin: '0 0 20px 0',
-            padding: 0,
-            whiteSpace: 'pre-wrap',
-            color: '#000',
-            textAlign: 'center'
-          }}>
-            For now, the journey begins only with New York City films, a landscape that has shaped cinematic style for decades.
-          </p>
-
           <img 
             src="/Portrait.png" 
             alt="Emily Plunkett" 
