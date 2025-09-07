@@ -379,9 +379,11 @@ export const AuthProvider = ({ children }) => {
           const movieData = movieDetails.find(movie => movie.movie_id === item.movie_id)
           const itemSources = sources.filter(source => source.movie_id === item.movie_id)
           
+          console.log(`Merging item ${item.movie_id}:`, { item, movieData, itemSources })
+          
           return {
             ...item,
-            movies: movieData,
+            celluloid_film_data: movieData,
             anon_watchlist_sources: itemSources
           }
         })
