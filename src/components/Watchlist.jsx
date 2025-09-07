@@ -78,6 +78,15 @@ function Watchlist() {
     })
   }
 
+  // Helper functions to handle different data structures
+  const getMovieId = (movie) => {
+    return user ? movie.movies.movie_id : movie.celluloid_film_data.movie_id
+  }
+
+  const getMovieData = (movie) => {
+    return user ? movie.movies : movie.celluloid_film_data
+  }
+
   // Group movies based on selected grouping type
   const groupMovies = (movies, type) => {
     const groups = {}
@@ -97,12 +106,12 @@ function Watchlist() {
           return
 
         case 'Depicted Decade':
-          const movieData = user ? movie.movies : movie.celluloid_film_data
+          const movieData = getMovieData(movie)
           groupKeys = [movieData.depicted_decade || 'Unknown']
           break
 
         case 'Release Decade':
-          const movieData2 = user ? movie.movies : movie.celluloid_film_data
+          const movieData2 = getMovieData(movie)
           if (movieData2.year) {
             const decade = Math.floor(movieData2.year / 10) * 10
             groupKeys = [`${decade}s`]
@@ -182,7 +191,7 @@ function Watchlist() {
         <div style={{ marginBottom: '8px' }}>
           <strong>Based on {source.source.charAt(0).toUpperCase() + source.source.slice(1)}: </strong>
           {source.source === 'color' ? (
-            <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
               {renderColorSwatch(source.source_value)}
             </span>
           ) : (
@@ -209,14 +218,14 @@ function Watchlist() {
   }
 
   const renderMovieItem = (movie) => {
-    const isExpanded = expandedMovies.has(movie.movies.movie_id)
-    const movieData = movie.movies
+    const isExpanded = expandedMovies.has(getMovieId(movie))
+    const movieData = getMovieData(movie)
     
     return (
-      <li key={`${movie.movies.movie_id}-${movie.currentSource?.source || 'all'}`} 
+      <li key={`${getMovieId(movie)}-${movie.currentSource?.source || 'all'}`} 
           style={{ marginBottom: '15px', background: 'transparent', transition: 'all 0.3s ease' }}>
         <div 
-          onClick={() => toggleMovie(movie.movies.movie_id)}
+          onClick={() => toggleMovie(getMovieId(movie))}
           style={{
             display: 'flex',
             alignItems: 'center',
@@ -238,7 +247,7 @@ function Watchlist() {
             transform: isExpanded ? 'rotate(90deg)' : 'rotate(0deg)'
           }}></div>
           <span style={{ fontWeight: 500, color: '#000', marginRight: '8px' }}>
-            {isExpanded ? '▼' : '▶'} {movieData.movie_title}
+            {movieData.movie_title}
           </span>
           <span style={{ color: '#666', fontWeight: 'normal' }}>({movieData.year})</span>
         </div>
@@ -270,8 +279,8 @@ function Watchlist() {
 
           <div style={{ 
             display: 'flex', 
-            alignItems: 'center', 
-            gap: '15px', 
+            flexDirection: 'column',
+            gap: '8px', 
             marginTop: '12px',
             fontSize: '14px'
           }}>
@@ -279,14 +288,16 @@ function Watchlist() {
               <button
                 onClick={(e) => {
                   e.stopPropagation()
-                  handleWatchedToggle(movie.movies.movie_id, movie.watched)
+                  handleWatchedToggle(getMovieId(movie), movie.watched)
                 }}
                 style={{
                   background: 'none',
                   border: 'none',
                   cursor: 'pointer',
                   color: movie.watched ? '#22c55e' : '#666',
-                  fontSize: '14px'
+                  fontSize: '14px',
+                  textAlign: 'left',
+                  padding: 0
                 }}
               >
                 ✔ Watched
@@ -296,14 +307,16 @@ function Watchlist() {
             <button
               onClick={(e) => {
                 e.stopPropagation()
-                handleRemoveMovie(movie.movies.movie_id)
+                handleRemoveMovie(getMovieId(movie))
               }}
               style={{
                 background: 'none',
                 border: 'none',
                 cursor: 'pointer',
-                color: '#ef4444',
-                fontSize: '14px'
+                color: '#000',
+                fontSize: '14px',
+                textAlign: 'left',
+                padding: 0
               }}
             >
               ✖ Remove
