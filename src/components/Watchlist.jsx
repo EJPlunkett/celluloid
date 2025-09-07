@@ -19,7 +19,8 @@ function Watchlist() {
     'Depicted Decade', 
     'Release Decade',
     'Match Month',
-    'Match Count'
+    'Match Count',
+    'Watch Status'
   ]
 
   useEffect(() => {
@@ -692,7 +693,8 @@ function Watchlist() {
                   padding: '8px 16px',
                   border: '2px solid #000',
                   borderRadius: '50px',
-                  backgroundColor: '#f6f5f3',
+                  backgroundColor: '#000',
+                  color: '#f6f5f3',
                   fontSize: '16px',
                   fontFamily: 'Arial, sans-serif',
                   cursor: 'pointer',
