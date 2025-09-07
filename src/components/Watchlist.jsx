@@ -292,44 +292,6 @@ function Watchlist() {
             marginTop: '12px',
             fontSize: '14px'
           }}>
-            {user && (
-              <button
-                onClick={(e) => {
-                  e.stopPropagation()
-                  handleWatchedToggle(getMovieId(movie), movie.watched)
-                }}
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  cursor: 'pointer',
-                  color: movie.watched ? '#22c55e' : '#666',
-                  fontSize: '14px',
-                  textAlign: 'left',
-                  padding: 0
-                }}
-              >
-                ✔ Watched
-              </button>
-            )}
-            
-            <button
-              onClick={(e) => {
-                e.stopPropagation()
-                handleRemoveMovie(getMovieId(movie))
-              }}
-              style={{
-                background: 'none',
-                border: 'none',
-                cursor: 'pointer',
-                color: '#000',
-                fontSize: '14px',
-                textAlign: 'left',
-                padding: 0
-              }}
-            >
-              ✖ Remove
-            </button>
-            
             {movieData.letterboxd_link && (
               <a
                 href={movieData.letterboxd_link}
@@ -348,6 +310,46 @@ function Watchlist() {
                 Letterboxd
               </a>
             )}
+
+            {user && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation()
+                  handleWatchedToggle(getMovieId(movie), movie.watched)
+                }}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  color: movie.watched ? '#22c55e' : '#666',
+                  fontSize: '14px',
+                  textAlign: 'left',
+                  padding: 0,
+                  fontWeight: 'bold'
+                }}
+              >
+                ✔ Watched
+              </button>
+            )}
+            
+            <button
+              onClick={(e) => {
+                e.stopPropagation()
+                handleRemoveMovie(getMovieId(movie))
+              }}
+              style={{
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                color: '#000',
+                fontSize: '14px',
+                textAlign: 'left',
+                padding: 0,
+                fontWeight: 'bold'
+              }}
+            >
+              ✖ Remove
+            </button>
           </div>
         </div>
       </li>
