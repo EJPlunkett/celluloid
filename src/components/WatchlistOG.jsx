@@ -29,20 +29,12 @@ function Watchlist() {
   const loadWatchlist = async () => {
     try {
       setLoading(true)
-      setError(null)
-      
-      // Add a small delay after login to allow merge to complete
-      if (user) {
-        await new Promise(resolve => setTimeout(resolve, 500))
-      }
-      
       const data = await fetchWatchlist()
-      console.log('Watchlist data loaded:', data)
-      setWatchlistData(data || [])
+      setWatchlistData(data)
+      setError(null)
     } catch (err) {
       setError('Failed to load watchlist')
-      console.error('Error loading watchlist:', err)
-      setWatchlistData([])
+      console.error(err)
     } finally {
       setLoading(false)
     }
@@ -86,54 +78,39 @@ function Watchlist() {
     })
   }
 
-  // Fixed helper functions to handle data structures consistently
+  // Helper functions to handle different data structures
   const getMovieId = (movie) => {
-    if (!movie) return null
-    return movie.celluloid_film_data?.movie_id || movie.movie_id || null
+    if (user) {
+      return movie.movies.movie_id
+    } else {
+      return movie.celluloid_film_data ? movie.celluloid_film_data.movie_id : movie.movie_id
+    }
   }
 
   const getMovieData = (movie) => {
-    if (!movie) return {}
-    return movie.celluloid_film_data || {}
-  }
-
-  const getSources = (movie) => {
-    if (!movie) return []
-    return user ? (movie.liked_movie_sources || []) : (movie.anon_watchlist_sources || [])
+    if (user) {
+      return movie.movies
+    } else {
+      return movie.celluloid_film_data || {}
+    }
   }
 
   // Group movies based on selected grouping type
   const groupMovies = (movies, type) => {
-    if (!movies || movies.length === 0) return {}
-    
     const groups = {}
 
     movies.forEach(movie => {
-      // Skip movies without valid data
-      if (!movie || !getMovieId(movie)) {
-        console.warn('Skipping invalid movie:', movie)
-        return
-      }
-
       let groupKeys = []
       
       switch (type) {
         case 'Input Type':
           // For Input Type, movie can appear in multiple groups
-          const sources = getSources(movie)
-          if (sources.length === 0) {
-            // If no sources, put in "Unknown" group
-            if (!groups['Unknown']) groups['Unknown'] = []
-            groups['Unknown'].push({ ...movie, currentSource: null })
-          } else {
-            sources.forEach(source => {
-              const key = source.source ? 
-                source.source.charAt(0).toUpperCase() + source.source.slice(1) : 
-                'Unknown'
-              if (!groups[key]) groups[key] = []
-              groups[key].push({ ...movie, currentSource: source })
-            })
-          }
+          const sources = user ? movie.liked_movie_sources : movie.anon_watchlist_sources
+          sources.forEach(source => {
+            const key = source.source.charAt(0).toUpperCase() + source.source.slice(1)
+            if (!groups[key]) groups[key] = []
+            groups[key].push({ ...movie, currentSource: source })
+          })
           return
 
         case 'Depicted Decade':
@@ -153,20 +130,16 @@ function Watchlist() {
 
         case 'Match Month':
           const date = new Date(movie.first_liked_at)
-          if (isNaN(date.getTime())) {
-            groupKeys = ['Unknown']
-          } else {
-            const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
-                               'July', 'August', 'September', 'October', 'November', 'December']
-            const year = date.getFullYear()
-            groupKeys = [`${monthNames[date.getMonth()]} ${year}`]
-          }
+          const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
+                             'July', 'August', 'September', 'October', 'November', 'December']
+          const year = date.getFullYear()
+          groupKeys = [`${monthNames[date.getMonth()]} ${year}`]
           break
 
         case 'Match Count':
-          const count = movie.like_count || 1
+          const count = movie.like_count
           const countWords = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten']
-          groupKeys = [count <= 10 ? countWords[count] || `${count} times` : `${count} times`]
+          groupKeys = [count <= 10 ? countWords[count] : `${count} times`]
           break
 
         default:
@@ -176,8 +149,8 @@ function Watchlist() {
       groupKeys.forEach(key => {
         if (!groups[key]) groups[key] = []
         // For non-Input Type groupings, include all sources
-        const allSources = getSources(movie)
-        groups[key].push({ ...movie, allSources })
+        const sources = user ? movie.liked_movie_sources : movie.anon_watchlist_sources
+        groups[key].push({ ...movie, allSources: sources })
       })
     })
 
@@ -185,11 +158,9 @@ function Watchlist() {
   }
 
   const renderColorSwatch = (hexCode) => {
-    if (!hexCode) return null
-    
     // Handle multiple colors separated by commas
     if (hexCode.includes(',')) {
-      const colors = hexCode.split(',').map(c => c.trim()).filter(Boolean)
+      const colors = hexCode.split(',').map(c => c.trim())
       return (
         <div style={{ display: 'flex', gap: '2px' }}>
           {colors.map((color, index) => (
@@ -222,34 +193,32 @@ function Watchlist() {
   }
 
   const renderBasedOn = (movie, groupingType) => {
-    if (!movie) return null
-
     if (groupingType === 'Input Type' && movie.currentSource) {
       // For Input Type grouping, show only the current source
       const source = movie.currentSource
       return (
         <div style={{ marginBottom: '8px' }}>
-          <strong>Based on {source.source ? source.source.charAt(0).toUpperCase() + source.source.slice(1) : 'Unknown'}: </strong>
-          {source.source === 'color' && source.source_value ? (
+          <strong>Based on {source.source.charAt(0).toUpperCase() + source.source.slice(1)}: </strong>
+          {source.source === 'color' ? (
             <span style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
               {renderColorSwatch(source.source_value)}
             </span>
           ) : (
-            <span>"{source.source_value || 'Unknown'}"</span>
+            <span>"{source.source_value}"</span>
           )}
         </div>
       )
-    } else if (movie.allSources && movie.allSources.length > 0) {
+    } else if (movie.allSources) {
       // For other groupings, show all sources
       return movie.allSources.map((source, index) => (
         <div key={index} style={{ marginBottom: '8px' }}>
-          <strong>Based on {source.source ? source.source.charAt(0).toUpperCase() + source.source.slice(1) : 'Unknown'}: </strong>
-          {source.source === 'color' && source.source_value ? (
+          <strong>Based on {source.source.charAt(0).toUpperCase() + source.source.slice(1)}: </strong>
+          {source.source === 'color' ? (
             <span style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
               {renderColorSwatch(source.source_value)}
             </span>
           ) : (
-            <span>"{source.source_value || 'Unknown'}"</span>
+            <span>"{source.source_value}"</span>
           )}
         </div>
       ))
@@ -258,19 +227,14 @@ function Watchlist() {
   }
 
   const renderMovieItem = (movie) => {
-    if (!movie) return null
-    
-    const movieId = getMovieId(movie)
-    if (!movieId) return null
-    
-    const isExpanded = expandedMovies.has(movieId)
+    const isExpanded = expandedMovies.has(getMovieId(movie))
     const movieData = getMovieData(movie)
     
     return (
-      <li key={`${movieId}-${movie.currentSource?.source || 'all'}`} 
+      <li key={`${getMovieId(movie)}-${movie.currentSource?.source || 'all'}`} 
           style={{ marginBottom: '15px', background: 'transparent', transition: 'all 0.3s ease' }}>
         <div 
-          onClick={() => toggleMovie(movieId)}
+          onClick={() => toggleMovie(getMovieId(movie))}
           style={{
             display: 'flex',
             alignItems: 'center',
@@ -292,11 +256,9 @@ function Watchlist() {
             transform: isExpanded ? 'rotate(90deg)' : 'rotate(0deg)'
           }}></div>
           <span style={{ fontWeight: 500, color: '#000', marginRight: '8px' }}>
-            {movieData.movie_title || 'Unknown Title'}
+            {movieData.movie_title}
           </span>
-          <span style={{ color: '#666', fontWeight: 'normal' }}>
-            ({movieData.year || 'Unknown Year'})
-          </span>
+          <span style={{ color: '#666', fontWeight: 'normal' }}>({movieData.year})</span>
         </div>
 
         <div style={{
@@ -354,7 +316,7 @@ function Watchlist() {
               <button
                 onClick={(e) => {
                   e.stopPropagation()
-                  handleWatchedToggle(movieId, movie.watched)
+                  handleWatchedToggle(getMovieId(movie), movie.watched)
                 }}
                 style={{
                   background: 'none',
@@ -374,7 +336,7 @@ function Watchlist() {
             <button
               onClick={(e) => {
                 e.stopPropagation()
-                handleRemoveMovie(movieId)
+                handleRemoveMovie(getMovieId(movie))
               }}
               style={{
                 background: 'none',
@@ -414,9 +376,6 @@ function Watchlist() {
       
       case 'Match Month':
         return entries.sort(([a], [b]) => {
-          if (a === 'Unknown') return 1
-          if (b === 'Unknown') return -1
-          
           const parseMonthYear = (str) => {
             const parts = str.split(' ')
             const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
@@ -698,7 +657,7 @@ function Watchlist() {
                   paddingLeft: 0,
                   margin: 0
                 }}>
-                  {movies.map(renderMovieItem).filter(Boolean)}
+                  {movies.map(renderMovieItem)}
                 </ul>
               </div>
             ))}

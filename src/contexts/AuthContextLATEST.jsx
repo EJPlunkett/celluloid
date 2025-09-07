@@ -30,7 +30,6 @@ export const AuthProvider = ({ children }) => {
       localStorage.setItem('celluloid_session_id', storedSessionId)
     }
     setSessionId(storedSessionId)
-    return storedSessionId
   }
 
   // Fetch user profile data
@@ -82,35 +81,23 @@ export const AuthProvider = ({ children }) => {
 
     getSession()
 
-    // Listen for auth changes - enhanced to handle profile fetching
+    // Listen for auth changes - simplified version to avoid login timeout
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        console.log('Auth state change:', event, session?.user?.id)
-        
+      (event, session) => {
+        // Simple non-blocking auth state update
         setUser(session?.user ?? null)
+        setLoading(false)
         
-        // Handle different auth events
-        if (event === 'SIGNED_IN' && session?.user) {
-          // Fetch profile when user signs in
-          const profileData = await fetchProfile(session.user.id)
-          setProfile(profileData)
-        } else if (event === 'SIGNED_OUT') {
+        // Handle logout
+        if (event === 'SIGNED_OUT') {
           setProfile(null)
           initializeSession()
-        } else if (event === 'TOKEN_REFRESHED' && session?.user) {
-          // Ensure profile is still loaded after token refresh
-          if (!profile) {
-            const profileData = await fetchProfile(session.user.id)
-            setProfile(profileData)
-          }
         }
-        
-        setLoading(false)
       }
     )
 
     return () => subscription.unsubscribe()
-  }, [profile]) // Added profile to dependency array
+  }, [])
 
   // Login function - merge watchlist in background
   const signIn = async (email, password) => {
@@ -306,8 +293,8 @@ export const AuthProvider = ({ children }) => {
     }
   }
 
-  // Fetch watchlist data with retry logic
-  const fetchWatchlist = async (retryCount = 0) => {
+  // Fetch watchlist data
+  const fetchWatchlist = async () => {
     try {
       if (user) {
         // Fetch authenticated user's watchlist
@@ -333,16 +320,11 @@ export const AuthProvider = ({ children }) => {
           .eq('user_id', user.id)
 
         if (error) throw error
-        return data || []
+        return data
       } else {
         // Fetch anonymous user's watchlist
         const currentSessionId = sessionId || localStorage.getItem('celluloid_session_id')
         console.log('Fetching watchlist for session:', currentSessionId)
-        
-        if (!currentSessionId) {
-          console.log('No session ID available')
-          return []
-        }
         
         // First get the watchlist items
         const { data: watchlistItems, error: watchlistError } = await supabase
@@ -380,8 +362,8 @@ export const AuthProvider = ({ children }) => {
 
         // Merge everything together
         const mergedData = watchlistItems.map(item => {
-          const movieData = movieDetails?.find(movie => movie.movie_id === item.movie_id)
-          const itemSources = sources?.filter(source => source.movie_id === item.movie_id) || []
+          const movieData = movieDetails.find(movie => movie.movie_id === item.movie_id)
+          const itemSources = sources.filter(source => source.movie_id === item.movie_id)
           
           console.log(`Merging item ${item.movie_id}:`, { item, movieData, itemSources })
           
@@ -397,14 +379,6 @@ export const AuthProvider = ({ children }) => {
       }
     } catch (error) {
       console.error('Error fetching watchlist:', error)
-      
-      // If we're a logged-in user and this might be a merge timing issue, retry once
-      if (user && retryCount === 0) {
-        console.log('Retrying fetchWatchlist for logged-in user...')
-        await new Promise(resolve => setTimeout(resolve, 1000))
-        return fetchWatchlist(1)
-      }
-      
       throw error
     }
   }
@@ -490,124 +464,102 @@ export const AuthProvider = ({ children }) => {
     }
   }
 
-  // Merge anonymous watchlist into user account with better error handling
+  // Merge anonymous watchlist into user account
   const mergeAnonymousWatchlist = async (userId, sessionId) => {
-    try {
-      console.log('Starting merge for user:', userId, 'session:', sessionId)
-      
-      // Get anonymous watchlist items
-      const { data: anonItems, error: anonItemsError } = await supabase
-        .from('anon_watchlist_items')
+    // Get anonymous watchlist items
+    const { data: anonItems, error: anonItemsError } = await supabase
+      .from('anon_watchlist_items')
+      .select('*')
+      .eq('session_id', sessionId)
+
+    if (anonItemsError) throw anonItemsError
+
+    // Get anonymous watchlist sources
+    const { data: anonSources, error: anonSourcesError } = await supabase
+      .from('anon_watchlist_sources')
+      .select('*')
+      .eq('session_id', sessionId)
+
+    if (anonSourcesError) throw anonSourcesError
+
+    // Process each anonymous item
+    for (const anonItem of anonItems) {
+      // Check if user already has this movie
+      const { data: existingLike, error: existingError } = await supabase
+        .from('liked_movies')
         .select('*')
-        .eq('session_id', sessionId)
+        .eq('user_id', userId)
+        .eq('movie_id', anonItem.movie_id)
+        .single()
 
-      if (anonItemsError) throw anonItemsError
-
-      // Get anonymous watchlist sources
-      const { data: anonSources, error: anonSourcesError } = await supabase
-        .from('anon_watchlist_sources')
-        .select('*')
-        .eq('session_id', sessionId)
-
-      if (anonSourcesError) throw anonSourcesError
-
-      console.log('Anonymous data to merge:', { 
-        items: anonItems?.length || 0, 
-        sources: anonSources?.length || 0 
-      })
-
-      if (!anonItems || anonItems.length === 0) {
-        console.log('No anonymous items to merge')
-        return
+      if (existingError && existingError.code !== 'PGRST116') {
+        throw existingError
       }
 
-      // Process each anonymous item
-      for (const anonItem of anonItems) {
-        try {
-          // Check if user already has this movie
-          const { data: existingLike, error: existingError } = await supabase
-            .from('liked_movies')
-            .select('*')
-            .eq('user_id', userId)
-            .eq('movie_id', anonItem.movie_id)
-            .single()
+      let likeId
 
-          if (existingError && existingError.code !== 'PGRST116') {
-            throw existingError
-          }
+      if (existingLike) {
+        // Update existing entry with merged data
+        const { data: updatedLike, error: updateError } = await supabase
+          .from('liked_movies')
+          .update({
+            like_count: existingLike.like_count + anonItem.like_count,
+            first_liked_at: new Date(Math.min(
+              new Date(existingLike.first_liked_at),
+              new Date(anonItem.first_liked_at)
+            )).toISOString(),
+            last_liked_at: new Date(Math.max(
+              new Date(existingLike.last_liked_at),
+              new Date(anonItem.last_liked_at)
+            )).toISOString()
+          })
+          .eq('id', existingLike.id)
+          .select()
+          .single()
 
-          let likeId
+        if (updateError) throw updateError
+        likeId = existingLike.id
+      } else {
+        // Create new entry
+        const { data: newLike, error: newError } = await supabase
+          .from('liked_movies')
+          .insert({
+            user_id: userId,
+            movie_id: anonItem.movie_id,
+            like_count: anonItem.like_count,
+            first_liked_at: anonItem.first_liked_at,
+            last_liked_at: anonItem.last_liked_at,
+            status: anonItem.status
+          })
+          .select()
+          .single()
 
-          if (existingLike) {
-            // Update existing entry with merged data
-            const { data: updatedLike, error: updateError } = await supabase
-              .from('liked_movies')
-              .update({
-                like_count: existingLike.like_count + anonItem.like_count,
-                first_liked_at: new Date(Math.min(
-                  new Date(existingLike.first_liked_at),
-                  new Date(anonItem.first_liked_at)
-                )).toISOString(),
-                last_liked_at: new Date(Math.max(
-                  new Date(existingLike.last_liked_at),
-                  new Date(anonItem.last_liked_at)
-                )).toISOString()
-              })
-              .eq('id', existingLike.id)
-              .select()
-              .single()
-
-            if (updateError) throw updateError
-            likeId = existingLike.id
-          } else {
-            // Create new entry
-            const { data: newLike, error: newError } = await supabase
-              .from('liked_movies')
-              .insert({
-                user_id: userId,
-                movie_id: anonItem.movie_id,
-                like_count: anonItem.like_count,
-                first_liked_at: anonItem.first_liked_at,
-                last_liked_at: anonItem.last_liked_at,
-                status: anonItem.status
-              })
-              .select()
-              .single()
-
-            if (newError) throw newError
-            likeId = newLike.id
-          }
-
-          // Migrate sources for this movie
-          const movieSources = anonSources?.filter(source => source.movie_id === anonItem.movie_id) || []
-          for (const source of movieSources) {
-            await supabase
-              .from('liked_movie_sources')
-              .upsert({
-                like_id: likeId,
-                source: source.source,
-                source_value: source.source_value,
-                created_at: source.created_at
-              }, {
-                onConflict: 'like_id,source,source_value',
-                ignoreDuplicates: true
-              })
-          }
-        } catch (itemError) {
-          console.error('Error merging item:', anonItem.movie_id, itemError)
-          // Continue with other items even if one fails
-        }
+        if (newError) throw newError
+        likeId = newLike.id
       }
 
-      // Clean up anonymous data
-      await supabase.from('anon_watchlist_sources').delete().eq('session_id', sessionId)
-      await supabase.from('anon_watchlist_items').delete().eq('session_id', sessionId)
-
-      console.log('Anonymous watchlist merged successfully')
-    } catch (error) {
-      console.error('Error in mergeAnonymousWatchlist:', error)
-      throw error
+      // Migrate sources for this movie
+      const movieSources = anonSources.filter(source => source.movie_id === anonItem.movie_id)
+      for (const source of movieSources) {
+        await supabase
+          .from('liked_movie_sources')
+          .upsert({
+            like_id: likeId,
+            source: source.source,
+            source_value: source.source_value,
+            created_at: source.created_at
+          }, {
+            onConflict: 'like_id,source,source_value',
+            ignoreDuplicates: true
+          })
+      }
     }
+
+    // Clean up anonymous data
+    await supabase.from('anon_watchlist_sources').delete().eq('session_id', sessionId)
+    await supabase.from('anon_watchlist_items').delete().eq('session_id', sessionId)
+
+    console.log('Anonymous watchlist merged successfully')
   }
 
   const value = {
