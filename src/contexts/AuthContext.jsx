@@ -82,35 +82,23 @@ export const AuthProvider = ({ children }) => {
 
     getSession()
 
-    // Listen for auth changes - enhanced to handle profile fetching
+    // Simplified auth listener - no profile fetching to avoid loops
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
+      (event, session) => {
         console.log('Auth state change:', event, session?.user?.id)
-        
         setUser(session?.user ?? null)
+        setLoading(false)
         
-        // Handle different auth events
-        if (event === 'SIGNED_IN' && session?.user) {
-          // Fetch profile when user signs in
-          const profileData = await fetchProfile(session.user.id)
-          setProfile(profileData)
-        } else if (event === 'SIGNED_OUT') {
+        // Handle logout
+        if (event === 'SIGNED_OUT') {
           setProfile(null)
           initializeSession()
-        } else if (event === 'TOKEN_REFRESHED' && session?.user) {
-          // Ensure profile is still loaded after token refresh
-          if (!profile) {
-            const profileData = await fetchProfile(session.user.id)
-            setProfile(profileData)
-          }
         }
-        
-        setLoading(false)
       }
     )
 
     return () => subscription.unsubscribe()
-  }, [profile]) // Added profile to dependency array
+  }, []) // Removed profile from dependency array
 
   // Login function - merge watchlist in background
   const signIn = async (email, password) => {
@@ -119,13 +107,19 @@ export const AuthProvider = ({ children }) => {
       password
     })
     
-    // If login successful, trigger watchlist merge in background (don't await)
-    if (data.user && sessionId) {
-      // Run merge in background without blocking the login
-      mergeAnonymousWatchlist(data.user.id, sessionId).catch(mergeError => {
-        console.error('Error merging anonymous watchlist (non-blocking):', mergeError)
-        // Merge failed but login succeeded - user can still use the app
-      })
+    // Fetch profile manually after login
+    if (data.user && !error) {
+      const profileData = await fetchProfile(data.user.id)
+      setProfile(profileData)
+      
+      // If login successful, trigger watchlist merge in background (don't await)
+      if (sessionId) {
+        // Run merge in background without blocking the login
+        mergeAnonymousWatchlist(data.user.id, sessionId).catch(mergeError => {
+          console.error('Error merging anonymous watchlist (non-blocking):', mergeError)
+          // Merge failed but login succeeded - user can still use the app
+        })
+      }
     }
     
     return { data, error }
@@ -157,6 +151,15 @@ export const AuthProvider = ({ children }) => {
         
         if (profileError) {
           console.error('Error creating profile:', profileError)
+        } else {
+          // Set profile in state
+          setProfile({
+            user_id: data.user.id,
+            email: email,
+            first_name: userData.firstName,
+            last_name: userData.lastName,
+            watching_region: userData.watchingRegion
+          })
         }
       } catch (profileError) {
         console.error('Error creating profile:', profileError)
@@ -306,8 +309,8 @@ export const AuthProvider = ({ children }) => {
     }
   }
 
-  // Fetch watchlist data with retry logic
-  const fetchWatchlist = async (retryCount = 0) => {
+  // Fetch watchlist data - simplified version
+  const fetchWatchlist = async () => {
     try {
       if (user) {
         // Fetch authenticated user's watchlist
@@ -397,14 +400,6 @@ export const AuthProvider = ({ children }) => {
       }
     } catch (error) {
       console.error('Error fetching watchlist:', error)
-      
-      // If we're a logged-in user and this might be a merge timing issue, retry once
-      if (user && retryCount === 0) {
-        console.log('Retrying fetchWatchlist for logged-in user...')
-        await new Promise(resolve => setTimeout(resolve, 1000))
-        return fetchWatchlist(1)
-      }
-      
       throw error
     }
   }
@@ -490,7 +485,7 @@ export const AuthProvider = ({ children }) => {
     }
   }
 
-  // Merge anonymous watchlist into user account with better error handling
+  // Merge anonymous watchlist into user account
   const mergeAnonymousWatchlist = async (userId, sessionId) => {
     try {
       console.log('Starting merge for user:', userId, 'session:', sessionId)
