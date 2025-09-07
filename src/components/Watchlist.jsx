@@ -132,7 +132,8 @@ function Watchlist() {
           const date = new Date(movie.first_liked_at)
           const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
                              'July', 'August', 'September', 'October', 'November', 'December']
-          groupKeys = [monthNames[date.getMonth()]]
+          const year = date.getFullYear()
+          groupKeys = [`${monthNames[date.getMonth()]} ${year}`]
           break
 
         case 'Match Count':
@@ -357,6 +358,46 @@ function Watchlist() {
   }
 
   const groupedMovies = groupMovies(watchlistData, groupingType)
+
+  // Sort grouped movies by key for certain grouping types  
+  const sortedGroupEntries = (() => {
+    const entries = Object.entries(groupedMovies)
+    
+    switch (groupingType) {
+      case 'Depicted Decade':
+      case 'Release Decade':
+        return entries.sort(([a], [b]) => {
+          if (a === 'Unknown') return 1
+          if (b === 'Unknown') return -1
+          const decadeA = parseInt(a.replace('s', ''))
+          const decadeB = parseInt(b.replace('s', ''))
+          return decadeA - decadeB
+        })
+      
+      case 'Match Month':
+        return entries.sort(([a], [b]) => {
+          const parseMonthYear = (str) => {
+            const parts = str.split(' ')
+            const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
+                               'July', 'August', 'September', 'October', 'November', 'December']
+            const month = monthNames.indexOf(parts[0])
+            const year = parseInt(parts[1])
+            return { year, month }
+          }
+          
+          const dateA = parseMonthYear(a)
+          const dateB = parseMonthYear(b)
+          
+          if (dateA.year !== dateB.year) {
+            return dateA.year - dateB.year
+          }
+          return dateA.month - dateB.month
+        })
+      
+      default:
+        return entries
+    }
+  })()
 
   if (loading) {
     return (
