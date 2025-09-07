@@ -121,7 +121,7 @@ function About() {
             color: '#000',
             textAlign: 'center'
           }}>
-            <em>Celluloid by Design</em> is a platform for discovering film through its aesthetics. Instead of relying on genre or storyline, movies here are catalogued by the qualities that define how they look: their colors, their settings, and their atmosphere. For now, the archive focuses only on New York City films, a landscape that has shaped cinematic style for decades, and by organizing them through these elements, the site creates a different way of exploring cinema, one that makes aesthetic connections visible and usable.
+            <em>Celluloid by Design</em> is a platform for discovering film through its aesthetics. Instead of relying on genre or storyline, movies here are catalogued by the qualities that define how they look: their colors, their settings, and their atmosphere. The archive begins with New York City films, a landscape that has shaped cinematic style for decades. By organizing them through these elements, the site offers a new way of exploring cinema, making aesthetic connections visible and usable.
           </p>
 
           <img 
