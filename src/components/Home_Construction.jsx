@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
-function Home() {
+function Home_Construction() {
   const navigate = useNavigate()
   const [isExpanded, setIsExpanded] = useState(false)
 
@@ -43,7 +43,6 @@ function Home() {
           }}
         />
         
-        {/* First text block - slides up when expanded */}
         <div style={{
           overflow: 'hidden',
           transition: 'all 0.6s cubic-bezier(0.4, 0, 0.2, 1)',
@@ -62,7 +61,6 @@ function Home() {
           </p>
         </div>
 
-        {/* Pulsing arrow */}
         <div 
           onClick={handleArrowClick}
           style={{
@@ -80,7 +78,6 @@ function Home() {
           aria-hidden="true"
         />
 
-        {/* Second text block - slides in when expanded */}
         <div style={{
           overflow: 'hidden',
           transition: 'all 0.6s cubic-bezier(0.4, 0, 0.2, 1)',
@@ -149,7 +146,6 @@ function Home() {
         </span>
       </footer>
 
-      {/* CSS for pulse animation */}
       <style dangerouslySetInnerHTML={{
         __html: `
           @keyframes pulse {
