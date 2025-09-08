@@ -179,6 +179,13 @@ function Home_Construction() {
 
       <style dangerouslySetInnerHTML={{
         __html: `
+          @font-face {
+            font-family: 'BLANKA';
+            src: url('/BLANKA.otf') format('opentype');
+            font-weight: normal;
+            font-style: normal;
+          }
+          
           @keyframes strongPulse {
             0%, 100% {
               opacity: 0.9;
