@@ -101,7 +101,8 @@ function Home_Construction() {
             transition: 'opacity 1s ease-in-out',
             marginTop: '-40px',
             marginBottom: '40px',
-            fontWeight: 300,
+            fontFamily: 'BLANKA, Arial, sans-serif',
+            fontWeight: 'normal',
             letterSpacing: '0.5px'
           }}>
             Continue
