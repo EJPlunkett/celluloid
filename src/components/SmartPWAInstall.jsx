@@ -4,6 +4,7 @@ import { useDeviceDetection } from '../hooks/useDeviceDetection';
 const SmartPWAInstall = () => {
   const [deferredPrompt, setDeferredPrompt] = useState(null);
   const [isDismissed, setIsDismissed] = useState(false);
+  const [showBanner, setShowBanner] = useState(false);
   const deviceInfo = useDeviceDetection();
 
   useEffect(() => {
@@ -19,13 +20,20 @@ const SmartPWAInstall = () => {
       return;
     }
 
+    // Show banner immediately for mobile devices
+    if (deviceInfo.canInstallPWA) {
+      setShowBanner(true);
+    }
+
     const handleBeforeInstallPrompt = (e) => {
       e.preventDefault();
       setDeferredPrompt(e);
+      setShowBanner(true);
     };
 
     const handleAppInstalled = () => {
       setDeferredPrompt(null);
+      setShowBanner(false);
     };
 
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
@@ -39,19 +47,33 @@ const SmartPWAInstall = () => {
 
   const handleDismiss = () => {
     setIsDismissed(true);
+    setShowBanner(false);
     localStorage.setItem('pwa-banner-dismissed', 'true');
   };
 
   const handleInstall = async () => {
-    if (!deferredPrompt) return;
+    if (!deferredPrompt) {
+      // If no browser prompt available, show manual instructions
+      if (deviceInfo.isIOS && deviceInfo.isSafari) {
+        alert('To install: Tap the Share button below, then "Add to Home Screen"');
+      } else if (deviceInfo.isIOS) {
+        alert('To install: Open this site in Safari, tap Share, then "Add to Home Screen"');
+      } else {
+        alert('To install: Look for the install icon in your browser or browser menu');
+      }
+      return;
+    }
 
     deferredPrompt.prompt();
     const { outcome } = await deferredPrompt.userChoice;
     setDeferredPrompt(null);
+    if (outcome === 'accepted') {
+      setShowBanner(false);
+    }
   };
 
-  // Only show if we have a working install prompt AND user hasn't dismissed it
-  if (isDismissed || !deferredPrompt) {
+  // Show if banner is enabled, user hasn't dismissed it, and device can install PWA
+  if (isDismissed || !showBanner || !deviceInfo.canInstallPWA) {
     return null;
   }
 
@@ -77,15 +99,22 @@ const SmartPWAInstall = () => {
           width: '24px', 
           height: '24px', 
           backgroundColor: '#F6F5F3',
-          borderRadius: '4px',
+          borderRadius: '6px',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          color: '#000',
-          fontSize: '12px',
-          fontWeight: 'bold'
+          overflow: 'hidden'
         }}>
-          CD
+          <img 
+            src="/icons/icon-72x72.png" 
+            alt="Celluloid by Design" 
+            style={{
+              width: '20px',
+              height: '20px',
+              objectFit: 'contain',
+              borderRadius: '4px'
+            }}
+          />
         </div>
         <div>
           <div style={{ fontWeight: '600', marginBottom: '2px' }}>
