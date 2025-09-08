@@ -99,7 +99,7 @@ function Home_Construction() {
             textAlign: 'center',
             opacity: showContinue ? 0.6 : 0,
             transition: 'opacity 1s ease-in-out',
-            marginTop: '-40px',
+            marginTop: '-30px',
             marginBottom: '40px',
             fontFamily: 'BLANKA, Arial, sans-serif',
             fontWeight: 'normal',
