@@ -1,167 +1,19 @@
-import React, { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import React from 'react'
 
 function Home() {
-  const navigate = useNavigate()
-  const [isExpanded, setIsExpanded] = useState(false)
-
-  const handleGoClick = () => {
-    navigate('/match')
-  }
-
-  const handleArrowClick = () => {
-    setIsExpanded(!isExpanded)
-  }
-
   return (
-    <div style={{
-      margin: 0,
-      padding: 0,
-      backgroundColor: '#f6f5f3',
-      color: '#000',
-      fontFamily: 'Arial, sans-serif',
-      display: 'flex',
-      flexDirection: 'column',
+    <div style={{ 
+      backgroundColor: '#f6f5f3', 
       minHeight: '100vh',
-      justifyContent: 'space-between'
+      padding: '20px',
+      textAlign: 'center'
     }}>
-      <div style={{
-        maxWidth: '480px',
-        margin: '40px auto 20px',
-        padding: '0 20px',
-        textAlign: 'center'
-      }}>
-        <img 
-          src="/Header Logo.png" 
-          alt="Celluloid by Design Logo" 
-          style={{
-            display: 'block',
-            maxWidth: '480px',
-            width: '100%',
-            height: 'auto',
-            margin: '25px auto 10px auto'
-          }}
-        />
-        
-        {/* First text block - slides up when expanded */}
-        <div style={{
-          overflow: 'hidden',
-          transition: 'all 0.6s cubic-bezier(0.4, 0, 0.2, 1)',
-          transform: isExpanded ? 'translateY(-100%)' : 'translateY(0)',
-          opacity: isExpanded ? 0 : 1,
-          marginBottom: isExpanded ? '-60px' : '60px'
-        }}>
-          <p style={{
-            fontWeight: 300,
-            fontSize: '16px',
-            lineHeight: 1.6,
-            color: '#000',
-            margin: 0
-          }}>
-            Celluloid by Design is a new way of discovering film, matching you with movies through their visual language. Cinema is explored not by plot or genre, but through aesthetics: the colors that flood a scene, the design that frames it, and the spaces it inhabits. These elements become the thread that ties films together and guides you toward recommendations curated by design.
-          </p>
-        </div>
-
-        {/* Pulsing arrow */}
-        <div 
-          onClick={handleArrowClick}
-          style={{
-            width: '16px',
-            height: '16px',
-            borderBottom: '2px solid #000',
-            borderRight: '2px solid #000',
-            transform: isExpanded ? 'rotate(225deg)' : 'rotate(45deg)',
-            margin: '0 auto 40px',
-            cursor: 'pointer',
-            transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
-            animation: isExpanded ? 'none' : 'pulse 2s infinite',
-            opacity: 0.8,
-          }}
-          aria-hidden="true"
-        />
-
-        {/* Second text block - slides in when expanded */}
-        <div style={{
-          overflow: 'hidden',
-          transition: 'all 0.6s cubic-bezier(0.4, 0, 0.2, 1)',
-          transform: isExpanded ? 'translateY(0)' : 'translateY(100%)',
-          opacity: isExpanded ? 1 : 0,
-          marginBottom: isExpanded ? '40px' : '-60px',
-          height: isExpanded ? 'auto' : '0'
-        }}>
-          <p style={{
-            fontWeight: 300,
-            fontSize: '16px',
-            lineHeight: 1.6,
-            color: '#000',
-            margin: 0,
-            marginBottom: '40px'
-          }}>
-            The journey begins with New York City, a place whose onscreen design has shaped decades of film. Lofts filled with art, streets pulsing with steam and sirens, and subways lined with orange and yellow seats have carved out entire genres. Together, they make the city a living character in cinema, shifting through time yet always unmistakably New York.
-          </p>
-          
-          <button
-            onClick={handleGoClick}
-            style={{
-              display: 'block',
-              width: 'fit-content',
-              maxWidth: '190px',
-              height: '40px',
-              margin: '0 auto',
-              textAlign: 'center',
-              background: 'transparent',
-              border: 'none',
-              cursor: 'pointer',
-              padding: 0,
-              transition: 'transform 0.2s ease',
-            }}
-            onMouseOver={(e) => e.target.style.transform = 'scale(1.05)'}
-            onMouseOut={(e) => e.target.style.transform = 'scale(1)'}
-          >
-            <img 
-              src="/give-it-a-go-button.png" 
-              alt="Give It a Go Button" 
-              style={{
-                height: '100%',
-                width: 'auto',
-                display: 'block'
-              }}
-            />
-          </button>
-        </div>
-      </div>
-      
-      <footer style={{
-        fontSize: '14px',
-        color: '#000',
-        textAlign: 'center',
-        margin: '40px 20px 20px',
-        userSelect: 'none'
-      }}>
-        © 2025 Celluloid by Design<br />
-        <span style={{
-          marginTop: '8px',
-          fontStyle: 'italic',
-          color: '#000',
-          display: 'inline-block'
-        }}>
-          Conceptualized and crafted by Emily Plunkett
-        </span>
-      </footer>
-
-      {/* CSS for pulse animation */}
-      <style dangerouslySetInnerHTML={{
-        __html: `
-          @keyframes pulse {
-            0%, 100% {
-              opacity: 0.8;
-            }
-            50% {
-              opacity: 0.3;
-            }
-          }
-        `
-      }} />
+      <h1>HOME PAGE IS LOADING!</h1>
+      <img 
+        src="/Header Logo.png" 
+        alt="Test" 
+        style={{ maxWidth: '300px', display: 'block', margin: '20px auto' }}
+      />
     </div>
   )
 }
