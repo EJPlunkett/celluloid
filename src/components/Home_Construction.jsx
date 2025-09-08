@@ -166,7 +166,7 @@ function Home_Construction() {
         margin: '40px 20px 20px',
         userSelect: 'none'
       }}>
-        © 2025 Celluloid by Design<br />
+        © 2025 Celluloid by Design <span style={{ opacity: 0.5, fontStyle: 'normal' }}>(BETA)</span><br />
         <span style={{
           marginTop: '8px',
           fontStyle: 'italic',
