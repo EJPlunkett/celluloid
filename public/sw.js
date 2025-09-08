@@ -42,38 +42,40 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
-// Fetch event - serve cached content when offline
+// Fetch event - network-first strategy
 self.addEventListener('fetch', (event) => {
   event.respondWith(
-    caches.match(event.request)
+    fetch(event.request)
       .then((response) => {
-        // Return cached version if available
-        if (response) {
-          return response;
-        }
-        
-        return fetch(event.request).then((response) => {
-          // Check if we received a valid response
-          if (!response || response.status !== 200 || response.type !== 'basic') {
-            return response;
-          }
-
-          // Clone the response
+        // If we got a valid response, cache it and return it
+        if (response && response.status === 200 && response.type === 'basic') {
           const responseToCache = response.clone();
-
+          
           caches.open(CACHE_NAME)
             .then((cache) => {
               cache.put(event.request, responseToCache);
             });
-
-          return response;
-        });
+        }
+        
+        return response;
       })
       .catch(() => {
-        // If both cache and network fail, show offline page
-        if (event.request.destination === 'document') {
-          return caches.match('/');
-        }
+        // Network failed, try to get from cache
+        return caches.match(event.request)
+          .then((cachedResponse) => {
+            if (cachedResponse) {
+              return cachedResponse;
+            }
+            
+            // If both network and cache fail, and it's a document request,
+            // return the cached homepage as fallback
+            if (event.request.destination === 'document') {
+              return caches.match('/');
+            }
+            
+            // For other types of requests, just fail
+            throw new Error('No cached content available');
+          });
       })
   );
 });
