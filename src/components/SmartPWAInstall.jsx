@@ -3,7 +3,6 @@ import { useDeviceDetection } from '../hooks/useDeviceDetection';
 
 const SmartPWAInstall = () => {
   const [deferredPrompt, setDeferredPrompt] = useState(null);
-  const [showBanner, setShowBanner] = useState(false);
   const [isDismissed, setIsDismissed] = useState(false);
   const deviceInfo = useDeviceDetection();
 
@@ -23,40 +22,36 @@ const SmartPWAInstall = () => {
     const handleBeforeInstallPrompt = (e) => {
       e.preventDefault();
       setDeferredPrompt(e);
-      setShowBanner(true);
     };
 
-    // Only show on devices that can actually install
-    if (deviceInfo.canInstallPWA || deviceInfo.isIOS) {
-      // Show after a delay to not be jarring
-      setTimeout(() => {
-        setShowBanner(true);
-      }, 3000);
-    }
+    const handleAppInstalled = () => {
+      setDeferredPrompt(null);
+    };
 
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    window.addEventListener('appinstalled', handleAppInstalled);
 
     return () => {
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+      window.removeEventListener('appinstalled', handleAppInstalled);
     };
   }, [deviceInfo]);
 
   const handleDismiss = () => {
     setIsDismissed(true);
-    setShowBanner(false);
     localStorage.setItem('pwa-banner-dismissed', 'true');
   };
 
   const handleInstall = async () => {
-    if (deferredPrompt) {
-      deferredPrompt.prompt();
-      const { outcome } = await deferredPrompt.userChoice;
-      setDeferredPrompt(null);
-    }
-    setShowBanner(false);
+    if (!deferredPrompt) return;
+
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    setDeferredPrompt(null);
   };
 
-  if (isDismissed || !showBanner) {
+  // Only show if we have a working install prompt AND user hasn't dismissed it
+  if (isDismissed || !deferredPrompt) {
     return null;
   }
 
@@ -66,27 +61,27 @@ const SmartPWAInstall = () => {
       bottom: 0,
       left: 0,
       right: 0,
-      backgroundColor: '#F6F5F3',
-      borderTop: '1px solid #000',
+      backgroundColor: '#000',
+      borderTop: '1px solid #F6F5F3',
       padding: '15px 20px',
       display: 'flex',
       justifyContent: 'space-between',
       alignItems: 'center',
       fontSize: '14px',
-      color: '#333',
+      color: '#F6F5F3',
       zIndex: 1000,
-      boxShadow: '0 -2px 10px rgba(0,0,0,0.1)'
+      boxShadow: '0 -2px 10px rgba(0,0,0,0.3)'
     }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
         <div style={{ 
           width: '24px', 
           height: '24px', 
-          backgroundColor: '#000',
+          backgroundColor: '#F6F5F3',
           borderRadius: '4px',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          color: 'white',
+          color: '#000',
           fontSize: '12px',
           fontWeight: 'bold'
         }}>
@@ -96,30 +91,28 @@ const SmartPWAInstall = () => {
           <div style={{ fontWeight: '600', marginBottom: '2px' }}>
             Install Celluloid by Design
           </div>
-          <div style={{ fontSize: '12px', color: '#666' }}>
-            Get the full film discovery experience
+          <div style={{ fontSize: '12px', color: '#ccc' }}>
+            Film, filtered by aesthetics. Build your own archive.
           </div>
         </div>
       </div>
       
       <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-        {deferredPrompt && (
-          <button
-            onClick={handleInstall}
-            style={{
-              backgroundColor: '#000',
-              color: '#F6F5F3',
-              border: 'none',
-              padding: '8px 16px',
-              borderRadius: '4px',
-              fontSize: '13px',
-              fontWeight: '600',
-              cursor: 'pointer'
-            }}
-          >
-            Install
-          </button>
-        )}
+        <button
+          onClick={handleInstall}
+          style={{
+            backgroundColor: '#F6F5F3',
+            color: '#000',
+            border: 'none',
+            padding: '8px 16px',
+            borderRadius: '4px',
+            fontSize: '13px',
+            fontWeight: '600',
+            cursor: 'pointer'
+          }}
+        >
+          Install
+        </button>
         
         <button
           onClick={handleDismiss}
@@ -128,7 +121,7 @@ const SmartPWAInstall = () => {
             border: 'none',
             fontSize: '18px',
             cursor: 'pointer',
-            color: '#666',
+            color: '#ccc',
             padding: '4px'
           }}
         >

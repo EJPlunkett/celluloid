@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { AuthProvider } from './contexts/AuthContext'
 import Home_Construction from './components/Home_Construction'
+import Home from './components/Home'
 import Match from './components/Match'
 import About from './components/About'
 import Color from './components/Color'
@@ -26,6 +27,7 @@ function App() {
         <SmartPWAInstall />
         <Routes>
           <Route path="/" element={<Home_Construction />} />
+          <Route path="/home" element={<Home />} />
           <Route path="/match" element={<Match />} />
           <Route path="/about" element={<About />} />
           <Route path="/color" element={<Color />} />
