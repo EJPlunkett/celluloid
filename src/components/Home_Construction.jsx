@@ -27,9 +27,10 @@ function Home_Construction() {
     }}>
       <div style={{
         maxWidth: '480px',
-        margin: '40px auto 20px',
+        margin: isExpanded ? '20px auto 20px' : '40px auto 20px',
         padding: '0 20px',
-        textAlign: 'center'
+        textAlign: 'center',
+        transition: 'margin 0.6s cubic-bezier(0.4, 0, 0.2, 1)'
       }}>
         <img 
           src="/Header Logo.png" 
@@ -64,16 +65,16 @@ function Home_Construction() {
         <div 
           onClick={handleArrowClick}
           style={{
-            width: '16px',
-            height: '16px',
-            borderBottom: '2px solid #000',
-            borderRight: '2px solid #000',
+            width: '24px',
+            height: '24px',
+            borderBottom: '3px solid #000',
+            borderRight: '3px solid #000',
             transform: isExpanded ? 'rotate(225deg)' : 'rotate(45deg)',
-            margin: '0 auto 40px',
+            margin: '0 auto 50px',
             cursor: 'pointer',
             transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
             animation: isExpanded ? 'none' : 'pulse 2s infinite',
-            opacity: 0.8,
+            opacity: 0.9,
           }}
           aria-hidden="true"
         />
@@ -150,7 +151,7 @@ function Home_Construction() {
         __html: `
           @keyframes pulse {
             0%, 100% {
-              opacity: 0.8;
+              opacity: 0.9;
             }
             50% {
               opacity: 0.3;
