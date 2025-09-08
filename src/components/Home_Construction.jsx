@@ -1,9 +1,10 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 function Home_Construction() {
   const navigate = useNavigate()
   const [isExpanded, setIsExpanded] = useState(false)
+  const [showContinue, setShowContinue] = useState(false)
 
   const handleGoClick = () => {
     navigate('/match')
@@ -11,7 +12,18 @@ function Home_Construction() {
 
   const handleArrowClick = () => {
     setIsExpanded(!isExpanded)
+    setShowContinue(false) // Hide continue text when clicked
   }
+
+  // Show continue text after 4 seconds
+  useEffect(() => {
+    if (!isExpanded) {
+      const timer = setTimeout(() => {
+        setShowContinue(true)
+      }, 4000)
+      return () => clearTimeout(timer)
+    }
+  }, [isExpanded])
 
   return (
     <div style={{
@@ -65,19 +77,36 @@ function Home_Construction() {
         <div 
           onClick={handleArrowClick}
           style={{
-            width: '24px',
-            height: '24px',
+            width: '28px',
+            height: '28px',
             borderBottom: '3px solid #000',
             borderRight: '3px solid #000',
             transform: isExpanded ? 'rotate(225deg)' : 'rotate(45deg)',
             margin: isExpanded ? '0 auto 5px' : '0 auto 50px',
             cursor: 'pointer',
             transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
-            animation: isExpanded ? 'none' : 'pulse 2s infinite',
+            animation: isExpanded ? 'none' : 'strongPulse 2s infinite',
             opacity: 0.9,
           }}
           aria-hidden="true"
         />
+
+        {/* Continue text that appears after 4 seconds */}
+        {!isExpanded && (
+          <div style={{
+            fontSize: '12px',
+            color: '#000',
+            textAlign: 'center',
+            opacity: showContinue ? 0.6 : 0,
+            transition: 'opacity 1s ease-in-out',
+            marginTop: '-40px',
+            marginBottom: '40px',
+            fontWeight: 300,
+            letterSpacing: '0.5px'
+          }}>
+            Continue
+          </div>
+        )}
 
         <div style={{
           overflow: 'hidden',
