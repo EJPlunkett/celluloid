@@ -52,7 +52,7 @@ function Home_Construction() {
             maxWidth: '480px',
             width: '100%',
             height: 'auto',
-            margin: '25px auto 10px auto'
+            margin: '25px auto 20px auto'
           }}
         />
         
