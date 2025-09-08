@@ -149,12 +149,12 @@ function Home_Construction() {
 
       <style dangerouslySetInnerHTML={{
         __html: `
-          @keyframes pulse {
+          @keyframes strongPulse {
             0%, 100% {
               opacity: 0.9;
             }
             50% {
-              opacity: 0.3;
+              opacity: 0.2;
             }
           }
         `
