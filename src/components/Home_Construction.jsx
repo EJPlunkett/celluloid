@@ -49,7 +49,7 @@ function Home_Construction() {
           transition: 'all 0.6s cubic-bezier(0.4, 0, 0.2, 1)',
           transform: isExpanded ? 'translateY(-100%)' : 'translateY(0)',
           opacity: isExpanded ? 0 : 1,
-          marginBottom: isExpanded ? '-120px' : '60px'
+          marginBottom: isExpanded ? '-140px' : '60px'
         }}>
           <p style={{
             fontWeight: 300,
