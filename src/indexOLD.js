@@ -3,7 +3,6 @@ import ReactDOM from 'react-dom/client';
 import './index.css';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
-import * as serviceWorkerRegistration from './serviceWorkerRegistration';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
@@ -11,17 +10,6 @@ root.render(
     <App />
   </React.StrictMode>
 );
-
-// Register the service worker
-serviceWorkerRegistration.register({
-  onSuccess: (registration) => {
-    console.log('PWA installed successfully!');
-  },
-  onUpdate: (registration) => {
-    console.log('New version available!');
-    // You can add custom logic here to notify users about updates
-  },
-});
 
 // If you want to start measuring performance in your app, pass a function
 // to log results (for example: reportWebVitals(console.log))
