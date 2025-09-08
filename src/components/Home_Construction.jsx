@@ -27,9 +27,10 @@ function Home_Construction() {
     }}>
       <div style={{
         maxWidth: '480px',
-        margin: '40px auto 20px',
+        margin: isExpanded ? '10px auto 20px' : '40px auto 20px',
         padding: '0 20px',
-        textAlign: 'center'
+        textAlign: 'center',
+        transition: 'margin 0.6s cubic-bezier(0.4, 0, 0.2, 1)'
       }}>
         <img 
           src="/Header Logo.png" 
@@ -69,7 +70,7 @@ function Home_Construction() {
             borderBottom: '3px solid #000',
             borderRight: '3px solid #000',
             transform: isExpanded ? 'rotate(225deg)' : 'rotate(45deg)',
-            margin: isExpanded ? '0 auto 10px' : '0 auto 50px',
+            margin: isExpanded ? '0 auto 5px' : '0 auto 50px',
             cursor: 'pointer',
             transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
             animation: isExpanded ? 'none' : 'pulse 2s infinite',
