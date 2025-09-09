@@ -173,8 +173,8 @@ function Watchlist() {
           break
 
         case 'Match Count':
-          const sources = getSources(movie)
-          const count = sources.length || 1
+          const movieSources = getSources(movie)
+          const count = movieSources.length || 1
           const countWords = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten']
           groupKeys = [count <= 10 ? countWords[count] || `${count} times` : `${count} times`]
           break
