@@ -409,7 +409,7 @@ function Words() {
         {/* Word List */}
         <ul style={{
           maxWidth: '480px',
-          margin: '0 auto 30px auto',
+          margin: '0 auto 15px auto',
           paddingLeft: 0,
           listStyle: 'none',
           display: 'flex',
@@ -464,6 +464,16 @@ function Words() {
             )
           })}
         </ul>
+
+        <p style={{
+          fontSize: '14px',
+          color: '#999',
+          margin: '10px 0 15px 0',
+          fontStyle: 'italic',
+          textAlign: 'center'
+        }}>
+          Still in BETA. Recommendations are finding rhythm.
+        </p>
 
         <button
           onClick={handleSubmit}
