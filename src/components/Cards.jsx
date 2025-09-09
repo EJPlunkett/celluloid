@@ -17,6 +17,7 @@ function Cards() {
   const [showSynopsis, setShowSynopsis] = useState(false)
   const [loading, setLoading] = useState(false)
   const [addingToWatchlist, setAddingToWatchlist] = useState(false)
+  const [showHint, setShowHint] = useState(true)
   const cardStackRef = useRef(null)
   const location = useLocation()
   const navigation = useNavigation()
@@ -189,6 +190,21 @@ function Cards() {
     }
   }, [currentIndex, movies, maxCards])
 
+  // Hide hint after first card or after 4 seconds
+  useEffect(() => {
+    if (currentIndex > 0) {
+      setShowHint(false)
+    }
+  }, [currentIndex])
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setShowHint(false)
+    }, 4000)
+    
+    return () => clearTimeout(timer)
+  }, [])
+
   const toggleNav = () => {
     setNavOpen(!navOpen)
   }
@@ -296,6 +312,8 @@ function Cards() {
     e.stopPropagation()
     console.log('FLIP BUTTON CLICKED - showSynopsis before:', showSynopsis)
     setShowSynopsis(prev => !prev)
+    // Hide hint when user interacts with flip button
+    setShowHint(false)
   }
 
   const jigglePopcorn = (e) => {
@@ -359,6 +377,24 @@ function Cards() {
       top: 0,
       left: 0
     }}>
+      <style>{`
+        @font-face {
+          font-family: 'Blanka';
+          src: url('/BLANKA.otf') format('opentype');
+          font-weight: normal;
+          font-style: normal;
+        }
+        
+        @keyframes pulse {
+          0%, 100% { opacity: 0.8; transform: scale(1); }
+          50% { opacity: 1; transform: scale(1.05); }
+        }
+        
+        .hint-text {
+          animation: pulse 2s ease-in-out infinite;
+        }
+      `}</style>
+      
       <header style={{
         position: 'fixed',
         top: 0,
@@ -519,6 +555,25 @@ function Cards() {
                 flexShrink: 0,
                 gap: '12px'
               }}>
+                {/* Hint text - only show on first card */}
+                {showHint && currentIndex === 0 && (
+                  <div 
+                    className="hint-text"
+                    style={{
+                      fontFamily: "'Blanka', sans-serif",
+                      fontSize: '12px',
+                      color: '#f6f5f3',
+                      textTransform: 'uppercase',
+                      letterSpacing: '1px',
+                      marginBottom: '4px',
+                      opacity: 0.9,
+                      transition: 'opacity 0.5s ease'
+                    }}
+                  >
+                    SEE SYNOPSIS
+                  </div>
+                )}
+                
                 <button
                   className="flip-button"
                   onClick={toggleFlip}
