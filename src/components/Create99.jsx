@@ -108,21 +108,6 @@ function Create() {
           console.error('Profile creation error:', profileError)
           // Note: User auth was created, so we don't throw here
         }
-
-        // 3. Send welcome email
-        try {
-          await fetch('/.netlify/functions/sendWelcomeEmail', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              email: formData.email,
-              firstName: formData.firstName
-            })
-          })
-          console.log('Welcome email sent successfully')
-        } catch (emailError) {
-          console.error('Failed to send welcome email:', emailError)
-        }
       }
 
       // Navigate to welcome page with user's first name
