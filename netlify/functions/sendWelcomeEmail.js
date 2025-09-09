@@ -51,7 +51,7 @@ const getWelcomeEmailHTML = (firstName) => `
                 <p style="margin: 0 0 20px 0; font-size: 16px;">Hi ${firstName},</p>
                 
                 <p style="margin: 0 0 24px 0; font-size: 17px; font-weight: 500;">
-                  Welcome to <em>Celluloid by Design</em>! You now have a space to build your own film archive shaped around your unique aesthetic preferences.
+                  Welcome to <em>Celluloid by Design</em>! You now have a space to build your own film archive shaped around your unique aesthetic preferences. This is your place to discover films through aesthetics, beginning with New York City cinema.
                 </p>
                 
                 <p style="margin: 0 0 20px 0; font-size: 16px;">Ready to dive in? You can either:</p>
@@ -151,7 +151,7 @@ export const handler = async (event, context) => {
 
     // Send email using Resend
     const emailResult = await resend.emails.send({
-      from: 'hello@celluloidbydesign.com', // Use your verified domain
+      from: 'Emily from Celluloid by Design <hello@celluloidbydesign.com>',
       to: email,
       subject: 'Your film archive starts here 🎬',
       html: getWelcomeEmailHTML(firstName)
