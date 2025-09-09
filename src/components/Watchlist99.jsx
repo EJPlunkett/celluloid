@@ -14,26 +14,18 @@ function Watchlist() {
   const { user, fetchWatchlist, updateWatchedStatus, removeFromWatchlist } = useAuth()
   const navigation = useNavigation()
 
-  // Updated grouping options - conditionally include Watch Status
   const groupingOptions = [
     'Input Type',
     'Depicted Decade', 
     'Release Decade',
     'Match Month',
     'Match Count',
-    ...(user ? ['Watch Status'] : []) // Only include Watch Status for authenticated users
+    'Watch Status'
   ]
 
   useEffect(() => {
     loadWatchlist()
   }, [user])
-
-  // Reset grouping type if user logs out and current selection is Watch Status
-  useEffect(() => {
-    if (!user && groupingType === 'Watch Status') {
-      setGroupingType('Input Type')
-    }
-  }, [user, groupingType])
 
   const loadWatchlist = async () => {
     try {
@@ -173,8 +165,7 @@ function Watchlist() {
           break
 
         case 'Match Count':
-          const sources = getSources(movie)
-          const count = sources.length || 1
+          const count = movie.like_count || 1
           const countWords = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten']
           groupKeys = [count <= 10 ? countWords[count] || `${count} times` : `${count} times`]
           break
