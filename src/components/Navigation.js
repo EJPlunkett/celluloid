@@ -203,8 +203,26 @@ const Navigation = ({ navOpen, setNavOpen }) => {
         ) : user && profile ? (
           // Signed in state
           <>
-            <li style={{ marginBottom: '12px', color: '#000' }}>
-              {profile.first_name} {profile.last_name}
+            <li style={{ marginBottom: '12px' }}>
+              <button 
+                onClick={() => {
+                  navigation.goToWatchlist()
+                  closeNav()
+                }}
+                style={{ 
+                  color: '#000', 
+                  textDecoration: 'none', 
+                  cursor: 'pointer',
+                  background: 'transparent',
+                  border: 'none',
+                  fontSize: '18px',
+                  fontWeight: 400,
+                  padding: 0,
+                  textAlign: 'left'
+                }}
+              >
+                {profile.first_name} {profile.last_name}
+              </button>
             </li>
             <li style={{ marginBottom: '12px' }}>
               <button 
