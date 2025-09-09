@@ -222,7 +222,7 @@ function Vibes() {
             borderRadius: '15px',
             resize: 'vertical',
             boxSizing: 'border-box',
-            marginBottom: '10px',
+            marginBottom: '20px',
             outline: 'none',
             opacity: isLoading ? 0.6 : 1
           }}
@@ -237,16 +237,6 @@ function Vibes() {
             }
           }}
         />
-
-        <p style={{
-          fontSize: '14px',
-          color: '#999',
-          margin: '10px 0 20px 0',
-          fontStyle: 'italic',
-          textAlign: 'center'
-        }}>
-          Still in BETA. Recommendations are finding rhythm.
-        </p>
 
         <button
           onClick={handleSubmit}
@@ -269,7 +259,8 @@ function Vibes() {
             fontSize: isLoading ? '16px' : 'inherit',
             textTransform: isLoading ? 'uppercase' : 'none',
             letterSpacing: isLoading ? '1px' : 'normal',
-            fontWeight: isLoading ? 'normal' : 'inherit'
+            fontWeight: isLoading ? 'normal' : 'inherit',
+            marginTop: '20px'
           }}
         >
           {isLoading ? 'SEARCHING' : (
